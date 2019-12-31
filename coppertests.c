@@ -22,8 +22,12 @@ int TestCopperlistPos(  long *instructions, int pos, long value) {
 void TestCopperList() {
   BuildCopper();
   if( TestCopperlistBatch(  copperlist, 0, clsprites, 16) == 0)
-    Write(Output(), "Sprite section of copper on pos 0 messed up\n", 44);
-  if( TestCopperlistPos( copperlist, 16, 0xfffffffe) == 0)
-    Write(Output(), "Copperlist End not correctly set\n", 32);
+    Write(Output(), "Sprite section of copper starting on pos 0 messed up\n", 
+                                                                           44);
+  if(  TestCopperlistBatch(  copperlist, 16, clscreen, 12) == 0)
+    Write(Output(), "Screen section of copper starting on pos 16 messed up\n",
+                                                                           54);
+  if( TestCopperlistPos( copperlist, 28, 0xfffffffe) == 0)
+    Write(Output(), "Copperlist End not correctly set\n", 31);
     
 }
