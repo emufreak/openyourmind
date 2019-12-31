@@ -19,6 +19,7 @@ int main() {
 
 	KPrintF("Hello debugger from Amiga!\n");
 	Write(Output(), "Hello console!\n", 15);
+  RunTests();
 	Delay(50);
 
 	warpmode(1);
@@ -30,7 +31,6 @@ int main() {
 
 	// DEMO
 	//RunDemo();
-	RunTests();
 
 	// END
 	FreeSystem();
