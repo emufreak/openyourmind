@@ -16,11 +16,14 @@ struct GfxBase *GfxBase;
 void ClBuild();
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
-ULONG CopperList[31];
 UWORD *CopBpl1High;
 UWORD *CopBpl1Low;
+ULONG Copperlist1[31];
+ULONG Copperlist2[31];
 ULONG DrawBuffer;
 ULONG ViewBuffer;
+ULONG *DrawCopper;
+ULONG *ViewCopper;
 
 UWORD SystemInts;
 UWORD SystemDMA;

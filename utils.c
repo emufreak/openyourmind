@@ -51,7 +51,7 @@ ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x0968020, 0x08e2c81, 0x0902cc1,
 
 void ClBuild() {
   ULONG *clinstruction;
-  clinstruction = CopperList;
+  clinstruction = Copperlist1;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
   for(int i=0; i<16;i++)
@@ -72,6 +72,10 @@ void SetBplPointers() {
   
   *CopBpl1Low = lowword;
   *CopBpl1High = highword;
+  
+  ULONG tmp = DrawBuffer;
+  DrawBuffer = ViewBuffer;
+  ViewBuffer = tmp;
 }
 
 void TakeSystem() {
