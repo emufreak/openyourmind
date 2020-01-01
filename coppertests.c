@@ -1,6 +1,5 @@
 #include "coppertests.h"
 #include "utils.h"
-#include "general.h"
 
 //Test a batch of copperlist instructions against a certain position
 int TestCopperlistBatch(  long *instructions, int pos, long *batch, 
@@ -20,14 +19,23 @@ int TestCopperlistPos(  long *instructions, int pos, long value) {
 }
 
 void TestCopperList() {
-  BuildCopper();
-  if( TestCopperlistBatch(  copperlist, 0, clsprites, 16) == 0)
+  ClBuild();
+  if( TestCopperlistBatch(  CopperList, 0, ClsSprites, 16) == 0)
     Write(Output(), "Sprite section of copper starting on pos 0 messed up\n", 
                                                                            44);
-  if(  TestCopperlistBatch(  copperlist, 16, clscreen, 12) == 0)
+  if(  TestCopperlistBatch(  CopperList, 16, ClScreen, 12) == 0)
     Write(Output(), "Screen section of copper starting on pos 16 messed up\n",
                                                                            54);
-  if( TestCopperlistPos( copperlist, 28, 0xfffffffe) == 0)
+  DrawBuffer = 0x40000;
+  SetBplPointers();
+  if(  TestCopperlistPos(  CopperList, 28, 0x00e00004) == 0)
+    Write(Output(), "Problem in Copperlist bpl1ph should be 0004\n", 44);
+  
+  if(  TestCopperlistPos(  CopperList, 29, 0x00e20000) == 0)
+    Write(Output(), 
+             "Problem in Copperlist bpl1pl should be 0000\n", 44);
+
+  if( TestCopperlistPos( CopperList, 30, 0xfffffffe) == 0)
     Write(Output(), "Copperlist End not correctly set\n", 31);
     
 }

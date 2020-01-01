@@ -41,6 +41,39 @@ inline void WaitBlt() {
 	while (*(volatile UWORD*)&hw->dmaconr&(1<<14)) {} //blitter busy wait
 }
 
+ULONG ClsSprites[] = { 0x01200000, 0x01220000,0x01240000,0x01260000, 0x01280000, 
+        0x012a0000, 0x012c0000, 0x012e0000, 0x01300000, 0x01320000, 0x01340000,
+                 0x01360000, 0x01380000, 0x013a0000, 0x013c0000, 0x013e0000  };
+
+ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x0968020, 0x08e2c81, 0x0902cc1,
+          0x0920038, 0x09400d0, 0x01020000, 0x01040000, 0x01080000, 0x010a0000, 
+                                                                  0x01001200 };
+
+void ClBuild() {
+  ULONG *clinstruction;
+  clinstruction = CopperList;
+  ULONG *clpartinstruction;
+  clpartinstruction = ClsSprites;
+  for(int i=0; i<16;i++)
+    *clinstruction++ = *clpartinstruction++;
+  clpartinstruction = ClScreen;
+  for(int i=0; i<12;i++)
+    *clinstruction++ = *clpartinstruction++;
+  CopBpl1High = (long) clinstruction + 2;
+  *clinstruction++ = 0x00e00000;
+  CopBpl1Low = (long) clinstruction + 2;
+  *clinstruction++ = 0x00e20000;
+  *clinstruction = 0xfffffffe;
+}
+
+void SetBplPointers() {
+  UWORD highword = DrawBuffer >> 16;
+  UWORD lowword = DrawBuffer & 0xffff;
+  
+  *CopBpl1Low = lowword;
+  *CopBpl1High = highword;
+}
+
 void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
 	OwnBlitter();

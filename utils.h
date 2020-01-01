@@ -13,7 +13,15 @@ volatile struct Custom *hw;
 struct DosLibrary *DOSBase;
 struct GfxBase *GfxBase;
 
-//backup
+void ClBuild();
+ULONG ClsSprites[16];
+ULONG ClScreen[12];
+ULONG CopperList[31];
+UWORD *CopBpl1High;
+UWORD *CopBpl1Low;
+ULONG DrawBuffer;
+ULONG ViewBuffer;
+
 UWORD SystemInts;
 UWORD SystemDMA;
 UWORD SystemADKCON;

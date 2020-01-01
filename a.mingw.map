@@ -7,8 +7,8 @@ Name             Origin             Length             Attributes
 Linker script and memory map
 
 Address of section .text set to 0x0
-LOAD C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
-LOAD C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+LOAD C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
+LOAD C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
 LOAD obj8mingw/gcc8_a_support.o
                 [!provide]                        PROVIDE (__executable_start = SEGMENT_START ("text-segment", 0x80000000))
                 0x0000000080000074                . = (SEGMENT_START ("text-segment", 0x80000000) + SIZEOF_HEADERS)
@@ -68,31 +68,31 @@ LOAD obj8mingw/gcc8_a_support.o
 .iplt
  *(.iplt)
 
-.text           0x0000000000000000      0x964
+.text           0x0000000000000000      0xa0c
  *(.text.unlikely .text.*_unlikely .text.unlikely.*)
  .text.unlikely
-                0x0000000000000000        0x6 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+                0x0000000000000000        0x6 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
                 0x0000000000000000                _start
  *(.text.exit .text.exit.*)
  *(.text.startup .text.startup.*)
- .text.startup  0x0000000000000006      0x588 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .text.startup  0x0000000000000006      0x614 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
                 0x0000000000000006                main
  *(.text.hot .text.hot.*)
  *(.text .stub .text.* .gnu.linkonce.t.*)
- *fill*         0x000000000000058e        0x2 4e714e71
- .text          0x0000000000000590      0x2c6 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
-                0x00000000000006e0                memcpy
-                0x0000000000000772                memset
-                0x0000000000000842                strlen
- *fill*         0x0000000000000856        0x2 4e714e71
- .text          0x0000000000000858      0x10c obj8mingw/gcc8_a_support.o
-                0x0000000000000858                __mulsi3
-                0x000000000000087a                __udivsi3
-                0x00000000000008d6                __divsi3
-                0x0000000000000900                __modsi3
-                0x0000000000000928                __umodsi3
-                0x0000000000000952                KPutCharX
-                0x0000000000000960                PutChar
+ *fill*         0x000000000000061a        0x2 4e714e71
+ .text          0x000000000000061c      0x2e2 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+                0x0000000000000788                memcpy
+                0x000000000000081a                memset
+                0x00000000000008ea                strlen
+ *fill*         0x00000000000008fe        0x2 4e714e71
+ .text          0x0000000000000900      0x10c obj8mingw/gcc8_a_support.o
+                0x0000000000000900                __mulsi3
+                0x0000000000000922                __udivsi3
+                0x000000000000097e                __divsi3
+                0x00000000000009a8                __modsi3
+                0x00000000000009d0                __umodsi3
+                0x00000000000009fa                KPutCharX
+                0x0000000000000a08                PutChar
  *(.gnu.warning)
 
 .fini
@@ -101,11 +101,11 @@ LOAD obj8mingw/gcc8_a_support.o
                 [!provide]                        PROVIDE (_etext = .)
                 [!provide]                        PROVIDE (etext = .)
 
-.rodata         0x0000000000000964      0x1a1
+.rodata         0x0000000000000a0c      0x1fb
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x0000000000000964      0x1a1 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
-                0x0000000000000964                incbin_colors_start
-                0x00000000000009e4                incbin_colors_end
+ .rodata        0x0000000000000a0c      0x1fb C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+                0x0000000000000a0c                incbin_colors_start
+                0x0000000000000a8c                incbin_colors_end
 
 .rodata1
  *(.rodata1)
@@ -126,7 +126,7 @@ LOAD obj8mingw/gcc8_a_support.o
 
 .exception_ranges
  *(.exception_ranges*)
-                0x0000000000002b05                . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE))
+                0x0000000000002c07                . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE))
 
 .eh_frame
  *(.eh_frame)
@@ -141,7 +141,7 @@ LOAD obj8mingw/gcc8_a_support.o
 .exception_ranges
  *(.exception_ranges*)
 
-.tdata          0x0000000000002b05        0x0
+.tdata          0x0000000000002c07        0x0
                 [!provide]                        PROVIDE (__tdata_start = .)
  *(.tdata .tdata.* .gnu.linkonce.td.*)
 
@@ -149,18 +149,18 @@ LOAD obj8mingw/gcc8_a_support.o
  *(.tbss .tbss.* .gnu.linkonce.tb.*)
  *(.tcommon)
 
-.preinit_array  0x0000000000002b05        0x0
+.preinit_array  0x0000000000002c07        0x0
                 [!provide]                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array)
                 [!provide]                        PROVIDE (__preinit_array_end = .)
 
-.init_array     0x0000000000002b05        0x0
+.init_array     0x0000000000002c07        0x0
                 [!provide]                        PROVIDE (__init_array_start = .)
  *(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*))
  *(.init_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .ctors)
                 [!provide]                        PROVIDE (__init_array_end = .)
 
-.fini_array     0x0000000000002b05        0x0
+.fini_array     0x0000000000002c07        0x0
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*))
  *(.fini_array EXCLUDE_FILE(*crtend?.o *crtend.o *crtbegin?.o *crtbegin.o) .dtors)
@@ -189,7 +189,7 @@ LOAD obj8mingw/gcc8_a_support.o
 
 .dynamic
  *(.dynamic)
-                0x0000000000002b05                . = DATA_SEGMENT_RELRO_END (., 0x0)
+                0x0000000000002c07                . = DATA_SEGMENT_RELRO_END (., 0x0)
 
 .got
  *(.got.plt)
@@ -197,32 +197,32 @@ LOAD obj8mingw/gcc8_a_support.o
  *(.got)
  *(.igot)
 
-.data           0x0000000000002b08       0x70
+.data           0x0000000000002c08       0x70
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x0000000000002b08       0x70 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
- .data          0x0000000000002b78        0x0 obj8mingw/gcc8_a_support.o
+ .data          0x0000000000002c08       0x70 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+ .data          0x0000000000002c78        0x0 obj8mingw/gcc8_a_support.o
 
 .data1
  *(.data1)
-                0x0000000000002b78                _edata = .
+                0x0000000000002c78                _edata = .
                 [!provide]                        PROVIDE (edata = .)
-                0x0000000000002b78                . = .
-                0x0000000000002b78                __bss_start = .
+                0x0000000000002c78                . = .
+                0x0000000000002c78                __bss_start = .
 
-.bss            0x0000000000002b78       0xa8
+.bss            0x0000000000002c78       0xbc
  *(.dynbss)
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x0000000000002b78       0xa6 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
- *fill*         0x0000000000002c1e        0x2 
- .bss           0x0000000000002c20        0x0 obj8mingw/gcc8_a_support.o
+ .bss           0x0000000000002c78       0xba C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+ *fill*         0x0000000000002d32        0x2 
+ .bss           0x0000000000002d34        0x0 obj8mingw/gcc8_a_support.o
  *(COMMON)
-                0x0000000000002c20                . = ALIGN ((. != 0x0)?0x4:0x1)
-                0x0000000000002c20                . = ALIGN (0x4)
-                0x0000000000002c20                . = SEGMENT_START ("ldata-segment", .)
-                0x0000000000002c20                . = ALIGN (0x4)
-                0x0000000000002c20                _end = .
+                0x0000000000002d34                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x0000000000002d34                . = ALIGN (0x4)
+                0x0000000000002d34                . = SEGMENT_START ("ldata-segment", .)
+                0x0000000000002d34                . = ALIGN (0x4)
+                0x0000000000002d34                _end = .
                 [!provide]                        PROVIDE (end = .)
-                0x0000000000002c20                . = DATA_SEGMENT_END (.)
+                0x0000000000002d34                . = DATA_SEGMENT_END (.)
 
 .stab
  *(.stab)
@@ -244,9 +244,9 @@ LOAD obj8mingw/gcc8_a_support.o
 
 .comment        0x0000000000000000       0x11
  *(.comment)
- .comment       0x0000000000000000       0x11 C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
+ .comment       0x0000000000000000       0x11 C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
                                          0x7e (size before relaxing)
- .comment       0x0000000000000011       0x12 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .comment       0x0000000000000011       0x12 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
 
 .gnu.build.attributes
  *(.gnu.build.attributes .gnu.build.attributes.*)
@@ -266,51 +266,51 @@ LOAD obj8mingw/gcc8_a_support.o
 .debug_aranges  0x0000000000000000       0x50
  *(.debug_aranges)
  .debug_aranges
-                0x0000000000000000       0x30 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+                0x0000000000000000       0x30 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
  .debug_aranges
                 0x0000000000000030       0x20 obj8mingw/gcc8_a_support.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x0000000000000000     0xf8e2
+.debug_info     0x0000000000000000     0xfffb
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x0000000000000000     0xe4bb C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
-                0x0000000000000000                utils.c.fa3a3e46
-                0x00000000000038e6                rundemo.c.16c179fd
-                0x0000000000006d0e                main.c.10a0ad78
-                0x000000000000a4f1                runtests.c.1d34cc4f
-                0x000000000000a5e8                coppertests.c.1918f43f
-                0x000000000000dd6f                general.c.0367777e
-                0x000000000000df5d                gcc8_c_support.c.e9862530
- .debug_info    0x000000000000e4bb     0x1401 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
- .debug_info    0x000000000000f8bc       0x26 obj8mingw/gcc8_a_support.o
+ .debug_info    0x0000000000000000     0xe8a2 C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
+                0x0000000000000000                utils.c.1eb82fdd
+                0x0000000000003a30                rundemo.c.1b4ece58
+                0x0000000000006f0c                main.c.c7982b4e
+                0x000000000000a7a3                runtests.c.1d34cc4f
+                0x000000000000a89a                coppertests.c.0c790b0b
+                0x000000000000e25c                general.c.f1e08b76
+                0x000000000000e344                gcc8_c_support.c.e9862530
+ .debug_info    0x000000000000e8a2     0x1733 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+ .debug_info    0x000000000000ffd5       0x26 obj8mingw/gcc8_a_support.o
 
-.debug_abbrev   0x0000000000000000      0xaad
+.debug_abbrev   0x0000000000000000      0xa3f
  *(.debug_abbrev)
- .debug_abbrev  0x0000000000000000      0x934 C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
- .debug_abbrev  0x0000000000000934      0x165 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
- .debug_abbrev  0x0000000000000a99       0x14 obj8mingw/gcc8_a_support.o
+ .debug_abbrev  0x0000000000000000      0x8c6 C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
+ .debug_abbrev  0x00000000000008c6      0x165 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+ .debug_abbrev  0x0000000000000a2b       0x14 obj8mingw/gcc8_a_support.o
 
-.debug_line     0x0000000000000000     0x3069
+.debug_line     0x0000000000000000     0x3345
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000     0x14c7 C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
- .debug_line    0x00000000000014c7     0x1ac3 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
- .debug_line    0x0000000000002f8a       0xdf obj8mingw/gcc8_a_support.o
+ .debug_line    0x0000000000000000     0x146f C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
+ .debug_line    0x000000000000146f     0x1df7 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
+ .debug_line    0x0000000000003266       0xdf obj8mingw/gcc8_a_support.o
 
-.debug_frame    0x0000000000000000      0x224
+.debug_frame    0x0000000000000000      0x234
  *(.debug_frame)
- .debug_frame   0x0000000000000000      0x224 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .debug_frame   0x0000000000000000      0x234 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
 
 .debug_str      0x0000000000000000      0x36e
  *(.debug_str)
- .debug_str     0x0000000000000000      0x2e4 C:\Users\uersu\AppData\Local\Temp\cc1a0bjIdebugobj
- .debug_str     0x00000000000002e4        0x0 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .debug_str     0x0000000000000000      0x2e4 C:\Users\uersu\AppData\Local\Temp\ccfOWL8ddebugobj
+ .debug_str     0x00000000000002e4        0x0 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
  .debug_str     0x00000000000002e4       0x8a obj8mingw/gcc8_a_support.o
 
-.debug_loc      0x0000000000000000      0x94a
+.debug_loc      0x0000000000000000      0xab9
  *(.debug_loc)
- .debug_loc     0x0000000000000000      0x94a C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .debug_loc     0x0000000000000000      0xab9 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -332,7 +332,7 @@ LOAD obj8mingw/gcc8_a_support.o
 
 .debug_ranges   0x0000000000000000      0x110
  *(.debug_ranges)
- .debug_ranges  0x0000000000000000      0x110 C:\Users\uersu\AppData\Local\Temp\ccZMAiUi.ltrans0.ltrans.o
+ .debug_ranges  0x0000000000000000      0x110 C:\Users\uersu\AppData\Local\Temp\cc8Q1tM9.ltrans0.ltrans.o
 
 .debug_macro
  *(.debug_macro)
