@@ -51,7 +51,7 @@ ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x0968020, 0x08e2c81, 0x0902cc1,
 
 void ClBuild() {
   ULONG *clinstruction;
-  clinstruction = Copperlist1;
+  clinstruction = DrawCopper;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
   for(int i=0; i<16;i++)
@@ -78,6 +78,11 @@ void SetBplPointers() {
   ViewBuffer = tmp;
 }
 
+void SwapCl() {
+  ULONG tmp = DrawCopper;
+  DrawCopper = ViewCopper;
+  ViewCopper = tmp;
+}
 void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
 	OwnBlitter();

@@ -25,6 +25,8 @@ ULONG ViewBuffer;
 ULONG *DrawCopper;
 ULONG *ViewCopper;
 
+void SetBplPointers();
+void SwapCl();
 UWORD SystemInts;
 UWORD SystemDMA;
 UWORD SystemADKCON;
