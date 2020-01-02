@@ -49,26 +49,33 @@ ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x0968020, 0x08e2c81, 0x0902cc1,
           0x0920038, 0x09400d0, 0x01020000, 0x01040000, 0x01080000, 0x010a0000, 
                                                                   0x01001200 };
 
-void ClBuild() {
+void ClBuild(  ULONG *cl) {
   ULONG *clinstruction;
-  clinstruction = DrawCopper;
+  //clinstruction = DrawCopper;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
   for(int i=0; i<16;i++)
-    *clinstruction++ = *clpartinstruction++;
+    *cl++ = *clpartinstruction++;
   clpartinstruction = ClScreen;
   for(int i=0; i<12;i++)
-    *clinstruction++ = *clpartinstruction++;
-  CopBpl1High = (long) clinstruction + 2;
-  *clinstruction++ = 0x00e00000;
-  CopBpl1Low = (long) clinstruction + 2;
-  *clinstruction++ = 0x00e20000;
-  *clinstruction = 0xfffffffe;
+    *cl++ = *clpartinstruction++;
+  CopBpl1High = (long) cl + 2;
+  *cl++ = 0x00e00000;
+  CopBpl1Low = (long) cl + 2;
+  *cl++ = 0x00e20000;
+  *cl = 0xfffffffe;
 }
 
+void PrepareDisplay() {
+  ClBuild( Copperlist1);
+  ClBuild( Copperlist2);
+  DrawBuffer = Bitplane1;
+  DrawCopper = Copperlist1;
+
+}
 void SetBplPointers() {
-  UWORD highword = DrawBuffer >> 16;
-  UWORD lowword = DrawBuffer & 0xffff;
+  UWORD highword = (ULONG)DrawBuffer >> 16;
+  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
   
   *CopBpl1Low = lowword;
   *CopBpl1High = highword;

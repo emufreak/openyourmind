@@ -21,14 +21,14 @@ int TestCopperlistPos(  long *instructions, int pos, long value) {
 void TestCopperList() {
   DrawCopper = Copperlist1;
   ViewCopper = Copperlist2;
-  ClBuild();
+  ClBuild( Copperlist1);
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
     Write(Output(), "Sprite section of copper starting on pos 0 messed up\n", 
                                                                             44);
   if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
     Write(Output(), "Screen section of copper starting on pos 16 messed up\n",
                                                                             54);   
-
+  
   DrawBuffer = 0x40000;
   ViewBuffer = 0x50000;
   SetBplPointers();
@@ -50,5 +50,15 @@ void TestCopperList() {
   SwapCl();
   if( DrawCopper != &Copperlist2)
     Write(  Output(), "SwapCl doesn't work.\n", 21);
+  
+  PrepareDisplay();
+  if( DrawBuffer != Bitplane1) 
+    Write( Output(), "DrawBuffer should be set to Bitplane 1 on first frame.\n",
+                                                                            55);
+  if( DrawCopper != Copperlist1) 
+    Write( Output(), 
+              "DrawCopper should be set to Copperlist 1 on first frame.\n", 57);
+
+  
 
 }
