@@ -1,1 +1,2 @@
 void RunDemo();
+void RunFrame();

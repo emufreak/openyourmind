@@ -24,3 +24,8 @@ void RunDemo() {
 	}
 	SetInterruptHandler((APTR)interruptHandler);
 }
+
+void RunFrame() {
+  SetBplPointers();
+  SwapCl();
+}

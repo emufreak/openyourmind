@@ -1,5 +1,8 @@
 #include "utils.h"
 
+int CopBpl1High = 28*2+1;
+int CopBpl1Low = 29*2+1;
+
 APTR GetVBR(void) {
 	APTR vbr = 0;
 	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
@@ -59,9 +62,9 @@ void ClBuild(  ULONG *cl) {
   clpartinstruction = ClScreen;
   for(int i=0; i<12;i++)
     *cl++ = *clpartinstruction++;
-  CopBpl1High = (long) cl + 2;
+  //cl[CopBpl1High] = (long) cl + 2;
   *cl++ = 0x00e00000;
-  CopBpl1Low = (long) cl + 2;
+  //cl[CopBpl1Low] = (long) cl + 2;
   *cl++ = 0x00e20000;
   *cl = 0xfffffffe;
 }
@@ -78,8 +81,9 @@ void SetBplPointers() {
   UWORD highword = (ULONG)DrawBuffer >> 16;
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;
   
-  *CopBpl1Low = lowword;
-  *CopBpl1High = highword;
+  UWORD *copword = DrawCopper;
+  copword[CopBpl1Low] = lowword;
+  copword[CopBpl1High] = highword;
   
   ULONG tmp = DrawBuffer;
   DrawBuffer = ViewBuffer;

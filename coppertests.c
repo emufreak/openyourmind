@@ -1,4 +1,5 @@
 #include "coppertests.h"
+#include "rundemo.h"
 #include "utils.h"
 
 //Test a batch of copperlist instructions against a certain position
@@ -68,5 +69,21 @@ void TestCopperList() {
     Write( Output(), 
              "PrepareDisplay: ViewCopper should be set to Copperlist 2.\n", 58);
 
+  RunFrame();
+  UWORD *copword = ViewCopper;
+  ULONG pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
+  if( pointer != Bitplane1) 
+    Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
+                                                   " after first frame.\n", 72);
+  
+  RunFrame();
+  
+  copword = ViewCopper;
+  pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
+  if( pointer != Bitplane2) 
+    Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
+                                                  " after second frame.\n", 73);
+
+  
 
 }
