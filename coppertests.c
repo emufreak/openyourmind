@@ -50,7 +50,7 @@ void TestCopperList() {
   SwapCl();
   if( DrawCopper != &Copperlist2)
     Write(  Output(), "SwapCl doesn't work.\n", 21);
-  
+
   PrepareDisplay();
   if( DrawBuffer != Bitplane1) 
     Write( Output(), "DrawBuffer should be set to Bitplane 1 on first frame.\n",
@@ -59,6 +59,14 @@ void TestCopperList() {
     Write( Output(), 
               "DrawCopper should be set to Copperlist 1 on first frame.\n", 57);
 
-  
+  PrepareDisplay();
+  if( ViewBuffer != Bitplane2) 
+    Write( Output(), 
+               "Preparedisplay: ViewBuffer should be set to Bitplane 2.\n", 56);
+
+  if( ViewCopper != Copperlist2) 
+    Write( Output(), 
+             "PrepareDisplay: ViewCopper should be set to Copperlist 2.\n", 58);
+
 
 }

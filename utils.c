@@ -71,7 +71,8 @@ void PrepareDisplay() {
   ClBuild( Copperlist2);
   DrawBuffer = Bitplane1;
   DrawCopper = Copperlist1;
-
+  ViewBuffer = Bitplane2;
+  ViewCopper = Copperlist2;
 }
 void SetBplPointers() {
   UWORD highword = (ULONG)DrawBuffer >> 16;
