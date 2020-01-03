@@ -77,12 +77,20 @@ void TestCopperList() {
                                                    " after first frame.\n", 72);
   
   RunFrame();
-  
+
   copword = ViewCopper;
   pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
   if( pointer != Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                   " after second frame.\n", 73);
+  
+  RunFrame();
+  
+  copword = ViewCopper;
+  pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
+  if( pointer != Bitplane1) 
+    Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
+                                                   " after third frame.\n", 72);
 
   
 
