@@ -20,6 +20,7 @@ int TestCopperlistPos(  long *instructions, int pos, long value) {
 }
 
 void TestCopperList() {
+  Write( Output(), "%d", hw->cop1lc);
   DrawCopper = Copperlist1;
   ViewCopper = Copperlist2;
   ClBuild( Copperlist1);
@@ -45,8 +46,12 @@ void TestCopperList() {
     Write(Output(), 
            "SetBplpointers: Problem in Copperlist bpl1pl should be 0000\n", 60);
 
-  if( TestCopperlistPos( Copperlist1, 30, 0xfffffffe) == 0)
-    Write(Output(), "Copperlist End not correctly set\n", 31);
+  if(  TestCopperlistBatch(  Copperlist1, 30, ClColor, 2) == 0)
+    Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
+
+  
+  if( TestCopperlistPos( Copperlist1, 32, 0xfffffffe) == 0)
+    Write(Output(), "Copperlist End not correctly set.\n", 34);
   
   SwapCl();
   if( DrawCopper != &Copperlist2)
@@ -61,6 +66,7 @@ void TestCopperList() {
               "DrawCopper should be set to Copperlist 1 on first frame.\n", 57);
 
   PrepareDisplay();
+
   if( ViewBuffer != Bitplane2) 
     Write( Output(), 
                "Preparedisplay: ViewBuffer should be set to Bitplane 2.\n", 56);
@@ -72,9 +78,17 @@ void TestCopperList() {
   RunFrame();
   UWORD *copword = ViewCopper;
   ULONG pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
+  if( pointer != Bitplane2) 
+    Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
+                                                   " after first frame.\n", 72);
+  
+  RunFrame();
+
+  copword = ViewCopper;
+  pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
   if( pointer != Bitplane1) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
-                                                   " after first frame.\n", 72);
+                                                  " after second frame.\n", 73);
   
   RunFrame();
 
@@ -82,14 +96,6 @@ void TestCopperList() {
   pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
   if( pointer != Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
-                                                  " after second frame.\n", 73);
-  
-  RunFrame();
-  
-  copword = ViewCopper;
-  pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
-  if( pointer != Bitplane1) 
-    Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
                                                    " after third frame.\n", 72);
 
   

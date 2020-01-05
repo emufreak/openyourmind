@@ -16,16 +16,20 @@ void RunDemo() {
 	SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
+  PrepareDisplay();
 
 	while(!MouseLeft()) {
 		WaitVbl();
 		// DEMO - set colors from INCBIN (contains 64 colors)
-		hw->color[0] = ((UWORD*)colors)[frameCounter & 63];
+    RunFrame();
+		//hw->color[0] = ((UWORD*)colors)[frameCounter & 63];
 	}
 	SetInterruptHandler((APTR)interruptHandler);
 }
 
 void RunFrame() {
-  SetBplPointers();
+  UWORD *bp = 0x200;
+  *bp = 0;
   SwapCl();
+  SetBplPointers();
 }

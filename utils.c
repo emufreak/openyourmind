@@ -1,5 +1,9 @@
 #include "utils.h"
 
+volatile struct Custom *hw;
+ULONG __attribute__((chip)) Bitplane1[20*640];
+ULONG __attribute__((chip)) Bitplane2[20*640];
+
 int CopBpl1High = 28*2+1;
 int CopBpl1Low = 29*2+1;
 
@@ -48,12 +52,13 @@ ULONG ClsSprites[] = { 0x01200000, 0x01220000,0x01240000,0x01260000, 0x01280000,
         0x012a0000, 0x012c0000, 0x012e0000, 0x01300000, 0x01320000, 0x01340000,
                  0x01360000, 0x01380000, 0x013a0000, 0x013c0000, 0x013e0000  };
 
-ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x0968020, 0x08e2c81, 0x0902cc1,
-          0x0920038, 0x09400d0, 0x01020000, 0x01040000, 0x01080000, 0x010a0000, 
+ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 0x00902cc1,
+         0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080000, 0x010a0000, 
                                                                   0x01001200 };
 
+ULONG ClColor[] = { 0x01800f00, 0x01820000 };
+
 void ClBuild(  ULONG *cl) {
-  ULONG *clinstruction;
   //clinstruction = DrawCopper;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
@@ -66,6 +71,10 @@ void ClBuild(  ULONG *cl) {
   *cl++ = 0x00e00000;
   //cl[CopBpl1Low] = (long) cl + 2;
   *cl++ = 0x00e20000;
+
+  clpartinstruction = ClColor;
+  for(int i=0; i<2;i++)
+    *cl++ = *clpartinstruction++;
   *cl = 0xfffffffe;
 }
 
@@ -76,6 +85,10 @@ void PrepareDisplay() {
   DrawCopper = Copperlist1;
   ViewBuffer = Bitplane2;
   ViewCopper = Copperlist2;
+  SwapCl();
+  SetBplPointers();
+  SwapCl();
+  SetBplPointers();
 }
 void SetBplPointers() {
   UWORD highword = (ULONG)DrawBuffer >> 16;
@@ -91,9 +104,13 @@ void SetBplPointers() {
 }
 
 void SwapCl() {
+  UWORD *bp = 0x200;
+  *bp = 0;
   ULONG tmp = DrawCopper;
   DrawCopper = ViewCopper;
   ViewCopper = tmp;
+  hw->cop1lc = ViewCopper;
+  hw->copjmp1 = tmp;
 }
 void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
@@ -113,8 +130,8 @@ void TakeSystem() {
 	hw->dmacon=0x7fff;//Clear all DMA channels
 
 	//set all colors black
-	for(int a=0;a<32;a++)
-		hw->color[a]=0;
+	/*for(int a=0;a<32;a++)
+		hw->color[a]=0;*/
 
 	LoadView(0);
 	WaitTOF();

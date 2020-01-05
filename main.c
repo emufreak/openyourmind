@@ -4,7 +4,7 @@
 
 int main() {
 
-    SysBase = *((struct ExecBase**)4UL);
+  SysBase = *((struct ExecBase**)4UL);
 	hw = (struct Custom*)0xdff000;
 
 	// We will use the graphics library only to locate and restore the system copper list once we are through.
@@ -19,7 +19,7 @@ int main() {
 
 	KPrintF("Hello debugger from Amiga!\n");
 	Write(Output(), "Hello console!\n", 15);
-  RunTests();
+  //RunTests();
 	Delay(50);
 
 	warpmode(1);
@@ -30,7 +30,7 @@ int main() {
 	WaitVbl();
 
 	// DEMO
-	//RunDemo();
+	RunDemo();
 
 	// END
 	FreeSystem();

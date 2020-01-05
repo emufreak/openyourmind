@@ -9,7 +9,7 @@
 #include <hardware/intbits.h>
 
 struct ExecBase *SysBase;
-volatile struct Custom *hw;
+extern volatile struct Custom *hw;
 struct DosLibrary *DOSBase;
 struct GfxBase *GfxBase;
 
@@ -17,12 +17,13 @@ ULONG __attribute__((chip)) Bitplane1[20*640];
 ULONG __attribute__((chip)) Bitplane2[20*640];
 
 void ClBuild();
+ULONG ClColor[2];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
 int CopBpl1High;
 int CopBpl1Low;
-ULONG  __attribute__((chip)) Copperlist1[31];
-ULONG __attribute__((chip)) Copperlist2[31];
+ULONG  __attribute__((chip)) Copperlist1[33];
+ULONG __attribute__((chip)) Copperlist2[33];
 ULONG *DrawBuffer;
 ULONG *ViewBuffer;
 ULONG *DrawCopper;
