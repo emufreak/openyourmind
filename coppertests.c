@@ -21,9 +21,10 @@ int TestCopperlistPos(  long *instructions, int pos, long value) {
 
 void TestCopperList() {
   Write( Output(), "%d", hw->cop1lc);
+  Copperlist1 = ClBuild();
   DrawCopper = Copperlist1;
+  Copperlist2 = ClBuild();
   ViewCopper = Copperlist2;
-  ClBuild( Copperlist1);
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
     Write(Output(), "Sprite section of copper starting on pos 0 messed up\n", 
                                                                             44);
@@ -54,7 +55,7 @@ void TestCopperList() {
     Write(Output(), "Copperlist End not correctly set.\n", 34);
   
   SwapCl();
-  if( DrawCopper != &Copperlist2)
+  if( DrawCopper != Copperlist2)
     Write(  Output(), "SwapCl doesn't work.\n", 21);
 
   PrepareDisplay();

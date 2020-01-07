@@ -13,6 +13,7 @@ static __attribute__((interrupt)) void interruptHandler() {
 }
 
 void RunDemo() {
+  hw->dmacon = 0b1001001111100000;
 	SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
@@ -28,8 +29,6 @@ void RunDemo() {
 }
 
 void RunFrame() {
-  UWORD *bp = 0x200;
-  *bp = 0;
   SwapCl();
   SetBplPointers();
 }

@@ -20,50 +20,50 @@ __attribute__((used)) __attribute__((section(".text.unlikely"))) void _start() {
 
 int main() {
    6:	4fef fff4      	lea -12(sp),sp
-   a:	48e7 313a      	movem.l d2-d3/d7/a2-a4/a6,-(sp)
+   a:	48e7 3132      	movem.l d2-d3/d7/a2-a3/a6,-(sp)
 
   SysBase = *((struct ExecBase**)4UL);
    e:	2c78 0004      	movea.l 4 <_start+0x4>,a6
-  12:	23ce 0001 bcaa 	move.l a6,1bcaa <SysBase>
+  12:	23ce 0000 2e4a 	move.l a6,2e4a <SysBase>
 	hw = (struct Custom*)0xdff000;
-  18:	23fc 00df f000 	move.l #14675968,1bca6 <hw>
-  1e:	0001 bca6 
+  18:	23fc 00df f000 	move.l #14675968,2e46 <hw>
+  1e:	0000 2e46 
 
 	// We will use the graphics library only to locate and restore the system copper list once we are through.
 	GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0);
-  22:	43f9 0000 0aa1 	lea aa1 <incbin_colors_end+0x49>,a1
+  22:	43f9 0000 0ceb 	lea ceb <incbin_colors_end+0x6f>,a1
   28:	7000           	moveq #0,d0
   2a:	4eae fdd8      	jsr -552(a6)
-  2e:	23c0 0001 bca2 	move.l d0,1bca2 <GfxBase>
+  2e:	23c0 0000 2e42 	move.l d0,2e42 <GfxBase>
 	if (!GfxBase)
-  34:	6700 03a2      	beq.w 3d8 <main+0x3d2>
+  34:	6700 04c8      	beq.w 4fe <main+0x4f8>
 		Exit(0);
 
 	// used for printing
 	DOSBase = (struct DosLibrary*)OpenLibrary("dos.library", 0);
-  38:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
-  3e:	43f9 0000 0ab2 	lea ab2 <incbin_colors_end+0x5a>,a1
+  38:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+  3e:	43f9 0000 0cfc 	lea cfc <incbin_colors_end+0x80>,a1
   44:	7000           	moveq #0,d0
   46:	4eae fdd8      	jsr -552(a6)
-  4a:	23c0 0001 bc9e 	move.l d0,1bc9e <DOSBase>
+  4a:	23c0 0000 2e3e 	move.l d0,2e3e <DOSBase>
 	if (!DOSBase)
-  50:	6700 037a      	beq.w 3cc <main+0x3c6>
+  50:	6700 04a0      	beq.w 4f2 <main+0x4ec>
 		Exit(0);
 
 	KPrintF("Hello debugger from Amiga!\n");
-  54:	4879 0000 0abe 	pea abe <incbin_colors_end+0x66>
-  5a:	4eb9 0000 0572 	jsr 572 <KPrintF>
+  54:	4879 0000 0d08 	pea d08 <incbin_colors_end+0x8c>
+  5a:	4eb9 0000 0642 	jsr 642 <KPrintF>
 	Write(Output(), "Hello console!\n", 15);
-  60:	2c79 0001 bc9e 	movea.l 1bc9e <DOSBase>,a6
+  60:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
   66:	4eae ffc4      	jsr -60(a6)
-  6a:	2c79 0001 bc9e 	movea.l 1bc9e <DOSBase>,a6
+  6a:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
   70:	2200           	move.l d0,d1
-  72:	243c 0000 0ada 	move.l #2778,d2
+  72:	243c 0000 0d24 	move.l #3364,d2
   78:	760f           	moveq #15,d3
   7a:	4eae ffd0      	jsr -48(a6)
   //RunTests();
 	Delay(50);
-  7e:	2c79 0001 bc9e 	movea.l 1bc9e <DOSBase>,a6
+  7e:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
   84:	7232           	moveq #50,d1
   86:	4eae ff3a      	jsr -198(a6)
 
@@ -77,7 +77,7 @@ void warpmode(int on)
   92:	4a92           	tst.l (a2)
   94:	6718           	beq.s ae <main+0xa8>
   96:	4878 0001      	pea 1 <_start+0x1>
-  9a:	47f9 0000 04d0 	lea 4d0 <warpmode.part.0>,a3
+  9a:	47f9 0000 05a0 	lea 5a0 <warpmode.part.0>,a3
   a0:	4e93           	jsr (a3)
   a2:	588f           	addq.l #4,sp
   a4:	4a92           	tst.l (a2)
@@ -91,36 +91,36 @@ void warpmode(int on)
 }
 void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
-  ae:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
-  b4:	23ee 0022 0001 	move.l 34(a6),1bc8c <ActiView>
-  ba:	bc8c 
+  ae:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+  b4:	23ee 0022 0000 	move.l 34(a6),2e2c <ActiView>
+  ba:	2e2c 
 	OwnBlitter();
   bc:	4eae fe38      	jsr -456(a6)
 	WaitBlit();	
-  c0:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
+  c0:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
   c6:	4eae ff1c      	jsr -228(a6)
 	Disable();
-  ca:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
+  ca:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
   d0:	4eae ff88      	jsr -120(a6)
 	
 	//Save current interrupts and DMA settings so we can restore them upon exit. 
 	SystemADKCON=hw->adkconr;
-  d4:	2479 0001 bca6 	movea.l 1bca6 <hw>,a2
+  d4:	2479 0000 2e46 	movea.l 2e46 <hw>,a2
   da:	302a 0010      	move.w 16(a2),d0
-  de:	33c0 0001 bc90 	move.w d0,1bc90 <SystemADKCON>
+  de:	33c0 0000 2e30 	move.w d0,2e30 <SystemADKCON>
 	SystemInts=hw->intenar;
   e4:	302a 001c      	move.w 28(a2),d0
-  e8:	33c0 0001 bc94 	move.w d0,1bc94 <SystemInts>
+  e8:	33c0 0000 2e34 	move.w d0,2e34 <SystemInts>
 	SystemDMA=hw->dmaconr;
   ee:	302a 0002      	move.w 2(a2),d0
-  f2:	33c0 0001 bc92 	move.w d0,1bc92 <SystemDMA>
+  f2:	33c0 0000 2e32 	move.w d0,2e32 <SystemDMA>
 	hw->intena=0x7fff;//disable all interrupts
   f8:	357c 7fff 009a 	move.w #32767,154(a2)
 	hw->intreq=0x7fff;//Clear any interrupts that were pending
   fe:	357c 7fff 009c 	move.w #32767,156(a2)
 	
 	WaitVbl();
- 104:	47f9 0000 0604 	lea 604 <WaitVbl>,a3
+ 104:	47f9 0000 06d4 	lea 6d4 <WaitVbl>,a3
  10a:	4e93           	jsr (a3)
 	WaitVbl();
  10c:	4e93           	jsr (a3)
@@ -132,14 +132,14 @@ void TakeSystem() {
 		hw->color[a]=0;*/
 
 	LoadView(0);
- 114:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
+ 114:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
  11a:	93c9           	suba.l a1,a1
  11c:	4eae ff22      	jsr -222(a6)
 	WaitTOF();
- 120:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
+ 120:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
  126:	4eae fef2      	jsr -270(a6)
 	WaitTOF();
- 12a:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
+ 12a:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
  130:	4eae fef2      	jsr -270(a6)
 
 	WaitVbl();
@@ -147,27 +147,27 @@ void TakeSystem() {
 	WaitVbl();
  136:	4e93           	jsr (a3)
 	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
- 138:	3f7c 4e7a 0022 	move.w #20090,34(sp)
- 13e:	3f7c 0801 0024 	move.w #2049,36(sp)
- 144:	3f7c 4e73 0026 	move.w #20083,38(sp)
+ 138:	3f7c 4e7a 001e 	move.w #20090,30(sp)
+ 13e:	3f7c 0801 0020 	move.w #2049,32(sp)
+ 144:	3f7c 4e73 0022 	move.w #20083,34(sp)
 	if (SysBase->AttnFlags & AFF_68010) 
- 14a:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
+ 14a:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
  150:	082e 0000 0129 	btst #0,297(a6)
- 156:	6700 02aa      	beq.w 402 <main+0x3fc>
+ 156:	6700 03d0      	beq.w 528 <main+0x522>
 		vbr = (APTR)Supervisor((void*)getvbr);
- 15a:	7e22           	moveq #34,d7
+ 15a:	7e1e           	moveq #30,d7
  15c:	de8f           	add.l sp,d7
  15e:	cf8d           	exg d7,a5
  160:	4eae ffe2      	jsr -30(a6)
  164:	cf8d           	exg d7,a5
 
 	VBR=GetVBR();
- 166:	23c0 0001 bc96 	move.l d0,1bc96 <VBR.lto_priv.1>
+ 166:	23c0 0000 2e36 	move.l d0,2e36 <VBR.lto_priv.1>
 	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
- 16c:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 172:	2c68 006c      	movea.l 108(a0),a6
+ 16c:	2079 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a0
+ 172:	2028 006c      	move.l 108(a0),d0
 	SystemIrq=GetInterruptHandler(); //store interrupt register
- 176:	23ce 0001 bc9a 	move.l a6,1bc9a <SystemIrq>
+ 176:	23c0 0000 2e3a 	move.l d0,2e3a <SystemIrq>
 	warpmode(1);
 	// TODO: precalc stuff here
 	warpmode(0);
@@ -175,1001 +175,1157 @@ void TakeSystem() {
 	TakeSystem();
 	WaitVbl();
  17c:	4e93           	jsr (a3)
-	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
- 17e:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 184:	217c 0000 05da 	move.l #1498,108(a0)
- 18a:	006c 
+	// DEMO - increment frameCounter
 	frameCounter++;
 }
 
 void RunDemo() {
+  hw->dmacon = 0b1001001111100000;
+ 17e:	2079 0000 2e46 	movea.l 2e46 <hw>,a0
+ 184:	317c 93e0 0096 	move.w #-27680,150(a0)
+	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
+ 18a:	2279 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a1
+ 190:	237c 0000 06aa 	move.l #1706,108(a1)
+ 196:	006c 
 	SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
- 18c:	2479 0001 bca6 	movea.l 1bca6 <hw>,a2
- 192:	357c c020 009a 	move.w #-16352,154(a2)
+ 198:	317c c020 009a 	move.w #-16352,154(a0)
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
- 198:	357c 0020 009c 	move.w #32,156(a2)
-  ClBuild( Copperlist1);
- 19e:	4879 0001 bbf8 	pea 1bbf8 <Copperlist1>
- 1a4:	49f9 0000 064a 	lea 64a <ClBuild>,a4
- 1aa:	4e94           	jsr (a4)
-  ClBuild( Copperlist2);
- 1ac:	4879 0001 bb74 	pea 1bb74 <Copperlist2>
- 1b2:	4e94           	jsr (a4)
+ 19e:	317c 0020 009c 	move.w #32,156(a0)
+  Copperlist1 = ClBuild( );
+ 1a4:	45f9 0000 071a 	lea 71a <ClBuild>,a2
+ 1aa:	4e92           	jsr (a2)
+ 1ac:	23c0 0000 2e18 	move.l d0,2e18 <Copperlist1>
+  Copperlist2 = ClBuild( );
+ 1b2:	4e92           	jsr (a2)
+ 1b4:	23c0 0000 2e14 	move.l d0,2e14 <Copperlist2>
+  Bitplane1 = AllocMem(80*640, MEMF_CHIP);
+ 1ba:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 1c0:	203c 0000 c800 	move.l #51200,d0
+ 1c6:	7202           	moveq #2,d1
+ 1c8:	4eae ff3a      	jsr -198(a6)
+ 1cc:	23c0 0000 2e10 	move.l d0,2e10 <Bitplane1>
+  if(Bitplane1 == 0) {
+ 1d2:	6700 02be      	beq.w 492 <main+0x48c>
+  DrawBuffer = Bitplane1;
+ 1d6:	23c0 0000 2e28 	move.l d0,2e28 <DrawBuffer>
+  DrawCopper = Copperlist1;
+ 1dc:	23f9 0000 2e18 	move.l 2e18 <Copperlist1>,2e24 <DrawCopper>
+ 1e2:	0000 2e24 
+  Bitplane2 = AllocMem(80*640, MEMF_CHIP);
+ 1e6:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 1ec:	203c 0000 c800 	move.l #51200,d0
+ 1f2:	7202           	moveq #2,d1
+ 1f4:	4eae ff3a      	jsr -198(a6)
+ 1f8:	23c0 0000 2e0c 	move.l d0,2e0c <Bitplane2>
+  if(Bitplane2 == 0) {
+ 1fe:	6700 0200      	beq.w 400 <main+0x3fa>
+  ViewCopper = Copperlist2;
+ 202:	2079 0000 2e14 	movea.l 2e14 <Copperlist2>,a0
   ULONG tmp = DrawCopper;
- 1b4:	203c 0001 bbf8 	move.l #113656,d0
+ 208:	2279 0000 2e24 	movea.l 2e24 <DrawCopper>,a1
   hw->cop1lc = ViewCopper;
- 1ba:	2540 0080      	move.l d0,128(a2)
+ 20e:	2479 0000 2e46 	movea.l 2e46 <hw>,a2
+ 214:	2549 0080      	move.l a1,128(a2)
   hw->copjmp1 = tmp;
- 1be:	3540 0088      	move.w d0,136(a2)
-  copword[CopBpl1Low] = lowword;
- 1c2:	41f9 0001 bb74 	lea 1bb74 <Copperlist2>,a0
- 1c8:	223c 0000 f374 	move.l #62324,d1
- 1ce:	33c1 0001 bbea 	move.w d1,1bbea <Copperlist2+0x76>
+ 218:	3549 0088      	move.w a1,136(a2)
   UWORD highword = (ULONG)DrawBuffer >> 16;
- 1d4:	2401           	move.l d1,d2
- 1d6:	4242           	clr.w d2
- 1d8:	4842           	swap d2
- 1da:	33c2 0001 bbe6 	move.w d2,1bbe6 <Copperlist2+0x72>
-  *bp = 0;
- 1e0:	4278 0200      	clr.w 200 <main+0x1fa>
-  DrawCopper = ViewCopper;
- 1e4:	23c0 0001 bc84 	move.l d0,1bc84 <DrawCopper>
+ 21c:	2239 0000 2e28 	move.l 2e28 <DrawBuffer>,d1
+  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
+ 222:	3141 0076      	move.w d1,118(a0)
+  UWORD highword = (ULONG)DrawBuffer >> 16;
+ 226:	2401           	move.l d1,d2
+ 228:	4242           	clr.w d2
+ 22a:	4842           	swap d2
+ 22c:	3142 0072      	move.w d2,114(a0)
   ViewCopper = tmp;
- 1ea:	23c8 0001 bc7c 	move.l a0,1bc7c <ViewCopper>
+ 230:	23c8 0000 2e1c 	move.l a0,2e1c <ViewCopper>
   hw->cop1lc = ViewCopper;
- 1f0:	2548 0080      	move.l a0,128(a2)
+ 236:	2548 0080      	move.l a0,128(a2)
   hw->copjmp1 = tmp;
- 1f4:	3548 0088      	move.w a0,136(a2)
-  copword[CopBpl1Low] = lowword;
- 1f8:	43f9 0000 2b74 	lea 2b74 <Bitplane2>,a1
- 1fe:	33c9 0001 bc6e 	move.w a1,1bc6e <Copperlist1+0x76>
+ 23a:	3548 0088      	move.w a0,136(a2)
+  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
+ 23e:	3340 0076      	move.w d0,118(a1)
   UWORD highword = (ULONG)DrawBuffer >> 16;
- 204:	2609           	move.l a1,d3
- 206:	4243           	clr.w d3
- 208:	4843           	swap d3
- 20a:	33c3 0001 bc6a 	move.w d3,1bc6a <Copperlist1+0x72>
-  DrawBuffer = ViewBuffer;
- 210:	23c1 0001 bc88 	move.l d1,1bc88 <DrawBuffer>
+ 242:	2600           	move.l d0,d3
+ 244:	4243           	clr.w d3
+ 246:	4843           	swap d3
+ 248:	3343 0072      	move.w d3,114(a1)
   ViewBuffer = tmp;
- 216:	23c9 0001 bc80 	move.l a1,1bc80 <ViewBuffer>
+ 24c:	23c0 0000 2e20 	move.l d0,2e20 <ViewBuffer>
 	WaitBlit();	
 	DisownBlitter();
 	Enable();
 }
 
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
- 21c:	1639 00bf e001 	move.b bfe001 <_end+0xbe2351>,d3
+ 252:	1639 00bf e001 	move.b bfe001 <gcc8_c_support.c.e9862530+0xbeeb39>,d3
   PrepareDisplay();
 
 	while(!MouseLeft()) {
- 222:	508f           	addq.l #8,sp
- 224:	0803 0006      	btst #6,d3
- 228:	6700 00be      	beq.w 2e8 <main+0x2e2>
+ 258:	0803 0006      	btst #6,d3
+ 25c:	6700 00ba      	beq.w 318 <main+0x312>
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
- 22c:	2439 00df f004 	move.l dff004 <_end+0xde3354>,d2
- 232:	2f42 0022      	move.l d2,34(sp)
+ 260:	2639 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdefb3c>,d3
+ 266:	2f43 001e      	move.l d3,30(sp)
 		vpos&=0x1ff00;
- 236:	242f 0022      	move.l 34(sp),d2
- 23a:	0282 0001 ff00 	andi.l #130816,d2
- 240:	2f42 0022      	move.l d2,34(sp)
+ 26a:	262f 001e      	move.l 30(sp),d3
+ 26e:	0283 0001 ff00 	andi.l #130816,d3
+ 274:	2f43 001e      	move.l d3,30(sp)
 		if (vpos!=(311<<8))
- 244:	242f 0022      	move.l 34(sp),d2
- 248:	0c82 0001 3700 	cmpi.l #79616,d2
- 24e:	67dc           	beq.s 22c <main+0x226>
+ 278:	262f 001e      	move.l 30(sp),d3
+ 27c:	0c83 0001 3700 	cmpi.l #79616,d3
+ 282:	67dc           	beq.s 260 <main+0x25a>
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
- 250:	2439 00df f004 	move.l dff004 <_end+0xde3354>,d2
- 256:	2f42 001e      	move.l d2,30(sp)
+ 284:	2639 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdefb3c>,d3
+ 28a:	2f43 001a      	move.l d3,26(sp)
 		vpos&=0x1ff00;
- 25a:	242f 001e      	move.l 30(sp),d2
- 25e:	0282 0001 ff00 	andi.l #130816,d2
- 264:	2f42 001e      	move.l d2,30(sp)
+ 28e:	262f 001a      	move.l 26(sp),d3
+ 292:	0283 0001 ff00 	andi.l #130816,d3
+ 298:	2f43 001a      	move.l d3,26(sp)
 		if (vpos==(311<<8))
- 268:	242f 001e      	move.l 30(sp),d2
- 26c:	0c82 0001 3700 	cmpi.l #79616,d2
- 272:	66dc           	bne.s 250 <main+0x24a>
-	SetInterruptHandler((APTR)interruptHandler);
-}
-
-void RunFrame() {
-  UWORD *bp = 0x200;
-  *bp = 0;
- 274:	4278 0200      	clr.w 200 <main+0x1fa>
+ 29c:	262f 001a      	move.l 26(sp),d3
+ 2a0:	0c83 0001 3700 	cmpi.l #79616,d3
+ 2a6:	66dc           	bne.s 284 <main+0x27e>
   DrawCopper = ViewCopper;
- 278:	23c8 0001 bc84 	move.l a0,1bc84 <DrawCopper>
+ 2a8:	23c8 0000 2e24 	move.l a0,2e24 <DrawCopper>
   ViewCopper = tmp;
- 27e:	23c0 0001 bc7c 	move.l d0,1bc7c <ViewCopper>
+ 2ae:	23c9 0000 2e1c 	move.l a1,2e1c <ViewCopper>
   hw->cop1lc = ViewCopper;
- 284:	2540 0080      	move.l d0,128(a2)
+ 2b4:	2549 0080      	move.l a1,128(a2)
   hw->copjmp1 = tmp;
- 288:	3540 0088      	move.w d0,136(a2)
+ 2b8:	3549 0088      	move.w a1,136(a2)
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;
- 28c:	3141 0076      	move.w d1,118(a0)
+ 2bc:	3141 0076      	move.w d1,118(a0)
   UWORD highword = (ULONG)DrawBuffer >> 16;
- 290:	2401           	move.l d1,d2
- 292:	4242           	clr.w d2
- 294:	4842           	swap d2
- 296:	3142 0072      	move.w d2,114(a0)
+ 2c0:	3142 0072      	move.w d2,114(a0)
   DrawBuffer = ViewBuffer;
- 29a:	23c9 0001 bc88 	move.l a1,1bc88 <DrawBuffer>
+ 2c4:	23c0 0000 2e28 	move.l d0,2e28 <DrawBuffer>
   ViewBuffer = tmp;
- 2a0:	23c1 0001 bc80 	move.l d1,1bc80 <ViewBuffer>
+ 2ca:	23c1 0000 2e20 	move.l d1,2e20 <ViewBuffer>
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
- 2a6:	1439 00bf e001 	move.b bfe001 <_end+0xbe2351>,d2
- 2ac:	2609           	move.l a1,d3
- 2ae:	2241           	movea.l d1,a1
- 2b0:	2208           	move.l a0,d1
- 2b2:	2040           	movea.l d0,a0
-	while(!MouseLeft()) {
- 2b4:	0802 0006      	btst #6,d2
- 2b8:	672e           	beq.s 2e8 <main+0x2e2>
- 2ba:	2001           	move.l d1,d0
- 2bc:	2203           	move.l d3,d1
+ 2d0:	1439 00bf e001 	move.b bfe001 <gcc8_c_support.c.e9862530+0xbeeb39>,d2
+ 2d6:	2600           	move.l d0,d3
+ 2d8:	2001           	move.l d1,d0
+ 2da:	2208           	move.l a0,d1
+ 2dc:	2049           	movea.l a1,a0
+ 2de:	0802 0006      	btst #6,d2
+ 2e2:	6734           	beq.s 318 <main+0x312>
+ 2e4:	2241           	movea.l d1,a1
+ 2e6:	2203           	move.l d3,d1
+ 2e8:	2403           	move.l d3,d2
+ 2ea:	4242           	clr.w d2
+ 2ec:	4842           	swap d2
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
- 2be:	2439 00df f004 	move.l dff004 <_end+0xde3354>,d2
- 2c4:	2f42 0022      	move.l d2,34(sp)
+ 2ee:	2639 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdefb3c>,d3
+ 2f4:	2f43 001e      	move.l d3,30(sp)
 		vpos&=0x1ff00;
- 2c8:	242f 0022      	move.l 34(sp),d2
- 2cc:	0282 0001 ff00 	andi.l #130816,d2
- 2d2:	2f42 0022      	move.l d2,34(sp)
+ 2f8:	262f 001e      	move.l 30(sp),d3
+ 2fc:	0283 0001 ff00 	andi.l #130816,d3
+ 302:	2f43 001e      	move.l d3,30(sp)
 		if (vpos!=(311<<8))
- 2d6:	242f 0022      	move.l 34(sp),d2
- 2da:	0c82 0001 3700 	cmpi.l #79616,d2
- 2e0:	6700 ff4a      	beq.w 22c <main+0x226>
- 2e4:	6000 ff6a      	bra.w 250 <main+0x24a>
+ 306:	262f 001e      	move.l 30(sp),d3
+ 30a:	0c83 0001 3700 	cmpi.l #79616,d3
+ 310:	6700 ff4e      	beq.w 260 <main+0x25a>
+ 314:	6000 ff6e      	bra.w 284 <main+0x27e>
 	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
- 2e8:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 2ee:	217c 0000 05da 	move.l #1498,108(a0)
- 2f4:	006c 
+ 318:	2079 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a0
+ 31e:	217c 0000 06aa 	move.l #1706,108(a0)
+ 324:	006c 
 	WaitVbl();
- 2f6:	4e93           	jsr (a3)
+ 326:	4e93           	jsr (a3)
 	UWORD tst=*(volatile UWORD*)&hw->dmaconr; //for compatiblity a1000
- 2f8:	302a 0002      	move.w 2(a2),d0
+ 328:	302a 0002      	move.w 2(a2),d0
 	while (*(volatile UWORD*)&hw->dmaconr&(1<<14)) {} //blitter busy wait
- 2fc:	302a 0002      	move.w 2(a2),d0
- 300:	0800 000e      	btst #14,d0
- 304:	66f6           	bne.s 2fc <main+0x2f6>
+ 32c:	302a 0002      	move.w 2(a2),d0
+ 330:	0800 000e      	btst #14,d0
+ 334:	66f6           	bne.s 32c <main+0x326>
 	hw->intena=0x7fff;//disable all interrupts
- 306:	357c 7fff 009a 	move.w #32767,154(a2)
+ 336:	357c 7fff 009a 	move.w #32767,154(a2)
 	hw->intreq=0x7fff;//Clear any interrupts that were pending
- 30c:	357c 7fff 009c 	move.w #32767,156(a2)
+ 33c:	357c 7fff 009c 	move.w #32767,156(a2)
 	hw->dmacon=0x7fff;//Clear all DMA channels
- 312:	357c 7fff 0096 	move.w #32767,150(a2)
+ 342:	357c 7fff 0096 	move.w #32767,150(a2)
 	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
- 318:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 31e:	214e 006c      	move.l a6,108(a0)
+ 348:	2079 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a0
+ 34e:	2179 0000 2e3a 	move.l 2e3a <SystemIrq>,108(a0)
+ 354:	006c 
 	hw->cop1lc=(ULONG)GfxBase->copinit;
- 322:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
- 328:	256e 0026 0080 	move.l 38(a6),128(a2)
+ 356:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+ 35c:	256e 0026 0080 	move.l 38(a6),128(a2)
 	hw->cop2lc=(ULONG)GfxBase->LOFlist;
- 32e:	256e 0032 0084 	move.l 50(a6),132(a2)
+ 362:	256e 0032 0084 	move.l 50(a6),132(a2)
 	hw->copjmp1=0x7fff; //start coppper
- 334:	357c 7fff 0088 	move.w #32767,136(a2)
+ 368:	357c 7fff 0088 	move.w #32767,136(a2)
 	hw->intena=SystemInts|0x8000;
- 33a:	3039 0001 bc94 	move.w 1bc94 <SystemInts>,d0
- 340:	0040 8000      	ori.w #-32768,d0
- 344:	3540 009a      	move.w d0,154(a2)
+ 36e:	3039 0000 2e34 	move.w 2e34 <SystemInts>,d0
+ 374:	0040 8000      	ori.w #-32768,d0
+ 378:	3540 009a      	move.w d0,154(a2)
 	hw->dmacon=SystemDMA|0x8000;
- 348:	3039 0001 bc92 	move.w 1bc92 <SystemDMA>,d0
- 34e:	0040 8000      	ori.w #-32768,d0
- 352:	3540 0096      	move.w d0,150(a2)
+ 37c:	3039 0000 2e32 	move.w 2e32 <SystemDMA>,d0
+ 382:	0040 8000      	ori.w #-32768,d0
+ 386:	3540 0096      	move.w d0,150(a2)
 	hw->adkcon=SystemADKCON|0x8000;
- 356:	3039 0001 bc90 	move.w 1bc90 <SystemADKCON>,d0
- 35c:	0040 8000      	ori.w #-32768,d0
- 360:	3540 009e      	move.w d0,158(a2)
+ 38a:	3039 0000 2e30 	move.w 2e30 <SystemADKCON>,d0
+ 390:	0040 8000      	ori.w #-32768,d0
+ 394:	3540 009e      	move.w d0,158(a2)
 	LoadView(ActiView);
- 364:	2279 0001 bc8c 	movea.l 1bc8c <ActiView>,a1
- 36a:	4eae ff22      	jsr -222(a6)
+ 398:	2279 0000 2e2c 	movea.l 2e2c <ActiView>,a1
+ 39e:	4eae ff22      	jsr -222(a6)
 	WaitTOF();
- 36e:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
- 374:	4eae fef2      	jsr -270(a6)
+ 3a2:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+ 3a8:	4eae fef2      	jsr -270(a6)
 	WaitTOF();
- 378:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
- 37e:	4eae fef2      	jsr -270(a6)
+ 3ac:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+ 3b2:	4eae fef2      	jsr -270(a6)
 	WaitBlit();	
- 382:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
- 388:	4eae ff1c      	jsr -228(a6)
+ 3b6:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+ 3bc:	4eae ff1c      	jsr -228(a6)
 	DisownBlitter();
- 38c:	2c79 0001 bca2 	movea.l 1bca2 <GfxBase>,a6
- 392:	4eae fe32      	jsr -462(a6)
+ 3c0:	2c79 0000 2e42 	movea.l 2e42 <GfxBase>,a6
+ 3c6:	4eae fe32      	jsr -462(a6)
 	Enable();
- 396:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 39c:	4eae ff82      	jsr -126(a6)
+ 3ca:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 3d0:	4eae ff82      	jsr -126(a6)
 	RunDemo();
 
 	// END
 	FreeSystem();
 
 	CloseLibrary((struct Library*)DOSBase);
- 3a0:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 3a6:	2279 0001 bc9e 	movea.l 1bc9e <DOSBase>,a1
- 3ac:	4eae fe62      	jsr -414(a6)
+ 3d4:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 3da:	2279 0000 2e3e 	movea.l 2e3e <DOSBase>,a1
+ 3e0:	4eae fe62      	jsr -414(a6)
 	CloseLibrary((struct Library*)GfxBase);
- 3b0:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 3b6:	2279 0001 bca2 	movea.l 1bca2 <GfxBase>,a1
- 3bc:	4eae fe62      	jsr -414(a6)
+ 3e4:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 3ea:	2279 0000 2e42 	movea.l 2e42 <GfxBase>,a1
+ 3f0:	4eae fe62      	jsr -414(a6)
 }
- 3c0:	7000           	moveq #0,d0
- 3c2:	4cdf 5c8c      	movem.l (sp)+,d2-d3/d7/a2-a4/a6
- 3c6:	4fef 000c      	lea 12(sp),sp
- 3ca:	4e75           	rts
-		Exit(0);
- 3cc:	9dce           	suba.l a6,a6
- 3ce:	7200           	moveq #0,d1
- 3d0:	4eae ff70      	jsr -144(a6)
- 3d4:	6000 fc7e      	bra.w 54 <main+0x4e>
-		Exit(0);
- 3d8:	2c79 0001 bc9e 	movea.l 1bc9e <DOSBase>,a6
- 3de:	7200           	moveq #0,d1
- 3e0:	4eae ff70      	jsr -144(a6)
-	DOSBase = (struct DosLibrary*)OpenLibrary("dos.library", 0);
- 3e4:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 3ea:	43f9 0000 0ab2 	lea ab2 <incbin_colors_end+0x5a>,a1
- 3f0:	7000           	moveq #0,d0
- 3f2:	4eae fdd8      	jsr -552(a6)
- 3f6:	23c0 0001 bc9e 	move.l d0,1bc9e <DOSBase>
-	if (!DOSBase)
- 3fc:	6600 fc56      	bne.w 54 <main+0x4e>
- 400:	60ca           	bra.s 3cc <main+0x3c6>
-	APTR vbr = 0;
- 402:	7000           	moveq #0,d0
-	VBR=GetVBR();
- 404:	23c0 0001 bc96 	move.l d0,1bc96 <VBR.lto_priv.1>
-	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
- 40a:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 410:	2c68 006c      	movea.l 108(a0),a6
-	SystemIrq=GetInterruptHandler(); //store interrupt register
- 414:	23ce 0001 bc9a 	move.l a6,1bc9a <SystemIrq>
-	WaitVbl();
- 41a:	4e93           	jsr (a3)
-	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
- 41c:	2079 0001 bc96 	movea.l 1bc96 <VBR.lto_priv.1>,a0
- 422:	217c 0000 05da 	move.l #1498,108(a0)
- 428:	006c 
-	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
- 42a:	2479 0001 bca6 	movea.l 1bca6 <hw>,a2
- 430:	357c c020 009a 	move.w #-16352,154(a2)
-	hw->intreq=1<<INTB_VERTB;//reset vbl req
- 436:	357c 0020 009c 	move.w #32,156(a2)
-  ClBuild( Copperlist1);
- 43c:	4879 0001 bbf8 	pea 1bbf8 <Copperlist1>
- 442:	49f9 0000 064a 	lea 64a <ClBuild>,a4
- 448:	4e94           	jsr (a4)
-  ClBuild( Copperlist2);
- 44a:	4879 0001 bb74 	pea 1bb74 <Copperlist2>
- 450:	4e94           	jsr (a4)
+ 3f4:	7000           	moveq #0,d0
+ 3f6:	4cdf 4c8c      	movem.l (sp)+,d2-d3/d7/a2-a3/a6
+ 3fa:	4fef 000c      	lea 12(sp),sp
+ 3fe:	4e75           	rts
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+ 400:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 406:	4eae ffc4      	jsr -60(a6)
+ 40a:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 410:	2200           	move.l d0,d1
+ 412:	243c 0000 0d5b 	move.l #3419,d2
+ 418:	7626           	moveq #38,d3
+ 41a:	4eae ffd0      	jsr -48(a6)
+    Exit(1);
+ 41e:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 424:	7201           	moveq #1,d1
+ 426:	4eae ff70      	jsr -144(a6)
+ 42a:	2039 0000 2e0c 	move.l 2e0c <Bitplane2>,d0
+  ViewCopper = Copperlist2;
+ 430:	2079 0000 2e14 	movea.l 2e14 <Copperlist2>,a0
   ULONG tmp = DrawCopper;
- 452:	203c 0001 bbf8 	move.l #113656,d0
+ 436:	2279 0000 2e24 	movea.l 2e24 <DrawCopper>,a1
   hw->cop1lc = ViewCopper;
- 458:	2540 0080      	move.l d0,128(a2)
+ 43c:	2479 0000 2e46 	movea.l 2e46 <hw>,a2
+ 442:	2549 0080      	move.l a1,128(a2)
   hw->copjmp1 = tmp;
- 45c:	3540 0088      	move.w d0,136(a2)
-  copword[CopBpl1Low] = lowword;
- 460:	41f9 0001 bb74 	lea 1bb74 <Copperlist2>,a0
- 466:	223c 0000 f374 	move.l #62324,d1
- 46c:	33c1 0001 bbea 	move.w d1,1bbea <Copperlist2+0x76>
+ 446:	3549 0088      	move.w a1,136(a2)
   UWORD highword = (ULONG)DrawBuffer >> 16;
- 472:	2401           	move.l d1,d2
- 474:	4242           	clr.w d2
- 476:	4842           	swap d2
- 478:	33c2 0001 bbe6 	move.w d2,1bbe6 <Copperlist2+0x72>
-  *bp = 0;
- 47e:	4278 0200      	clr.w 200 <main+0x1fa>
-  DrawCopper = ViewCopper;
- 482:	23c0 0001 bc84 	move.l d0,1bc84 <DrawCopper>
+ 44a:	2239 0000 2e28 	move.l 2e28 <DrawBuffer>,d1
+  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
+ 450:	3141 0076      	move.w d1,118(a0)
+  UWORD highword = (ULONG)DrawBuffer >> 16;
+ 454:	2401           	move.l d1,d2
+ 456:	4242           	clr.w d2
+ 458:	4842           	swap d2
+ 45a:	3142 0072      	move.w d2,114(a0)
   ViewCopper = tmp;
- 488:	23c8 0001 bc7c 	move.l a0,1bc7c <ViewCopper>
+ 45e:	23c8 0000 2e1c 	move.l a0,2e1c <ViewCopper>
   hw->cop1lc = ViewCopper;
- 48e:	2548 0080      	move.l a0,128(a2)
+ 464:	2548 0080      	move.l a0,128(a2)
   hw->copjmp1 = tmp;
- 492:	3548 0088      	move.w a0,136(a2)
-  copword[CopBpl1Low] = lowword;
- 496:	43f9 0000 2b74 	lea 2b74 <Bitplane2>,a1
- 49c:	33c9 0001 bc6e 	move.w a1,1bc6e <Copperlist1+0x76>
+ 468:	3548 0088      	move.w a0,136(a2)
+  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
+ 46c:	3340 0076      	move.w d0,118(a1)
   UWORD highword = (ULONG)DrawBuffer >> 16;
- 4a2:	2609           	move.l a1,d3
- 4a4:	4243           	clr.w d3
- 4a6:	4843           	swap d3
- 4a8:	33c3 0001 bc6a 	move.w d3,1bc6a <Copperlist1+0x72>
-  DrawBuffer = ViewBuffer;
- 4ae:	23c1 0001 bc88 	move.l d1,1bc88 <DrawBuffer>
+ 470:	2600           	move.l d0,d3
+ 472:	4243           	clr.w d3
+ 474:	4843           	swap d3
+ 476:	3343 0072      	move.w d3,114(a1)
   ViewBuffer = tmp;
- 4b4:	23c9 0001 bc80 	move.l a1,1bc80 <ViewBuffer>
+ 47a:	23c0 0000 2e20 	move.l d0,2e20 <ViewBuffer>
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
- 4ba:	1639 00bf e001 	move.b bfe001 <_end+0xbe2351>,d3
-	while(!MouseLeft()) {
- 4c0:	508f           	addq.l #8,sp
- 4c2:	0803 0006      	btst #6,d3
- 4c6:	6600 fd64      	bne.w 22c <main+0x226>
- 4ca:	6000 fe1c      	bra.w 2e8 <main+0x2e2>
- 4ce:	4e71           	nop
+ 480:	1639 00bf e001 	move.b bfe001 <gcc8_c_support.c.e9862530+0xbeeb39>,d3
+ 486:	0803 0006      	btst #6,d3
+ 48a:	6600 fdd4      	bne.w 260 <main+0x25a>
+ 48e:	6000 fe88      	bra.w 318 <main+0x312>
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+ 492:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 498:	4eae ffc4      	jsr -60(a6)
+ 49c:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 4a2:	2200           	move.l d0,d1
+ 4a4:	243c 0000 0d34 	move.l #3380,d2
+ 4aa:	7626           	moveq #38,d3
+ 4ac:	4eae ffd0      	jsr -48(a6)
+    Exit(1);
+ 4b0:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 4b6:	7201           	moveq #1,d1
+ 4b8:	4eae ff70      	jsr -144(a6)
+ 4bc:	2039 0000 2e10 	move.l 2e10 <Bitplane1>,d0
+  DrawBuffer = Bitplane1;
+ 4c2:	23c0 0000 2e28 	move.l d0,2e28 <DrawBuffer>
+  DrawCopper = Copperlist1;
+ 4c8:	23f9 0000 2e18 	move.l 2e18 <Copperlist1>,2e24 <DrawCopper>
+ 4ce:	0000 2e24 
+  Bitplane2 = AllocMem(80*640, MEMF_CHIP);
+ 4d2:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 4d8:	203c 0000 c800 	move.l #51200,d0
+ 4de:	7202           	moveq #2,d1
+ 4e0:	4eae ff3a      	jsr -198(a6)
+ 4e4:	23c0 0000 2e0c 	move.l d0,2e0c <Bitplane2>
+  if(Bitplane2 == 0) {
+ 4ea:	6600 fd16      	bne.w 202 <main+0x1fc>
+ 4ee:	6000 ff10      	bra.w 400 <main+0x3fa>
+		Exit(0);
+ 4f2:	9dce           	suba.l a6,a6
+ 4f4:	7200           	moveq #0,d1
+ 4f6:	4eae ff70      	jsr -144(a6)
+ 4fa:	6000 fb58      	bra.w 54 <main+0x4e>
+		Exit(0);
+ 4fe:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 504:	7200           	moveq #0,d1
+ 506:	4eae ff70      	jsr -144(a6)
+	DOSBase = (struct DosLibrary*)OpenLibrary("dos.library", 0);
+ 50a:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 510:	43f9 0000 0cfc 	lea cfc <incbin_colors_end+0x80>,a1
+ 516:	7000           	moveq #0,d0
+ 518:	4eae fdd8      	jsr -552(a6)
+ 51c:	23c0 0000 2e3e 	move.l d0,2e3e <DOSBase>
+	if (!DOSBase)
+ 522:	6600 fb30      	bne.w 54 <main+0x4e>
+ 526:	60ca           	bra.s 4f2 <main+0x4ec>
+	APTR vbr = 0;
+ 528:	7000           	moveq #0,d0
+	VBR=GetVBR();
+ 52a:	23c0 0000 2e36 	move.l d0,2e36 <VBR.lto_priv.1>
+	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
+ 530:	2079 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a0
+ 536:	2028 006c      	move.l 108(a0),d0
+	SystemIrq=GetInterruptHandler(); //store interrupt register
+ 53a:	23c0 0000 2e3a 	move.l d0,2e3a <SystemIrq>
+	WaitVbl();
+ 540:	4e93           	jsr (a3)
+  hw->dmacon = 0b1001001111100000;
+ 542:	2079 0000 2e46 	movea.l 2e46 <hw>,a0
+ 548:	317c 93e0 0096 	move.w #-27680,150(a0)
+	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
+ 54e:	2279 0000 2e36 	movea.l 2e36 <VBR.lto_priv.1>,a1
+ 554:	237c 0000 06aa 	move.l #1706,108(a1)
+ 55a:	006c 
+	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
+ 55c:	317c c020 009a 	move.w #-16352,154(a0)
+	hw->intreq=1<<INTB_VERTB;//reset vbl req
+ 562:	317c 0020 009c 	move.w #32,156(a0)
+  Copperlist1 = ClBuild( );
+ 568:	45f9 0000 071a 	lea 71a <ClBuild>,a2
+ 56e:	4e92           	jsr (a2)
+ 570:	23c0 0000 2e18 	move.l d0,2e18 <Copperlist1>
+  Copperlist2 = ClBuild( );
+ 576:	4e92           	jsr (a2)
+ 578:	23c0 0000 2e14 	move.l d0,2e14 <Copperlist2>
+  Bitplane1 = AllocMem(80*640, MEMF_CHIP);
+ 57e:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 584:	203c 0000 c800 	move.l #51200,d0
+ 58a:	7202           	moveq #2,d1
+ 58c:	4eae ff3a      	jsr -198(a6)
+ 590:	23c0 0000 2e10 	move.l d0,2e10 <Bitplane1>
+  if(Bitplane1 == 0) {
+ 596:	6600 fc3e      	bne.w 1d6 <main+0x1d0>
+ 59a:	6000 fef6      	bra.w 492 <main+0x48c>
+ 59e:	4e71           	nop
 
-000004d0 <warpmode.part.0>:
+000005a0 <warpmode.part.0>:
 void warpmode(int on) 
- 4d0:	598f           	subq.l #4,sp
- 4d2:	2f02           	move.l d2,-(sp)
+ 5a0:	598f           	subq.l #4,sp
+ 5a2:	2f02           	move.l d2,-(sp)
 		char outbuf;
 		UaeConf(82, -1, on ? "warp true" : "warp false", 0, &outbuf, 1);
- 4d4:	4aaf 000c      	tst.l 12(sp)
- 4d8:	674c           	beq.s 526 <warpmode.part.0+0x56>
- 4da:	4878 0001      	pea 1 <_start+0x1>
- 4de:	740b           	moveq #11,d2
- 4e0:	d48f           	add.l sp,d2
- 4e2:	2f02           	move.l d2,-(sp)
- 4e4:	42a7           	clr.l -(sp)
- 4e6:	4879 0000 0a8c 	pea a8c <incbin_colors_end+0x34>
- 4ec:	4878 ffff      	pea ffffffff <_end+0xfffe434f>
- 4f0:	4878 0052      	pea 52 <main+0x4c>
- 4f4:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xef42b0>
- 4fa:	4fef 0018      	lea 24(sp),sp
+ 5a4:	4aaf 000c      	tst.l 12(sp)
+ 5a8:	674c           	beq.s 5f6 <warpmode.part.0+0x56>
+ 5aa:	4878 0001      	pea 1 <_start+0x1>
+ 5ae:	740b           	moveq #11,d2
+ 5b0:	d48f           	add.l sp,d2
+ 5b2:	2f02           	move.l d2,-(sp)
+ 5b4:	42a7           	clr.l -(sp)
+ 5b6:	4879 0000 0cb0 	pea cb0 <incbin_colors_end+0x34>
+ 5bc:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xffff0b37>
+ 5c0:	4878 0052      	pea 52 <main+0x4c>
+ 5c4:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
+ 5ca:	4fef 0018      	lea 24(sp),sp
 		UaeConf(82, -1, on ? "blitter_cycle_exact false" : "blitter_cycle_exact true", 0, &outbuf, 1);
- 4fe:	203c 0000 0a72 	move.l #2674,d0
- 504:	4878 0001      	pea 1 <_start+0x1>
- 508:	2f02           	move.l d2,-(sp)
- 50a:	42a7           	clr.l -(sp)
- 50c:	2f00           	move.l d0,-(sp)
- 50e:	4878 ffff      	pea ffffffff <_end+0xfffe434f>
- 512:	4878 0052      	pea 52 <main+0x4c>
- 516:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xef42b0>
+ 5ce:	203c 0000 0c96 	move.l #3222,d0
+ 5d4:	4878 0001      	pea 1 <_start+0x1>
+ 5d8:	2f02           	move.l d2,-(sp)
+ 5da:	42a7           	clr.l -(sp)
+ 5dc:	2f00           	move.l d0,-(sp)
+ 5de:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xffff0b37>
+ 5e2:	4878 0052      	pea 52 <main+0x4c>
+ 5e6:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
 	}
 }
- 51c:	4fef 0018      	lea 24(sp),sp
- 520:	241f           	move.l (sp)+,d2
- 522:	588f           	addq.l #4,sp
- 524:	4e75           	rts
+ 5ec:	4fef 0018      	lea 24(sp),sp
+ 5f0:	241f           	move.l (sp)+,d2
+ 5f2:	588f           	addq.l #4,sp
+ 5f4:	4e75           	rts
 		UaeConf(82, -1, on ? "warp true" : "warp false", 0, &outbuf, 1);
- 526:	4878 0001      	pea 1 <_start+0x1>
- 52a:	740b           	moveq #11,d2
- 52c:	d48f           	add.l sp,d2
- 52e:	2f02           	move.l d2,-(sp)
- 530:	42a7           	clr.l -(sp)
- 532:	4879 0000 0a96 	pea a96 <incbin_colors_end+0x3e>
- 538:	4878 ffff      	pea ffffffff <_end+0xfffe434f>
- 53c:	4878 0052      	pea 52 <main+0x4c>
- 540:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xef42b0>
- 546:	4fef 0018      	lea 24(sp),sp
+ 5f6:	4878 0001      	pea 1 <_start+0x1>
+ 5fa:	740b           	moveq #11,d2
+ 5fc:	d48f           	add.l sp,d2
+ 5fe:	2f02           	move.l d2,-(sp)
+ 600:	42a7           	clr.l -(sp)
+ 602:	4879 0000 0cba 	pea cba <incbin_colors_end+0x3e>
+ 608:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xffff0b37>
+ 60c:	4878 0052      	pea 52 <main+0x4c>
+ 610:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
+ 616:	4fef 0018      	lea 24(sp),sp
 		UaeConf(82, -1, on ? "blitter_cycle_exact false" : "blitter_cycle_exact true", 0, &outbuf, 1);
- 54a:	203c 0000 0a59 	move.l #2649,d0
- 550:	4878 0001      	pea 1 <_start+0x1>
- 554:	2f02           	move.l d2,-(sp)
- 556:	42a7           	clr.l -(sp)
- 558:	2f00           	move.l d0,-(sp)
- 55a:	4878 ffff      	pea ffffffff <_end+0xfffe434f>
- 55e:	4878 0052      	pea 52 <main+0x4c>
- 562:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xef42b0>
+ 61a:	203c 0000 0c7d 	move.l #3197,d0
+ 620:	4878 0001      	pea 1 <_start+0x1>
+ 624:	2f02           	move.l d2,-(sp)
+ 626:	42a7           	clr.l -(sp)
+ 628:	2f00           	move.l d0,-(sp)
+ 62a:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xffff0b37>
+ 62e:	4878 0052      	pea 52 <main+0x4c>
+ 632:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
 }
- 568:	4fef 0018      	lea 24(sp),sp
- 56c:	241f           	move.l (sp)+,d2
- 56e:	588f           	addq.l #4,sp
- 570:	4e75           	rts
+ 638:	4fef 0018      	lea 24(sp),sp
+ 63c:	241f           	move.l (sp)+,d2
+ 63e:	588f           	addq.l #4,sp
+ 640:	4e75           	rts
 
-00000572 <KPrintF>:
+00000642 <KPrintF>:
 {
- 572:	4fef ff80      	lea -128(sp),sp
- 576:	48e7 0032      	movem.l a2-a3/a6,-(sp)
+ 642:	4fef ff80      	lea -128(sp),sp
+ 646:	48e7 0032      	movem.l a2-a3/a6,-(sp)
     if(*((ULONG *)UaeDbgLog)) {
- 57a:	4ab9 00f0 ff60 	tst.l f0ff60 <_end+0xef42b0>
- 580:	6734           	beq.s 5b6 <KPrintF+0x44>
+ 64a:	4ab9 00f0 ff60 	tst.l f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
+ 650:	6734           	beq.s 686 <KPrintF+0x44>
 		RawDoFmt(fmt, vl, PutChar, temp);
- 582:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 588:	206f 0090      	movea.l 144(sp),a0
- 58c:	43ef 0094      	lea 148(sp),a1
- 590:	45f9 0000 09d4 	lea 9d4 <PutChar>,a2
- 596:	47ef 000c      	lea 12(sp),a3
- 59a:	4eae fdf6      	jsr -522(a6)
+ 652:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 658:	206f 0090      	movea.l 144(sp),a0
+ 65c:	43ef 0094      	lea 148(sp),a1
+ 660:	45f9 0000 0bf8 	lea bf8 <PutChar>,a2
+ 666:	47ef 000c      	lea 12(sp),a3
+ 66a:	4eae fdf6      	jsr -522(a6)
 		UaeDbgLog(86, temp);
- 59e:	2f0b           	move.l a3,-(sp)
- 5a0:	4878 0056      	pea 56 <main+0x50>
- 5a4:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xef42b0>
- 5aa:	508f           	addq.l #8,sp
+ 66e:	2f0b           	move.l a3,-(sp)
+ 670:	4878 0056      	pea 56 <main+0x50>
+ 674:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xf00a98>
+ 67a:	508f           	addq.l #8,sp
 }
- 5ac:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
- 5b0:	4fef 0080      	lea 128(sp),sp
- 5b4:	4e75           	rts
+ 67c:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
+ 680:	4fef 0080      	lea 128(sp),sp
+ 684:	4e75           	rts
 		RawDoFmt(fmt, vl, KPutCharX, 0);
- 5b6:	2c79 0001 bcaa 	movea.l 1bcaa <SysBase>,a6
- 5bc:	206f 0090      	movea.l 144(sp),a0
- 5c0:	43ef 0094      	lea 148(sp),a1
- 5c4:	45f9 0000 09c6 	lea 9c6 <KPutCharX>,a2
- 5ca:	97cb           	suba.l a3,a3
- 5cc:	4eae fdf6      	jsr -522(a6)
+ 686:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 68c:	206f 0090      	movea.l 144(sp),a0
+ 690:	43ef 0094      	lea 148(sp),a1
+ 694:	45f9 0000 0bea 	lea bea <KPutCharX>,a2
+ 69a:	97cb           	suba.l a3,a3
+ 69c:	4eae fdf6      	jsr -522(a6)
 }
- 5d0:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
- 5d4:	4fef 0080      	lea 128(sp),sp
- 5d8:	4e75           	rts
+ 6a0:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
+ 6a4:	4fef 0080      	lea 128(sp),sp
+ 6a8:	4e75           	rts
 
-000005da <interruptHandler>:
+000006aa <interruptHandler>:
 static __attribute__((interrupt)) void interruptHandler() {
- 5da:	2f08           	move.l a0,-(sp)
- 5dc:	2f00           	move.l d0,-(sp)
+ 6aa:	2f08           	move.l a0,-(sp)
+ 6ac:	2f00           	move.l d0,-(sp)
 	hw->intreq=(1<<INTB_VERTB); hw->intreq=(1<<INTB_VERTB); //reset vbl req. twice for a4000 bug.
- 5de:	2079 0001 bca6 	movea.l 1bca6 <hw>,a0
- 5e4:	317c 0020 009c 	move.w #32,156(a0)
- 5ea:	317c 0020 009c 	move.w #32,156(a0)
+ 6ae:	2079 0000 2e46 	movea.l 2e46 <hw>,a0
+ 6b4:	317c 0020 009c 	move.w #32,156(a0)
+ 6ba:	317c 0020 009c 	move.w #32,156(a0)
 	frameCounter++;
- 5f0:	2039 0000 2b70 	move.l 2b70 <frameCounter>,d0
- 5f6:	5280           	addq.l #1,d0
- 5f8:	23c0 0000 2b70 	move.l d0,2b70 <frameCounter>
+ 6c0:	2039 0000 2e08 	move.l 2e08 <frameCounter>,d0
+ 6c6:	5280           	addq.l #1,d0
+ 6c8:	23c0 0000 2e08 	move.l d0,2e08 <frameCounter>
 }
- 5fe:	201f           	move.l (sp)+,d0
- 600:	205f           	movea.l (sp)+,a0
- 602:	4e73           	rte
+ 6ce:	201f           	move.l (sp)+,d0
+ 6d0:	205f           	movea.l (sp)+,a0
+ 6d2:	4e73           	rte
 
-00000604 <WaitVbl>:
+000006d4 <WaitVbl>:
 void WaitVbl() {
- 604:	518f           	subq.l #8,sp
+ 6d4:	518f           	subq.l #8,sp
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
- 606:	2039 00df f004 	move.l dff004 <_end+0xde3354>,d0
- 60c:	2e80           	move.l d0,(sp)
+ 6d6:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdefb3c>,d0
+ 6dc:	2e80           	move.l d0,(sp)
 		vpos&=0x1ff00;
- 60e:	2017           	move.l (sp),d0
- 610:	0280 0001 ff00 	andi.l #130816,d0
- 616:	2e80           	move.l d0,(sp)
+ 6de:	2017           	move.l (sp),d0
+ 6e0:	0280 0001 ff00 	andi.l #130816,d0
+ 6e6:	2e80           	move.l d0,(sp)
 		if (vpos!=(311<<8))
- 618:	2017           	move.l (sp),d0
- 61a:	0c80 0001 3700 	cmpi.l #79616,d0
- 620:	67e4           	beq.s 606 <WaitVbl+0x2>
+ 6e8:	2017           	move.l (sp),d0
+ 6ea:	0c80 0001 3700 	cmpi.l #79616,d0
+ 6f0:	67e4           	beq.s 6d6 <WaitVbl+0x2>
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
- 622:	2039 00df f004 	move.l dff004 <_end+0xde3354>,d0
- 628:	2f40 0004      	move.l d0,4(sp)
+ 6f2:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdefb3c>,d0
+ 6f8:	2f40 0004      	move.l d0,4(sp)
 		vpos&=0x1ff00;
- 62c:	202f 0004      	move.l 4(sp),d0
- 630:	0280 0001 ff00 	andi.l #130816,d0
- 636:	2f40 0004      	move.l d0,4(sp)
+ 6fc:	202f 0004      	move.l 4(sp),d0
+ 700:	0280 0001 ff00 	andi.l #130816,d0
+ 706:	2f40 0004      	move.l d0,4(sp)
 		if (vpos==(311<<8))
- 63a:	202f 0004      	move.l 4(sp),d0
- 63e:	0c80 0001 3700 	cmpi.l #79616,d0
- 644:	66dc           	bne.s 622 <WaitVbl+0x1e>
+ 70a:	202f 0004      	move.l 4(sp),d0
+ 70e:	0c80 0001 3700 	cmpi.l #79616,d0
+ 714:	66dc           	bne.s 6f2 <WaitVbl+0x1e>
 }
- 646:	508f           	addq.l #8,sp
- 648:	4e75           	rts
+ 716:	508f           	addq.l #8,sp
+ 718:	4e75           	rts
 
-0000064a <ClBuild>:
-void ClBuild(  ULONG *cl) {
- 64a:	206f 0004      	movea.l 4(sp),a0
+0000071a <ClBuild>:
+ULONG * ClBuild() {
+ 71a:	48e7 3022      	movem.l d2-d3/a2/a6,-(sp)
+  ULONG *retval = AllocMem(  33*4, MEMF_CHIP);
+ 71e:	2c79 0000 2e4a 	movea.l 2e4a <SysBase>,a6
+ 724:	707b           	moveq #123,d0
+ 726:	4600           	not.b d0
+ 728:	7202           	moveq #2,d1
+ 72a:	4eae ff3a      	jsr -198(a6)
+ 72e:	2440           	movea.l d0,a2
+  if( retval == 0) {
+ 730:	4a80           	tst.l d0
+ 732:	6700 010e      	beq.w 842 <ClBuild+0x128>
     *cl++ = *clpartinstruction++;
- 64e:	20b9 0000 2b24 	move.l 2b24 <ClsSprites>,(a0)
- 654:	2179 0000 2b28 	move.l 2b28 <ClsSprites+0x4>,4(a0)
- 65a:	0004 
- 65c:	2179 0000 2b2c 	move.l 2b2c <ClsSprites+0x8>,8(a0)
- 662:	0008 
- 664:	2179 0000 2b30 	move.l 2b30 <ClsSprites+0xc>,12(a0)
- 66a:	000c 
- 66c:	2179 0000 2b34 	move.l 2b34 <ClsSprites+0x10>,16(a0)
- 672:	0010 
- 674:	2179 0000 2b38 	move.l 2b38 <ClsSprites+0x14>,20(a0)
- 67a:	0014 
- 67c:	2179 0000 2b3c 	move.l 2b3c <ClsSprites+0x18>,24(a0)
- 682:	0018 
- 684:	2179 0000 2b40 	move.l 2b40 <ClsSprites+0x1c>,28(a0)
- 68a:	001c 
- 68c:	2179 0000 2b44 	move.l 2b44 <ClsSprites+0x20>,32(a0)
- 692:	0020 
- 694:	2179 0000 2b48 	move.l 2b48 <ClsSprites+0x24>,36(a0)
- 69a:	0024 
- 69c:	2179 0000 2b4c 	move.l 2b4c <ClsSprites+0x28>,40(a0)
- 6a2:	0028 
- 6a4:	2179 0000 2b50 	move.l 2b50 <ClsSprites+0x2c>,44(a0)
- 6aa:	002c 
- 6ac:	2179 0000 2b54 	move.l 2b54 <ClsSprites+0x30>,48(a0)
- 6b2:	0030 
- 6b4:	2179 0000 2b58 	move.l 2b58 <ClsSprites+0x34>,52(a0)
- 6ba:	0034 
- 6bc:	2179 0000 2b5c 	move.l 2b5c <ClsSprites+0x38>,56(a0)
- 6c2:	0038 
- 6c4:	2179 0000 2b60 	move.l 2b60 <ClsSprites+0x3c>,60(a0)
- 6ca:	003c 
+ 736:	24b9 0000 2dbc 	move.l 2dbc <ClsSprites>,(a2)
+ 73c:	2579 0000 2dc0 	move.l 2dc0 <ClsSprites+0x4>,4(a2)
+ 742:	0004 
+ 744:	2579 0000 2dc4 	move.l 2dc4 <ClsSprites+0x8>,8(a2)
+ 74a:	0008 
+ 74c:	2579 0000 2dc8 	move.l 2dc8 <ClsSprites+0xc>,12(a2)
+ 752:	000c 
+ 754:	2579 0000 2dcc 	move.l 2dcc <ClsSprites+0x10>,16(a2)
+ 75a:	0010 
+ 75c:	2579 0000 2dd0 	move.l 2dd0 <ClsSprites+0x14>,20(a2)
+ 762:	0014 
+ 764:	2579 0000 2dd4 	move.l 2dd4 <ClsSprites+0x18>,24(a2)
+ 76a:	0018 
+ 76c:	2579 0000 2dd8 	move.l 2dd8 <ClsSprites+0x1c>,28(a2)
+ 772:	001c 
+ 774:	2579 0000 2ddc 	move.l 2ddc <ClsSprites+0x20>,32(a2)
+ 77a:	0020 
+ 77c:	2579 0000 2de0 	move.l 2de0 <ClsSprites+0x24>,36(a2)
+ 782:	0024 
+ 784:	2579 0000 2de4 	move.l 2de4 <ClsSprites+0x28>,40(a2)
+ 78a:	0028 
+ 78c:	2579 0000 2de8 	move.l 2de8 <ClsSprites+0x2c>,44(a2)
+ 792:	002c 
+ 794:	2579 0000 2dec 	move.l 2dec <ClsSprites+0x30>,48(a2)
+ 79a:	0030 
+ 79c:	2579 0000 2df0 	move.l 2df0 <ClsSprites+0x34>,52(a2)
+ 7a2:	0034 
+ 7a4:	2579 0000 2df4 	move.l 2df4 <ClsSprites+0x38>,56(a2)
+ 7aa:	0038 
+ 7ac:	2579 0000 2df8 	move.l 2df8 <ClsSprites+0x3c>,60(a2)
+ 7b2:	003c 
     *cl++ = *clpartinstruction++;
- 6cc:	2179 0000 2af4 	move.l 2af4 <ClScreen>,64(a0)
- 6d2:	0040 
- 6d4:	2179 0000 2af8 	move.l 2af8 <ClScreen+0x4>,68(a0)
- 6da:	0044 
- 6dc:	2179 0000 2afc 	move.l 2afc <ClScreen+0x8>,72(a0)
- 6e2:	0048 
- 6e4:	2179 0000 2b00 	move.l 2b00 <ClScreen+0xc>,76(a0)
- 6ea:	004c 
- 6ec:	2179 0000 2b04 	move.l 2b04 <ClScreen+0x10>,80(a0)
- 6f2:	0050 
- 6f4:	2179 0000 2b08 	move.l 2b08 <ClScreen+0x14>,84(a0)
- 6fa:	0054 
- 6fc:	2179 0000 2b0c 	move.l 2b0c <ClScreen+0x18>,88(a0)
- 702:	0058 
- 704:	2179 0000 2b10 	move.l 2b10 <ClScreen+0x1c>,92(a0)
- 70a:	005c 
- 70c:	2179 0000 2b14 	move.l 2b14 <ClScreen+0x20>,96(a0)
- 712:	0060 
- 714:	2179 0000 2b18 	move.l 2b18 <ClScreen+0x24>,100(a0)
- 71a:	0064 
- 71c:	2179 0000 2b1c 	move.l 2b1c <ClScreen+0x28>,104(a0)
- 722:	0068 
- 724:	2179 0000 2b20 	move.l 2b20 <ClScreen+0x2c>,108(a0)
- 72a:	006c 
+ 7b4:	2579 0000 2d8c 	move.l 2d8c <ClScreen>,64(a2)
+ 7ba:	0040 
+ 7bc:	2579 0000 2d90 	move.l 2d90 <ClScreen+0x4>,68(a2)
+ 7c2:	0044 
+ 7c4:	2579 0000 2d94 	move.l 2d94 <ClScreen+0x8>,72(a2)
+ 7ca:	0048 
+ 7cc:	2579 0000 2d98 	move.l 2d98 <ClScreen+0xc>,76(a2)
+ 7d2:	004c 
+ 7d4:	2579 0000 2d9c 	move.l 2d9c <ClScreen+0x10>,80(a2)
+ 7da:	0050 
+ 7dc:	2579 0000 2da0 	move.l 2da0 <ClScreen+0x14>,84(a2)
+ 7e2:	0054 
+ 7e4:	2579 0000 2da4 	move.l 2da4 <ClScreen+0x18>,88(a2)
+ 7ea:	0058 
+ 7ec:	2579 0000 2da8 	move.l 2da8 <ClScreen+0x1c>,92(a2)
+ 7f2:	005c 
+ 7f4:	2579 0000 2dac 	move.l 2dac <ClScreen+0x20>,96(a2)
+ 7fa:	0060 
+ 7fc:	2579 0000 2db0 	move.l 2db0 <ClScreen+0x24>,100(a2)
+ 802:	0064 
+ 804:	2579 0000 2db4 	move.l 2db4 <ClScreen+0x28>,104(a2)
+ 80a:	0068 
+ 80c:	2579 0000 2db8 	move.l 2db8 <ClScreen+0x2c>,108(a2)
+ 812:	006c 
   *cl++ = 0x00e00000;
- 72c:	217c 00e0 0000 	move.l #14680064,112(a0)
- 732:	0070 
+ 814:	257c 00e0 0000 	move.l #14680064,112(a2)
+ 81a:	0070 
   *cl++ = 0x00e20000;
- 734:	217c 00e2 0000 	move.l #14811136,116(a0)
- 73a:	0074 
+ 81c:	257c 00e2 0000 	move.l #14811136,116(a2)
+ 822:	0074 
     *cl++ = *clpartinstruction++;
- 73c:	2179 0000 2aec 	move.l 2aec <ClColor>,120(a0)
- 742:	0078 
- 744:	2179 0000 2af0 	move.l 2af0 <ClColor+0x4>,124(a0)
- 74a:	007c 
+ 824:	2579 0000 2d84 	move.l 2d84 <ClColor>,120(a2)
+ 82a:	0078 
+ 82c:	2579 0000 2d88 	move.l 2d88 <ClColor+0x4>,124(a2)
+ 832:	007c 
   *cl = 0xfffffffe;
- 74c:	70fe           	moveq #-2,d0
- 74e:	2140 0080      	move.l d0,128(a0)
+ 834:	70fe           	moveq #-2,d0
+ 836:	2540 0080      	move.l d0,128(a2)
 }
- 752:	4e75           	rts
-
-00000754 <memcpy>:
-{
- 754:	48e7 3820      	movem.l d2-d4/a2,-(sp)
- 758:	202f 0014      	move.l 20(sp),d0
- 75c:	226f 0018      	movea.l 24(sp),a1
- 760:	222f 001c      	move.l 28(sp),d1
-	while(len--)
- 764:	2601           	move.l d1,d3
- 766:	5383           	subq.l #1,d3
- 768:	4a81           	tst.l d1
- 76a:	6762           	beq.s 7ce <memcpy+0x7a>
- 76c:	2040           	movea.l d0,a0
- 76e:	5888           	addq.l #4,a0
- 770:	b1c9           	cmpa.l a1,a0
- 772:	53c2           	sl.s d2
- 774:	4402           	neg.b d2
- 776:	41e9 0004      	lea 4(a1),a0
- 77a:	b1c0           	cmpa.l d0,a0
- 77c:	53c4           	sl.s d4
- 77e:	4404           	neg.b d4
- 780:	8404           	or.b d4,d2
- 782:	7808           	moveq #8,d4
- 784:	b883           	cmp.l d3,d4
- 786:	55c4           	sc.s d4
- 788:	4404           	neg.b d4
- 78a:	c404           	and.b d4,d2
- 78c:	6746           	beq.s 7d4 <memcpy+0x80>
- 78e:	2409           	move.l a1,d2
- 790:	8480           	or.l d0,d2
- 792:	7803           	moveq #3,d4
- 794:	c484           	and.l d4,d2
- 796:	663c           	bne.s 7d4 <memcpy+0x80>
- 798:	2049           	movea.l a1,a0
- 79a:	2440           	movea.l d0,a2
- 79c:	74fc           	moveq #-4,d2
- 79e:	c481           	and.l d1,d2
- 7a0:	d489           	add.l a1,d2
-		*d++ = *s++;
- 7a2:	24d8           	move.l (a0)+,(a2)+
- 7a4:	b488           	cmp.l a0,d2
- 7a6:	66fa           	bne.s 7a2 <memcpy+0x4e>
- 7a8:	74fc           	moveq #-4,d2
- 7aa:	c481           	and.l d1,d2
- 7ac:	2040           	movea.l d0,a0
- 7ae:	d1c2           	adda.l d2,a0
- 7b0:	d3c2           	adda.l d2,a1
- 7b2:	9682           	sub.l d2,d3
- 7b4:	b481           	cmp.l d1,d2
- 7b6:	6716           	beq.s 7ce <memcpy+0x7a>
- 7b8:	1091           	move.b (a1),(a0)
-	while(len--)
- 7ba:	4a83           	tst.l d3
- 7bc:	6710           	beq.s 7ce <memcpy+0x7a>
-		*d++ = *s++;
- 7be:	1169 0001 0001 	move.b 1(a1),1(a0)
-	while(len--)
- 7c4:	5383           	subq.l #1,d3
- 7c6:	6706           	beq.s 7ce <memcpy+0x7a>
-		*d++ = *s++;
- 7c8:	1169 0002 0002 	move.b 2(a1),2(a0)
+ 83a:	200a           	move.l a2,d0
+ 83c:	4cdf 440c      	movem.l (sp)+,d2-d3/a2/a6
+ 840:	4e75           	rts
+    Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
+ 842:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 848:	4eae ffc4      	jsr -60(a6)
+ 84c:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 852:	2200           	move.l d0,d1
+ 854:	243c 0000 0cc5 	move.l #3269,d2
+ 85a:	7628           	moveq #40,d3
+ 85c:	4eae ffd0      	jsr -48(a6)
+    Exit(1);
+ 860:	2c79 0000 2e3e 	movea.l 2e3e <DOSBase>,a6
+ 866:	7201           	moveq #1,d1
+ 868:	4eae ff70      	jsr -144(a6)
+    *cl++ = *clpartinstruction++;
+ 86c:	24b9 0000 2dbc 	move.l 2dbc <ClsSprites>,(a2)
+ 872:	2579 0000 2dc0 	move.l 2dc0 <ClsSprites+0x4>,4(a2)
+ 878:	0004 
+ 87a:	2579 0000 2dc4 	move.l 2dc4 <ClsSprites+0x8>,8(a2)
+ 880:	0008 
+ 882:	2579 0000 2dc8 	move.l 2dc8 <ClsSprites+0xc>,12(a2)
+ 888:	000c 
+ 88a:	2579 0000 2dcc 	move.l 2dcc <ClsSprites+0x10>,16(a2)
+ 890:	0010 
+ 892:	2579 0000 2dd0 	move.l 2dd0 <ClsSprites+0x14>,20(a2)
+ 898:	0014 
+ 89a:	2579 0000 2dd4 	move.l 2dd4 <ClsSprites+0x18>,24(a2)
+ 8a0:	0018 
+ 8a2:	2579 0000 2dd8 	move.l 2dd8 <ClsSprites+0x1c>,28(a2)
+ 8a8:	001c 
+ 8aa:	2579 0000 2ddc 	move.l 2ddc <ClsSprites+0x20>,32(a2)
+ 8b0:	0020 
+ 8b2:	2579 0000 2de0 	move.l 2de0 <ClsSprites+0x24>,36(a2)
+ 8b8:	0024 
+ 8ba:	2579 0000 2de4 	move.l 2de4 <ClsSprites+0x28>,40(a2)
+ 8c0:	0028 
+ 8c2:	2579 0000 2de8 	move.l 2de8 <ClsSprites+0x2c>,44(a2)
+ 8c8:	002c 
+ 8ca:	2579 0000 2dec 	move.l 2dec <ClsSprites+0x30>,48(a2)
+ 8d0:	0030 
+ 8d2:	2579 0000 2df0 	move.l 2df0 <ClsSprites+0x34>,52(a2)
+ 8d8:	0034 
+ 8da:	2579 0000 2df4 	move.l 2df4 <ClsSprites+0x38>,56(a2)
+ 8e0:	0038 
+ 8e2:	2579 0000 2df8 	move.l 2df8 <ClsSprites+0x3c>,60(a2)
+ 8e8:	003c 
+    *cl++ = *clpartinstruction++;
+ 8ea:	2579 0000 2d8c 	move.l 2d8c <ClScreen>,64(a2)
+ 8f0:	0040 
+ 8f2:	2579 0000 2d90 	move.l 2d90 <ClScreen+0x4>,68(a2)
+ 8f8:	0044 
+ 8fa:	2579 0000 2d94 	move.l 2d94 <ClScreen+0x8>,72(a2)
+ 900:	0048 
+ 902:	2579 0000 2d98 	move.l 2d98 <ClScreen+0xc>,76(a2)
+ 908:	004c 
+ 90a:	2579 0000 2d9c 	move.l 2d9c <ClScreen+0x10>,80(a2)
+ 910:	0050 
+ 912:	2579 0000 2da0 	move.l 2da0 <ClScreen+0x14>,84(a2)
+ 918:	0054 
+ 91a:	2579 0000 2da4 	move.l 2da4 <ClScreen+0x18>,88(a2)
+ 920:	0058 
+ 922:	2579 0000 2da8 	move.l 2da8 <ClScreen+0x1c>,92(a2)
+ 928:	005c 
+ 92a:	2579 0000 2dac 	move.l 2dac <ClScreen+0x20>,96(a2)
+ 930:	0060 
+ 932:	2579 0000 2db0 	move.l 2db0 <ClScreen+0x24>,100(a2)
+ 938:	0064 
+ 93a:	2579 0000 2db4 	move.l 2db4 <ClScreen+0x28>,104(a2)
+ 940:	0068 
+ 942:	2579 0000 2db8 	move.l 2db8 <ClScreen+0x2c>,108(a2)
+ 948:	006c 
+  *cl++ = 0x00e00000;
+ 94a:	257c 00e0 0000 	move.l #14680064,112(a2)
+ 950:	0070 
+  *cl++ = 0x00e20000;
+ 952:	257c 00e2 0000 	move.l #14811136,116(a2)
+ 958:	0074 
+    *cl++ = *clpartinstruction++;
+ 95a:	2579 0000 2d84 	move.l 2d84 <ClColor>,120(a2)
+ 960:	0078 
+ 962:	2579 0000 2d88 	move.l 2d88 <ClColor+0x4>,124(a2)
+ 968:	007c 
+  *cl = 0xfffffffe;
+ 96a:	70fe           	moveq #-2,d0
+ 96c:	2540 0080      	move.l d0,128(a2)
 }
- 7ce:	4cdf 041c      	movem.l (sp)+,d2-d4/a2
- 7d2:	4e75           	rts
- 7d4:	2040           	movea.l d0,a0
- 7d6:	d289           	add.l a1,d1
-		*d++ = *s++;
- 7d8:	10d9           	move.b (a1)+,(a0)+
-	while(len--)
- 7da:	b289           	cmp.l a1,d1
- 7dc:	67f0           	beq.s 7ce <memcpy+0x7a>
-		*d++ = *s++;
- 7de:	10d9           	move.b (a1)+,(a0)+
-	while(len--)
- 7e0:	b289           	cmp.l a1,d1
- 7e2:	66f4           	bne.s 7d8 <memcpy+0x84>
- 7e4:	60e8           	bra.s 7ce <memcpy+0x7a>
+ 970:	200a           	move.l a2,d0
+ 972:	4cdf 440c      	movem.l (sp)+,d2-d3/a2/a6
+ 976:	4e75           	rts
 
-000007e6 <memset>:
+00000978 <memcpy>:
 {
- 7e6:	48e7 3f30      	movem.l d2-d7/a2-a3,-(sp)
- 7ea:	202f 0024      	move.l 36(sp),d0
- 7ee:	2a2f 0028      	move.l 40(sp),d5
- 7f2:	226f 002c      	movea.l 44(sp),a1
-	while(len-- > 0)
- 7f6:	2809           	move.l a1,d4
- 7f8:	5384           	subq.l #1,d4
- 7fa:	b2fc 0000      	cmpa.w #0,a1
- 7fe:	6f00 00b0      	ble.w 8b0 <memset+0xca>
- 802:	1e05           	move.b d5,d7
- 804:	2200           	move.l d0,d1
- 806:	4481           	neg.l d1
- 808:	7403           	moveq #3,d2
- 80a:	c282           	and.l d2,d1
- 80c:	7c05           	moveq #5,d6
-		*ptr++ = val;
- 80e:	2440           	movea.l d0,a2
- 810:	bc84           	cmp.l d4,d6
- 812:	646a           	bcc.s 87e <memset+0x98>
- 814:	4a81           	tst.l d1
- 816:	6724           	beq.s 83c <memset+0x56>
- 818:	14c5           	move.b d5,(a2)+
-	while(len-- > 0)
- 81a:	5384           	subq.l #1,d4
- 81c:	7401           	moveq #1,d2
- 81e:	b481           	cmp.l d1,d2
- 820:	671a           	beq.s 83c <memset+0x56>
-		*ptr++ = val;
- 822:	2440           	movea.l d0,a2
- 824:	548a           	addq.l #2,a2
- 826:	2040           	movea.l d0,a0
- 828:	1145 0001      	move.b d5,1(a0)
-	while(len-- > 0)
- 82c:	5384           	subq.l #1,d4
- 82e:	7403           	moveq #3,d2
- 830:	b481           	cmp.l d1,d2
- 832:	6608           	bne.s 83c <memset+0x56>
-		*ptr++ = val;
- 834:	528a           	addq.l #1,a2
- 836:	1145 0002      	move.b d5,2(a0)
-	while(len-- > 0)
- 83a:	5384           	subq.l #1,d4
- 83c:	2609           	move.l a1,d3
- 83e:	9681           	sub.l d1,d3
- 840:	7c00           	moveq #0,d6
- 842:	1c05           	move.b d5,d6
- 844:	2406           	move.l d6,d2
- 846:	4842           	swap d2
- 848:	4242           	clr.w d2
- 84a:	2042           	movea.l d2,a0
- 84c:	2406           	move.l d6,d2
- 84e:	e14a           	lsl.w #8,d2
- 850:	4842           	swap d2
- 852:	4242           	clr.w d2
- 854:	e18e           	lsl.l #8,d6
- 856:	2646           	movea.l d6,a3
- 858:	2c08           	move.l a0,d6
- 85a:	8486           	or.l d6,d2
- 85c:	2c0b           	move.l a3,d6
- 85e:	8486           	or.l d6,d2
- 860:	1407           	move.b d7,d2
- 862:	2040           	movea.l d0,a0
- 864:	d1c1           	adda.l d1,a0
- 866:	72fc           	moveq #-4,d1
- 868:	c283           	and.l d3,d1
- 86a:	d288           	add.l a0,d1
-		*ptr++ = val;
- 86c:	20c2           	move.l d2,(a0)+
- 86e:	b1c1           	cmpa.l d1,a0
- 870:	66fa           	bne.s 86c <memset+0x86>
- 872:	72fc           	moveq #-4,d1
- 874:	c283           	and.l d3,d1
- 876:	d5c1           	adda.l d1,a2
- 878:	9881           	sub.l d1,d4
- 87a:	b283           	cmp.l d3,d1
- 87c:	6732           	beq.s 8b0 <memset+0xca>
- 87e:	1485           	move.b d5,(a2)
-	while(len-- > 0)
- 880:	4a84           	tst.l d4
- 882:	6f2c           	ble.s 8b0 <memset+0xca>
-		*ptr++ = val;
- 884:	1545 0001      	move.b d5,1(a2)
-	while(len-- > 0)
- 888:	7201           	moveq #1,d1
- 88a:	b284           	cmp.l d4,d1
- 88c:	6c22           	bge.s 8b0 <memset+0xca>
-		*ptr++ = val;
- 88e:	1545 0002      	move.b d5,2(a2)
-	while(len-- > 0)
- 892:	7402           	moveq #2,d2
- 894:	b484           	cmp.l d4,d2
- 896:	6c18           	bge.s 8b0 <memset+0xca>
-		*ptr++ = val;
- 898:	1545 0003      	move.b d5,3(a2)
-	while(len-- > 0)
- 89c:	7c03           	moveq #3,d6
- 89e:	bc84           	cmp.l d4,d6
- 8a0:	6c0e           	bge.s 8b0 <memset+0xca>
-		*ptr++ = val;
- 8a2:	1545 0004      	move.b d5,4(a2)
-	while(len-- > 0)
- 8a6:	7204           	moveq #4,d1
- 8a8:	b284           	cmp.l d4,d1
- 8aa:	6c04           	bge.s 8b0 <memset+0xca>
-		*ptr++ = val;
- 8ac:	1545 0005      	move.b d5,5(a2)
+ 978:	48e7 3820      	movem.l d2-d4/a2,-(sp)
+ 97c:	202f 0014      	move.l 20(sp),d0
+ 980:	226f 0018      	movea.l 24(sp),a1
+ 984:	222f 001c      	move.l 28(sp),d1
+	while(len--)
+ 988:	2601           	move.l d1,d3
+ 98a:	5383           	subq.l #1,d3
+ 98c:	4a81           	tst.l d1
+ 98e:	6762           	beq.s 9f2 <memcpy+0x7a>
+ 990:	2040           	movea.l d0,a0
+ 992:	5888           	addq.l #4,a0
+ 994:	b1c9           	cmpa.l a1,a0
+ 996:	53c2           	sl.s d2
+ 998:	4402           	neg.b d2
+ 99a:	41e9 0004      	lea 4(a1),a0
+ 99e:	b1c0           	cmpa.l d0,a0
+ 9a0:	53c4           	sl.s d4
+ 9a2:	4404           	neg.b d4
+ 9a4:	8404           	or.b d4,d2
+ 9a6:	7808           	moveq #8,d4
+ 9a8:	b883           	cmp.l d3,d4
+ 9aa:	55c4           	sc.s d4
+ 9ac:	4404           	neg.b d4
+ 9ae:	c404           	and.b d4,d2
+ 9b0:	6746           	beq.s 9f8 <memcpy+0x80>
+ 9b2:	2409           	move.l a1,d2
+ 9b4:	8480           	or.l d0,d2
+ 9b6:	7803           	moveq #3,d4
+ 9b8:	c484           	and.l d4,d2
+ 9ba:	663c           	bne.s 9f8 <memcpy+0x80>
+ 9bc:	2049           	movea.l a1,a0
+ 9be:	2440           	movea.l d0,a2
+ 9c0:	74fc           	moveq #-4,d2
+ 9c2:	c481           	and.l d1,d2
+ 9c4:	d489           	add.l a1,d2
+		*d++ = *s++;
+ 9c6:	24d8           	move.l (a0)+,(a2)+
+ 9c8:	b488           	cmp.l a0,d2
+ 9ca:	66fa           	bne.s 9c6 <memcpy+0x4e>
+ 9cc:	74fc           	moveq #-4,d2
+ 9ce:	c481           	and.l d1,d2
+ 9d0:	2040           	movea.l d0,a0
+ 9d2:	d1c2           	adda.l d2,a0
+ 9d4:	d3c2           	adda.l d2,a1
+ 9d6:	9682           	sub.l d2,d3
+ 9d8:	b481           	cmp.l d1,d2
+ 9da:	6716           	beq.s 9f2 <memcpy+0x7a>
+ 9dc:	1091           	move.b (a1),(a0)
+	while(len--)
+ 9de:	4a83           	tst.l d3
+ 9e0:	6710           	beq.s 9f2 <memcpy+0x7a>
+		*d++ = *s++;
+ 9e2:	1169 0001 0001 	move.b 1(a1),1(a0)
+	while(len--)
+ 9e8:	5383           	subq.l #1,d3
+ 9ea:	6706           	beq.s 9f2 <memcpy+0x7a>
+		*d++ = *s++;
+ 9ec:	1169 0002 0002 	move.b 2(a1),2(a0)
 }
- 8b0:	4cdf 0cfc      	movem.l (sp)+,d2-d7/a2-a3
- 8b4:	4e75           	rts
+ 9f2:	4cdf 041c      	movem.l (sp)+,d2-d4/a2
+ 9f6:	4e75           	rts
+ 9f8:	2040           	movea.l d0,a0
+ 9fa:	d289           	add.l a1,d1
+		*d++ = *s++;
+ 9fc:	10d9           	move.b (a1)+,(a0)+
+	while(len--)
+ 9fe:	b289           	cmp.l a1,d1
+ a00:	67f0           	beq.s 9f2 <memcpy+0x7a>
+		*d++ = *s++;
+ a02:	10d9           	move.b (a1)+,(a0)+
+	while(len--)
+ a04:	b289           	cmp.l a1,d1
+ a06:	66f4           	bne.s 9fc <memcpy+0x84>
+ a08:	60e8           	bra.s 9f2 <memcpy+0x7a>
 
-000008b6 <strlen>:
+00000a0a <memset>:
 {
- 8b6:	206f 0004      	movea.l 4(sp),a0
+ a0a:	48e7 3f30      	movem.l d2-d7/a2-a3,-(sp)
+ a0e:	202f 0024      	move.l 36(sp),d0
+ a12:	2a2f 0028      	move.l 40(sp),d5
+ a16:	226f 002c      	movea.l 44(sp),a1
+	while(len-- > 0)
+ a1a:	2809           	move.l a1,d4
+ a1c:	5384           	subq.l #1,d4
+ a1e:	b2fc 0000      	cmpa.w #0,a1
+ a22:	6f00 00b0      	ble.w ad4 <memset+0xca>
+ a26:	1e05           	move.b d5,d7
+ a28:	2200           	move.l d0,d1
+ a2a:	4481           	neg.l d1
+ a2c:	7403           	moveq #3,d2
+ a2e:	c282           	and.l d2,d1
+ a30:	7c05           	moveq #5,d6
+		*ptr++ = val;
+ a32:	2440           	movea.l d0,a2
+ a34:	bc84           	cmp.l d4,d6
+ a36:	646a           	bcc.s aa2 <memset+0x98>
+ a38:	4a81           	tst.l d1
+ a3a:	6724           	beq.s a60 <memset+0x56>
+ a3c:	14c5           	move.b d5,(a2)+
+	while(len-- > 0)
+ a3e:	5384           	subq.l #1,d4
+ a40:	7401           	moveq #1,d2
+ a42:	b481           	cmp.l d1,d2
+ a44:	671a           	beq.s a60 <memset+0x56>
+		*ptr++ = val;
+ a46:	2440           	movea.l d0,a2
+ a48:	548a           	addq.l #2,a2
+ a4a:	2040           	movea.l d0,a0
+ a4c:	1145 0001      	move.b d5,1(a0)
+	while(len-- > 0)
+ a50:	5384           	subq.l #1,d4
+ a52:	7403           	moveq #3,d2
+ a54:	b481           	cmp.l d1,d2
+ a56:	6608           	bne.s a60 <memset+0x56>
+		*ptr++ = val;
+ a58:	528a           	addq.l #1,a2
+ a5a:	1145 0002      	move.b d5,2(a0)
+	while(len-- > 0)
+ a5e:	5384           	subq.l #1,d4
+ a60:	2609           	move.l a1,d3
+ a62:	9681           	sub.l d1,d3
+ a64:	7c00           	moveq #0,d6
+ a66:	1c05           	move.b d5,d6
+ a68:	2406           	move.l d6,d2
+ a6a:	4842           	swap d2
+ a6c:	4242           	clr.w d2
+ a6e:	2042           	movea.l d2,a0
+ a70:	2406           	move.l d6,d2
+ a72:	e14a           	lsl.w #8,d2
+ a74:	4842           	swap d2
+ a76:	4242           	clr.w d2
+ a78:	e18e           	lsl.l #8,d6
+ a7a:	2646           	movea.l d6,a3
+ a7c:	2c08           	move.l a0,d6
+ a7e:	8486           	or.l d6,d2
+ a80:	2c0b           	move.l a3,d6
+ a82:	8486           	or.l d6,d2
+ a84:	1407           	move.b d7,d2
+ a86:	2040           	movea.l d0,a0
+ a88:	d1c1           	adda.l d1,a0
+ a8a:	72fc           	moveq #-4,d1
+ a8c:	c283           	and.l d3,d1
+ a8e:	d288           	add.l a0,d1
+		*ptr++ = val;
+ a90:	20c2           	move.l d2,(a0)+
+ a92:	b1c1           	cmpa.l d1,a0
+ a94:	66fa           	bne.s a90 <memset+0x86>
+ a96:	72fc           	moveq #-4,d1
+ a98:	c283           	and.l d3,d1
+ a9a:	d5c1           	adda.l d1,a2
+ a9c:	9881           	sub.l d1,d4
+ a9e:	b283           	cmp.l d3,d1
+ aa0:	6732           	beq.s ad4 <memset+0xca>
+ aa2:	1485           	move.b d5,(a2)
+	while(len-- > 0)
+ aa4:	4a84           	tst.l d4
+ aa6:	6f2c           	ble.s ad4 <memset+0xca>
+		*ptr++ = val;
+ aa8:	1545 0001      	move.b d5,1(a2)
+	while(len-- > 0)
+ aac:	7201           	moveq #1,d1
+ aae:	b284           	cmp.l d4,d1
+ ab0:	6c22           	bge.s ad4 <memset+0xca>
+		*ptr++ = val;
+ ab2:	1545 0002      	move.b d5,2(a2)
+	while(len-- > 0)
+ ab6:	7402           	moveq #2,d2
+ ab8:	b484           	cmp.l d4,d2
+ aba:	6c18           	bge.s ad4 <memset+0xca>
+		*ptr++ = val;
+ abc:	1545 0003      	move.b d5,3(a2)
+	while(len-- > 0)
+ ac0:	7c03           	moveq #3,d6
+ ac2:	bc84           	cmp.l d4,d6
+ ac4:	6c0e           	bge.s ad4 <memset+0xca>
+		*ptr++ = val;
+ ac6:	1545 0004      	move.b d5,4(a2)
+	while(len-- > 0)
+ aca:	7204           	moveq #4,d1
+ acc:	b284           	cmp.l d4,d1
+ ace:	6c04           	bge.s ad4 <memset+0xca>
+		*ptr++ = val;
+ ad0:	1545 0005      	move.b d5,5(a2)
+}
+ ad4:	4cdf 0cfc      	movem.l (sp)+,d2-d7/a2-a3
+ ad8:	4e75           	rts
+
+00000ada <strlen>:
+{
+ ada:	206f 0004      	movea.l 4(sp),a0
 	unsigned long t=0;
- 8ba:	7000           	moveq #0,d0
+ ade:	7000           	moveq #0,d0
 	while(*s++)
- 8bc:	4a10           	tst.b (a0)
- 8be:	6708           	beq.s 8c8 <strlen+0x12>
+ ae0:	4a10           	tst.b (a0)
+ ae2:	6708           	beq.s aec <strlen+0x12>
 		t++;
- 8c0:	5280           	addq.l #1,d0
+ ae4:	5280           	addq.l #1,d0
 	while(*s++)
- 8c2:	4a30 0800      	tst.b (0,a0,d0.l)
- 8c6:	66f8           	bne.s 8c0 <strlen+0xa>
+ ae6:	4a30 0800      	tst.b (0,a0,d0.l)
+ aea:	66f8           	bne.s ae4 <strlen+0xa>
 }
- 8c8:	4e75           	rts
- 8ca:	4e71           	nop
+ aec:	4e75           	rts
+ aee:	4e71           	nop
 
-000008cc <__mulsi3>:
+00000af0 <__mulsi3>:
  
 	.text
 	FUNC(__mulsi3)
 	.globl	SYM (__mulsi3)
 SYM (__mulsi3):
 	movew	sp@(4), d0	/* x0 -> d0 */
- 8cc:	302f 0004      	move.w 4(sp),d0
+ af0:	302f 0004      	move.w 4(sp),d0
 	muluw	sp@(10), d0	/* x0*y1 */
- 8d0:	c0ef 000a      	mulu.w 10(sp),d0
+ af4:	c0ef 000a      	mulu.w 10(sp),d0
 	movew	sp@(6), d1	/* x1 -> d1 */
- 8d4:	322f 0006      	move.w 6(sp),d1
+ af8:	322f 0006      	move.w 6(sp),d1
 	muluw	sp@(8), d1	/* x1*y0 */
- 8d8:	c2ef 0008      	mulu.w 8(sp),d1
+ afc:	c2ef 0008      	mulu.w 8(sp),d1
 	addw	d1, d0
- 8dc:	d041           	add.w d1,d0
+ b00:	d041           	add.w d1,d0
 	swap	d0
- 8de:	4840           	swap d0
+ b02:	4840           	swap d0
 	clrw	d0
- 8e0:	4240           	clr.w d0
+ b04:	4240           	clr.w d0
 	movew	sp@(6), d1	/* x1 -> d1 */
- 8e2:	322f 0006      	move.w 6(sp),d1
+ b06:	322f 0006      	move.w 6(sp),d1
 	muluw	sp@(10), d1	/* x1*y1 */
- 8e6:	c2ef 000a      	mulu.w 10(sp),d1
+ b0a:	c2ef 000a      	mulu.w 10(sp),d1
 	addl	d1, d0
- 8ea:	d081           	add.l d1,d0
+ b0e:	d081           	add.l d1,d0
 
 	rts
- 8ec:	4e75           	rts
+ b10:	4e75           	rts
 
-000008ee <__udivsi3>:
+00000b12 <__udivsi3>:
 
 	.text
 	FUNC(__udivsi3)
 	.globl	SYM (__udivsi3)
 SYM (__udivsi3):
 	movel	d2, sp@-
- 8ee:	2f02           	move.l d2,-(sp)
+ b12:	2f02           	move.l d2,-(sp)
 	movel	sp@(12), d1	/* d1 = divisor */
- 8f0:	222f 000c      	move.l 12(sp),d1
+ b14:	222f 000c      	move.l 12(sp),d1
 	movel	sp@(8), d0	/* d0 = dividend */
- 8f4:	202f 0008      	move.l 8(sp),d0
+ b18:	202f 0008      	move.l 8(sp),d0
 
 	cmpl	IMM (0x10000), d1 /* divisor >= 2 ^ 16 ?   */
- 8f8:	0c81 0001 0000 	cmpi.l #65536,d1
+ b1c:	0c81 0001 0000 	cmpi.l #65536,d1
 	jcc	3f		/* then try next algorithm */
- 8fe:	6416           	bcc.s 916 <__udivsi3+0x28>
+ b22:	6416           	bcc.s b3a <__udivsi3+0x28>
 	movel	d0, d2
- 900:	2400           	move.l d0,d2
+ b24:	2400           	move.l d0,d2
 	clrw	d2
- 902:	4242           	clr.w d2
+ b26:	4242           	clr.w d2
 	swap	d2
- 904:	4842           	swap d2
+ b28:	4842           	swap d2
 	divu	d1, d2          /* high quotient in lower word */
- 906:	84c1           	divu.w d1,d2
+ b2a:	84c1           	divu.w d1,d2
 	movew	d2, d0		/* save high quotient */
- 908:	3002           	move.w d2,d0
+ b2c:	3002           	move.w d2,d0
 	swap	d0
- 90a:	4840           	swap d0
+ b2e:	4840           	swap d0
 	movew	sp@(10), d2	/* get low dividend + high rest */
- 90c:	342f 000a      	move.w 10(sp),d2
+ b30:	342f 000a      	move.w 10(sp),d2
 	divu	d1, d2		/* low quotient */
- 910:	84c1           	divu.w d1,d2
+ b34:	84c1           	divu.w d1,d2
 	movew	d2, d0
- 912:	3002           	move.w d2,d0
+ b36:	3002           	move.w d2,d0
 	jra	6f
- 914:	6030           	bra.s 946 <__udivsi3+0x58>
+ b38:	6030           	bra.s b6a <__udivsi3+0x58>
 
 3:	movel	d1, d2		/* use d2 as divisor backup */
- 916:	2401           	move.l d1,d2
+ b3a:	2401           	move.l d1,d2
 4:	lsrl	IMM (1), d1	/* shift divisor */
- 918:	e289           	lsr.l #1,d1
+ b3c:	e289           	lsr.l #1,d1
 	lsrl	IMM (1), d0	/* shift dividend */
- 91a:	e288           	lsr.l #1,d0
+ b3e:	e288           	lsr.l #1,d0
 	cmpl	IMM (0x10000), d1 /* still divisor >= 2 ^ 16 ?  */
- 91c:	0c81 0001 0000 	cmpi.l #65536,d1
+ b40:	0c81 0001 0000 	cmpi.l #65536,d1
 	jcc	4b
- 922:	64f4           	bcc.s 918 <__udivsi3+0x2a>
+ b46:	64f4           	bcc.s b3c <__udivsi3+0x2a>
 	divu	d1, d0		/* now we have 16-bit divisor */
- 924:	80c1           	divu.w d1,d0
+ b48:	80c1           	divu.w d1,d0
 	andl	IMM (0xffff), d0 /* mask out divisor, ignore remainder */
- 926:	0280 0000 ffff 	andi.l #65535,d0
+ b4a:	0280 0000 ffff 	andi.l #65535,d0
 
 /* Multiply the 16-bit tentative quotient with the 32-bit divisor.  Because of
    the operand ranges, this might give a 33-bit product.  If this product is
    greater than the dividend, the tentative quotient was too large. */
 	movel	d2, d1
- 92c:	2202           	move.l d2,d1
+ b50:	2202           	move.l d2,d1
 	mulu	d0, d1		/* low part, 32 bits */
- 92e:	c2c0           	mulu.w d0,d1
+ b52:	c2c0           	mulu.w d0,d1
 	swap	d2
- 930:	4842           	swap d2
+ b54:	4842           	swap d2
 	mulu	d0, d2		/* high part, at most 17 bits */
- 932:	c4c0           	mulu.w d0,d2
+ b56:	c4c0           	mulu.w d0,d2
 	swap	d2		/* align high part with low part */
- 934:	4842           	swap d2
+ b58:	4842           	swap d2
 	tstw	d2		/* high part 17 bits? */
- 936:	4a42           	tst.w d2
+ b5a:	4a42           	tst.w d2
 	jne	5f		/* if 17 bits, quotient was too large */
- 938:	660a           	bne.s 944 <__udivsi3+0x56>
+ b5c:	660a           	bne.s b68 <__udivsi3+0x56>
 	addl	d2, d1		/* add parts */
- 93a:	d282           	add.l d2,d1
+ b5e:	d282           	add.l d2,d1
 	jcs	5f		/* if sum is 33 bits, quotient was too large */
- 93c:	6506           	bcs.s 944 <__udivsi3+0x56>
+ b60:	6506           	bcs.s b68 <__udivsi3+0x56>
 	cmpl	sp@(8), d1	/* compare the sum with the dividend */
- 93e:	b2af 0008      	cmp.l 8(sp),d1
+ b62:	b2af 0008      	cmp.l 8(sp),d1
 	jls	6f		/* if sum > dividend, quotient was too large */
- 942:	6302           	bls.s 946 <__udivsi3+0x58>
+ b66:	6302           	bls.s b6a <__udivsi3+0x58>
 5:	subql	IMM (1), d0	/* adjust quotient */
- 944:	5380           	subq.l #1,d0
+ b68:	5380           	subq.l #1,d0
 
 6:	movel	sp@+, d2
- 946:	241f           	move.l (sp)+,d2
+ b6a:	241f           	move.l (sp)+,d2
 	rts
- 948:	4e75           	rts
+ b6c:	4e75           	rts
 
-0000094a <__divsi3>:
+00000b6e <__divsi3>:
 
 	.text
 	FUNC(__divsi3)
 	.globl	SYM (__divsi3)
 SYM (__divsi3):
 	movel	d2, sp@-
- 94a:	2f02           	move.l d2,-(sp)
+ b6e:	2f02           	move.l d2,-(sp)
 
 	moveq	IMM (1), d2	/* sign of result stored in d2 (=1 or =-1) */
- 94c:	7401           	moveq #1,d2
+ b70:	7401           	moveq #1,d2
 	movel	sp@(12), d1	/* d1 = divisor */
- 94e:	222f 000c      	move.l 12(sp),d1
+ b72:	222f 000c      	move.l 12(sp),d1
 	jpl	1f
- 952:	6a04           	bpl.s 958 <__divsi3+0xe>
+ b76:	6a04           	bpl.s b7c <__divsi3+0xe>
 	negl	d1
- 954:	4481           	neg.l d1
+ b78:	4481           	neg.l d1
 	negb	d2		/* change sign because divisor <0  */
- 956:	4402           	neg.b d2
+ b7a:	4402           	neg.b d2
 1:	movel	sp@(8), d0	/* d0 = dividend */
- 958:	202f 0008      	move.l 8(sp),d0
+ b7c:	202f 0008      	move.l 8(sp),d0
 	jpl	2f
- 95c:	6a04           	bpl.s 962 <__divsi3+0x18>
+ b80:	6a04           	bpl.s b86 <__divsi3+0x18>
 	negl	d0
- 95e:	4480           	neg.l d0
+ b82:	4480           	neg.l d0
 	negb	d2
- 960:	4402           	neg.b d2
+ b84:	4402           	neg.b d2
 
 2:	movel	d1, sp@-
- 962:	2f01           	move.l d1,-(sp)
+ b86:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
- 964:	2f00           	move.l d0,-(sp)
+ b88:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__udivsi3)	/* divide abs(dividend) by abs(divisor) */
- 966:	6186           	bsr.s 8ee <__udivsi3>
+ b8a:	6186           	bsr.s b12 <__udivsi3>
 	addql	IMM (8), sp
- 968:	508f           	addq.l #8,sp
+ b8c:	508f           	addq.l #8,sp
 
 	tstb	d2
- 96a:	4a02           	tst.b d2
+ b8e:	4a02           	tst.b d2
 	jpl	3f
- 96c:	6a02           	bpl.s 970 <__divsi3+0x26>
+ b90:	6a02           	bpl.s b94 <__divsi3+0x26>
 	negl	d0
- 96e:	4480           	neg.l d0
+ b92:	4480           	neg.l d0
 
 3:	movel	sp@+, d2
- 970:	241f           	move.l (sp)+,d2
+ b94:	241f           	move.l (sp)+,d2
 	rts
- 972:	4e75           	rts
+ b96:	4e75           	rts
 
-00000974 <__modsi3>:
+00000b98 <__modsi3>:
 
 	.text
 	FUNC(__modsi3)
 	.globl	SYM (__modsi3)
 SYM (__modsi3):
 	movel	sp@(8), d1	/* d1 = divisor */
- 974:	222f 0008      	move.l 8(sp),d1
+ b98:	222f 0008      	move.l 8(sp),d1
 	movel	sp@(4), d0	/* d0 = dividend */
- 978:	202f 0004      	move.l 4(sp),d0
+ b9c:	202f 0004      	move.l 4(sp),d0
 	movel	d1, sp@-
- 97c:	2f01           	move.l d1,-(sp)
+ ba0:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
- 97e:	2f00           	move.l d0,-(sp)
+ ba2:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__divsi3)
- 980:	61c8           	bsr.s 94a <__divsi3>
+ ba4:	61c8           	bsr.s b6e <__divsi3>
 	addql	IMM (8), sp
- 982:	508f           	addq.l #8,sp
+ ba6:	508f           	addq.l #8,sp
 	movel	sp@(8), d1	/* d1 = divisor */
- 984:	222f 0008      	move.l 8(sp),d1
+ ba8:	222f 0008      	move.l 8(sp),d1
 	movel	d1, sp@-
- 988:	2f01           	move.l d1,-(sp)
+ bac:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
- 98a:	2f00           	move.l d0,-(sp)
+ bae:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__mulsi3)	/* d0 = (a/b)*b */
- 98c:	6100 ff3e      	bsr.w 8cc <__mulsi3>
+ bb0:	6100 ff3e      	bsr.w af0 <__mulsi3>
 	addql	IMM (8), sp
- 990:	508f           	addq.l #8,sp
+ bb4:	508f           	addq.l #8,sp
 	movel	sp@(4), d1	/* d1 = dividend */
- 992:	222f 0004      	move.l 4(sp),d1
+ bb6:	222f 0004      	move.l 4(sp),d1
 	subl	d0, d1		/* d1 = a - (a/b)*b */
- 996:	9280           	sub.l d0,d1
+ bba:	9280           	sub.l d0,d1
 	movel	d1, d0
- 998:	2001           	move.l d1,d0
+ bbc:	2001           	move.l d1,d0
 	rts
- 99a:	4e75           	rts
+ bbe:	4e75           	rts
 
-0000099c <__umodsi3>:
+00000bc0 <__umodsi3>:
 
 	.text
 	FUNC(__umodsi3)
 	.globl	SYM (__umodsi3)
 SYM (__umodsi3):
 	movel	sp@(8), d1	/* d1 = divisor */
- 99c:	222f 0008      	move.l 8(sp),d1
+ bc0:	222f 0008      	move.l 8(sp),d1
 	movel	sp@(4), d0	/* d0 = dividend */
- 9a0:	202f 0004      	move.l 4(sp),d0
+ bc4:	202f 0004      	move.l 4(sp),d0
 	movel	d1, sp@-
- 9a4:	2f01           	move.l d1,-(sp)
+ bc8:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
- 9a6:	2f00           	move.l d0,-(sp)
+ bca:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__udivsi3)
- 9a8:	6100 ff44      	bsr.w 8ee <__udivsi3>
+ bcc:	6100 ff44      	bsr.w b12 <__udivsi3>
 	addql	IMM (8), sp
- 9ac:	508f           	addq.l #8,sp
+ bd0:	508f           	addq.l #8,sp
 	movel	sp@(8), d1	/* d1 = divisor */
- 9ae:	222f 0008      	move.l 8(sp),d1
+ bd2:	222f 0008      	move.l 8(sp),d1
 	movel	d1, sp@-
- 9b2:	2f01           	move.l d1,-(sp)
+ bd6:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
- 9b4:	2f00           	move.l d0,-(sp)
+ bd8:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__mulsi3)	/* d0 = (a/b)*b */
- 9b6:	6100 ff14      	bsr.w 8cc <__mulsi3>
+ bda:	6100 ff14      	bsr.w af0 <__mulsi3>
 	addql	IMM (8), sp
- 9ba:	508f           	addq.l #8,sp
+ bde:	508f           	addq.l #8,sp
 	movel	sp@(4), d1	/* d1 = dividend */
- 9bc:	222f 0004      	move.l 4(sp),d1
+ be0:	222f 0004      	move.l 4(sp),d1
 	subl	d0, d1		/* d1 = a - (a/b)*b */
- 9c0:	9280           	sub.l d0,d1
+ be4:	9280           	sub.l d0,d1
 	movel	d1, d0
- 9c2:	2001           	move.l d1,d0
+ be6:	2001           	move.l d1,d0
 	rts
- 9c4:	4e75           	rts
+ be8:	4e75           	rts
 
-000009c6 <KPutCharX>:
+00000bea <KPutCharX>:
 	.text
 	FUNC(KPutCharX)
 	.globl	SYM (KPutCharX)
 
 SYM(KPutCharX):
     move.l  a6, -(sp)
- 9c6:	2f0e           	move.l a6,-(sp)
+ bea:	2f0e           	move.l a6,-(sp)
     move.l  4.w, a6
- 9c8:	2c78 0004      	movea.l 4 <_start+0x4>,a6
+ bec:	2c78 0004      	movea.l 4 <_start+0x4>,a6
     jsr     -0x204(a6)
- 9cc:	4eae fdfc      	jsr -516(a6)
+ bf0:	4eae fdfc      	jsr -516(a6)
     movea.l (sp)+, a6
- 9d0:	2c5f           	movea.l (sp)+,a6
+ bf4:	2c5f           	movea.l (sp)+,a6
     rts
- 9d2:	4e75           	rts
+ bf6:	4e75           	rts
 
-000009d4 <PutChar>:
+00000bf8 <PutChar>:
 	.text
 	FUNC(PutChar)
 	.globl	SYM (PutChar)
 
 SYM(PutChar):
 	move.b d0, (a3)+
- 9d4:	16c0           	move.b d0,(a3)+
+ bf8:	16c0           	move.b d0,(a3)+
 	rts
- 9d6:	4e75           	rts
+ bfa:	4e75           	rts

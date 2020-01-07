@@ -13,22 +13,23 @@ extern volatile struct Custom *hw;
 struct DosLibrary *DOSBase;
 struct GfxBase *GfxBase;
 
-ULONG __attribute__((chip)) Bitplane1[20*640];
-ULONG __attribute__((chip)) Bitplane2[20*640];
+ULONG *Bitplane1;
+ULONG *Bitplane2;
 
-void ClBuild();
+ULONG * ClBuild();
 ULONG ClColor[2];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
 int CopBpl1High;
 int CopBpl1Low;
-ULONG  __attribute__((chip)) Copperlist1[33];
-ULONG __attribute__((chip)) Copperlist2[33];
+
+ULONG *Copperlist1;
+ULONG *Copperlist2;
 ULONG *DrawBuffer;
 ULONG *ViewBuffer;
 ULONG *DrawCopper;
 ULONG *ViewCopper;
-void PrepareDisplay();
+int PrepareDisplay();
 void SetBplPointers();
 void SwapCl();
 UWORD SystemInts;
