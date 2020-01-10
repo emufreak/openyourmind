@@ -30,6 +30,7 @@ ULONG *ViewBuffer;
 ULONG *DrawCopper;
 ULONG *ViewCopper;
 int PrepareDisplay();
+void FreeDisplay();
 void SetBplPointers();
 void SwapCl();
 UWORD SystemInts;

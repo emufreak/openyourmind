@@ -108,6 +108,14 @@ int PrepareDisplay() {
   SetBplPointers();
   return 0;
 }
+
+void FreeDisplay() {
+  if( Copperlist1 != 0) FreeMem( Copperlist1, 33*4);
+  if( Copperlist2 != 0) FreeMem( Copperlist2, 33*4);
+  if( Bitplane1 != 0) FreeMem( Bitplane1, 80*640);
+  if( Bitplane2 != 0) FreeMem( Bitplane2, 80*640);
+}
+
 void SetBplPointers() {
   UWORD highword = (ULONG)DrawBuffer >> 16;
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;

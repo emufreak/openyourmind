@@ -99,6 +99,5 @@ void TestCopperList() {
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after third frame.\n", 72);
 
-  
-
+    FreeDisplay();
 }
