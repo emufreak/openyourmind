@@ -1,8 +1,36 @@
-#include "swscroller.h"
-#include "utils.h"
+ #include "swscroller.h"
+ #include "utils.h"
+ 
+ INCBIN(swfont, "raw/ruby16_8_1.raw");
 
-ULONG * ClbuildSwscroller() {
-  ULONG *retval = AllocMem(  ( 256*41+33)*4, MEMF_CHIP);
+ int PrepareDisplaySW() {
+
+  Copperlist1 = ClbuildSW();
+  Copperlist2 = ClbuildSW();
+  Bitplane1 = AllocMem(SWBPLSIZE, MEMF_CHIP);
+  if(Bitplane1 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+    Exit(1);
+  }
+  DrawBuffer = Bitplane1;
+  DrawCopper = Copperlist1;
+  Bitplane2 = AllocMem(SWBPLSIZE, MEMF_CHIP);
+  if(Bitplane2 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+    Exit(1);
+  }
+  ViewBuffer = Bitplane2;
+  ViewCopper = Copperlist2;
+  SwapCl();
+  SetBplPointers();
+  SwapCl();
+  SetBplPointers();
+  return 0;
+}
+
+ULONG * ClbuildSW() {
+  
+  ULONG *retval = AllocMem(  SWCPSIZE, MEMF_CHIP);
   
   if( retval == 0) {
     Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
@@ -26,14 +54,6 @@ ULONG * ClbuildSwscroller() {
   for(int i=0; i<2;i++)
     *cl++ = *clpartinstruction++;
 
-  for(int i=0x2c; i<0x2c+256; i++) {
-    *cl++ = (i<<24)+0x07fffe;
-    for(int i2=0;i2<20;i2++) {
-      *cl++ = 0x018200f0;
-      *cl++ = 0x01820f00;
-    }
-  }
-  
   *cl = 0xfffffffe;
 
   return retval;

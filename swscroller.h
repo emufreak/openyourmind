@@ -1,3 +1,6 @@
+#define SWCPSIZE 33*4
+#define SWBPLSIZE 640*80
+
 #include "support/gcc8_c_support.h"
 #include <proto/exec.h>
 #include <proto/dos.h>
@@ -8,5 +11,5 @@
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 
-ULONG * ClbuildScroller;
-ULONG ClStarwars[40];
+int PrepareDisplaySW();
+ULONG * ClbuildSW();

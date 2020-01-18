@@ -1,8 +1,7 @@
 #include "rundemo.h"
 #include "utils.h"
-#include "rundemo.h"
 
-INCBIN(colors, "colors.bin")
+//INCBIN(colors, "colors.bin")
 
 volatile int frameCounter = 0;
 
@@ -17,7 +16,7 @@ void RunDemo() {
 	SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
-  PrepareDisplay();
+  //PrepareDisplay();
 
 	while(!MouseLeft()) {
 		WaitVbl();

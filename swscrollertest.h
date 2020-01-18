@@ -1,1 +1,1 @@
-void SwscrollerTest();
+void SwScrollerTest();

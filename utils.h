@@ -16,7 +16,6 @@ struct GfxBase *GfxBase;
 ULONG *Bitplane1;
 ULONG *Bitplane2;
 
-ULONG * ClBuild();
 ULONG ClColor[2];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
@@ -29,7 +28,6 @@ ULONG *DrawBuffer;
 ULONG *ViewBuffer;
 ULONG *DrawCopper;
 ULONG *ViewCopper;
-int PrepareDisplay();
 void FreeDisplay();
 void SetBplPointers();
 void SwapCl();

@@ -2,6 +2,59 @@
 #include "rundemo.h"
 #include "utils.h"
 
+ULONG * ClBuild() {
+  ULONG *retval = AllocMem(  33*4, MEMF_CHIP);
+  if( retval == 0) {
+    Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
+    Exit(1);
+  }
+    
+  ULONG *cl = retval;
+  //clinstruction = DrawCopper;
+  ULONG *clpartinstruction;
+  clpartinstruction = ClsSprites;
+  for(int i=0; i<16;i++)
+    *cl++ = *clpartinstruction++;
+  clpartinstruction = ClScreen;
+  for(int i=0; i<12;i++)
+    *cl++ = *clpartinstruction++;
+  //cl[CopBpl1High] = (long) cl + 2;
+  *cl++ = 0x00e00000;
+  //cl[CopBpl1Low] = (long) cl + 2;
+  *cl++ = 0x00e20000;
+
+  clpartinstruction = ClColor;
+  for(int i=0; i<2;i++)
+    *cl++ = *clpartinstruction++;
+  *cl = 0xfffffffe;
+
+  return retval;
+}
+
+int PrepareDisplay() {
+  Copperlist1 = ClBuild( );
+  Copperlist2 = ClBuild( );
+  Bitplane1 = AllocMem(80*640, MEMF_CHIP);
+  if(Bitplane1 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+    Exit(1);
+  }
+  DrawBuffer = Bitplane1;
+  DrawCopper = Copperlist1;
+  Bitplane2 = AllocMem(80*640, MEMF_CHIP);
+  if(Bitplane2 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+    Exit(1);
+  }
+  ViewBuffer = Bitplane2;
+  ViewCopper = Copperlist2;
+  SwapCl();
+  SetBplPointers();
+  SwapCl();
+  SetBplPointers();
+  return 0;
+}
+
 //Test a batch of copperlist instructions against a certain position
 int TestCopperlistBatch(  long *instructions, int pos, long *batch, 
                                                                   long length) {
@@ -13,6 +66,7 @@ int TestCopperlistBatch(  long *instructions, int pos, long *batch,
 
 //Check if a certain position in a copperlist has the expected value
 int TestCopperlistPos(  long *instructions, int pos, long value) {
+  int test1 = instructions[pos];
   if( instructions[pos] == value ) 
     return 1;
   else 
@@ -99,5 +153,5 @@ void TestCopperList() {
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after third frame.\n", 72);
 
-    FreeDisplay();
+  FreeDisplay(  33*4, 80*640);
 }
