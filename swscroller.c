@@ -58,3 +58,18 @@ ULONG * ClbuildSW() {
 
   return retval;
 }
+
+void WriteFont( UWORD *font, UWORD *Destination, char *text) {
+  UWORD *bmpptr = Destination;
+  UWORD *fntptr = font;
+
+  char charpos = *text;
+  charpos -= 0x20;
+  charpos = charpos<<3;
+  fntptr += charpos;
+  for(int i=1;i<=8;i++) {
+    *bmpptr = *fntptr++;
+    bmpptr += 40;
+  }
+
+}

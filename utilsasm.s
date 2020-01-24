@@ -27,10 +27,10 @@
 #define sp REG (sp)
 #define pc REG (pc)
 
-saveregs: dcb 60,0
+saveregs: .dcb.b 60
 
 font2distance:
-  dc.b 0, 5, 5, 5, 5, 5, 5, 5, 5, 5 //Ascii  32 -  41
+  dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 //Ascii  32 -  41
 	dc.b 5, 5, 5, 5, 0, 5, 5, 5, 5, 5 //Ascii  42 -  51
 	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  52 -  61
 	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  62 -  71
@@ -58,12 +58,13 @@ font2distance:
 
 	.text
 	FUNC(__WriteText)
-	.globl	SYM (__PrintFont)
+	.globl	SYM (__WriteText)
 SYM (__WriteText):
   movem.l d0-d7/a0-a6, saveregs
+  lea 0xdff000,a5
   move.l sp@(4),a0  //Fontlocation
-  move.l sp@(8),a2  //Textlocation
-  move.l sp@(12),a3 //Destination
+  move.l sp@(8),a3  //Destination
+  move.l sp@(12),a2 //Textlocation
   sub.l  d3,d3      //Number of rows = 1
   btst #6,2(a5)     //Wait for blitter to finish
 st2wblit:

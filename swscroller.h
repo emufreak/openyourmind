@@ -12,4 +12,5 @@
 #include <hardware/intbits.h>
 
 int PrepareDisplaySW();
-ULONG * ClbuildSW();
+ULONG *ClbuildSW();
+void WriteFont();

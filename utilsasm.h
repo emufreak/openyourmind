@@ -1,1 +1,1 @@
-void WriteText( UWORD *, UWORD *, UWORD *);
+extern void __WriteText( ULONG, ULONG *, char *);
