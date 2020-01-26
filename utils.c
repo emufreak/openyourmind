@@ -4,6 +4,8 @@ volatile struct Custom *hw;
 
 int CopBpl1High = 28*2+1;
 int CopBpl1Low = 29*2+1;
+int CopBpl2High = 30*2+1;
+int CopBpl2Low = 31*2+1;
 
 APTR GetVBR(void) {
 	APTR vbr = 0;
