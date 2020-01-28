@@ -5,17 +5,29 @@ ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81,
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080000, 
                                                        0x010a0000, 0x01002200 };
 
-void  Zoom_CopyColumn( UWORD *source, UWORD *destination, unsigned int colnr) {
-  unsigned int wordnr = colnr >> 4;
-  unsigned int pixelnr = 15 - (colnr & 0xf);
-  UWORD *sourcepos = source + wordnr;
-  UWORD *destpos = destination + wordnr;
-  UWORD bitmask = 0x1 << pixelnr;
-  UWORD bitmaskneg = bitmask ^ 0xffff;
+void  Zoom_CopyColumn( UWORD *source, UWORD *destination, 
+                                              UWORD srccolnr, UWORD destcolnr) {
+  
+  unsigned int bitnr = 15 - (srccolnr & 0xf);
+  UWORD bltmask = 0x1 << bitnr;
+  ULONG destpos = (ULONG) destination + (destcolnr >> 4);
+  ULONG sourcepos = (ULONG) source + (srccolnr >> 4);
 
-  UWORD fetcheddata = *sourcepos & bitmask;
-  *destpos = (*destpos & bitmaskneg) | fetcheddata;
-  destpos += ZMLINESIZE;
+  WaitBlit();
+  
+  hw->bltcon1 = 0; 
+  hw->bltcon0 = 0xde4;
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltbmod = ZMLINESIZE - 2;
+  hw->bltdmod = ZMLINESIZE - 2;
+  hw->bltcdat = bltmask;
+  hw->bltapt = (UWORD *) sourcepos;
+  hw->bltbpt = (UWORD *) destpos;
+  hw->bltdpt = (UWORD *) destpos;
+  hw->bltsize = 256*64+1;
+
 }
 
 ULONG * ClbuildZoom() {
@@ -85,8 +97,8 @@ ULONG * ClbuildZoom() {
 }
 
 void Zoom_SetBplPointers() {
-  ULONG ptr = DrawBuffer;
-  UWORD *copword = DrawCopper;
+  ULONG ptr = (ULONG) DrawBuffer;
+  UWORD *copword = (UWORD *) DrawCopper;
   copword += ZMBPLPTRS+1;
   for(int i=1;i<=2;i++) {
     UWORD highword = ptr >> 16;
@@ -97,9 +109,9 @@ void Zoom_SetBplPointers() {
     copword += 2;
     ptr += 40*256;
   }
-  ULONG tmp = DrawBuffer;
+  ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
-  ViewBuffer = tmp;
+  ViewBuffer = (ULONG *) tmp;
 }
   
  

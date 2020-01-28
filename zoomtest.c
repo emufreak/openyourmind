@@ -4,6 +4,11 @@
 #include "utils.h"
 
 void ZoomTest() {
+  ZoomTestDisplay();
+  ZoomTestRoutines();
+}
+
+void ZoomTestDisplay() {
 
   PrepareDisplayZoom();
 
@@ -37,7 +42,7 @@ void ZoomTest() {
            "SetBplpointers: Problem in Copperlist bpl2pl should be 2800\n", 60);
 
 
-   if(  TestCopperlistBatch(  Copperlist1, 32, ClColor, 2) == 0)
+  if(  TestCopperlistBatch(  Copperlist1, 32, ClColor, 2) == 0)
     Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
   
   ULONG clpart1[] = { 0x2c07fffe, 0x018200f0, 0x01820f00, 0x018200f0, 
@@ -62,18 +67,38 @@ void ZoomTest() {
     rownr += 2;
   }
 
+  FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
+
+}
+
+void ZoomTestRoutines() {
+
+  PrepareDisplayZoom();
+
   UWORD *destination = DrawBuffer;
   *destination= 0x0000;
   destination += 20;
-  *destination= 0x0000;
-  Zoom_Source = AllocMem(80*512*5, MEMF_CHIP); 
+  *destination= 0x000f;
+  Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
+  if( Zoom_Source == 0) {
+    Write(  Output(), 
+                 "Zoomtestroutines: Can not allocate mem for Zoomsource.\n",54);
+    return;
+  }
   UWORD *tstsource = Zoom_Source;
   *tstsource = 0xffff;
-  Zoom_CopyColumn( Zoom_Source, DrawBuffer, 0);
+  tstsource += 20;
+  *tstsource = 0x7fff;
+  Zoom_CopyColumn( Zoom_Source, DrawBuffer, 0, 0);
+  
+  WaitBlit();
   destination = DrawBuffer;
   if( *destination != 0x8000)
     Write(  Output(), "Zoomtest: CopyColumn - First row wrong.\n",40);
 
-  FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
+  destination+= 20;
+  if( *destination != 0x000f)
+    Write(  Output(), "Zoomtest: CopyColumn - Second row wrong.\n",41);
 
+  FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
 }

@@ -16,6 +16,8 @@
 
 int PrepareDisplayZoom();
 ULONG ClScreenZoom[12];
-void Zoom_CopyColumn(UWORD *source, UWORD *destination, unsigned int colnr);
+void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
+                                                        UWORD destcolnr);
 UWORD *Zoom_Source;
+void Zoom_SetBplPointers();
 extern UWORD *font2;

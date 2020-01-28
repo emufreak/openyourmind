@@ -29,7 +29,5 @@ void SwScrollerTest() {
   if( *tstpointer != 0xff00)
     Write( Output(), "SwScrollerTest: Test Font not correctly Written.\n", 49);
 
-
-
   FreeDisplay( SWCPSIZE, SWBPLSIZE);
 } 
