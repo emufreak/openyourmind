@@ -19,14 +19,14 @@ void  Zoom_CopyColumn( UWORD *source, UWORD *destination,
   hw->bltcon0 = 0xde4;
   hw->bltafwm = 0xffff;
   hw->bltalwm = 0xffff;
-  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltamod = ZMLINESIZE - 2;
   hw->bltbmod = ZMLINESIZE - 2;
   hw->bltdmod = ZMLINESIZE - 2;
   hw->bltcdat = bltmask;
   hw->bltapt = (UWORD *) sourcepos;
   hw->bltbpt = (UWORD *) destpos;
   hw->bltdpt = (UWORD *) destpos;
-  hw->bltsize = 256*64+1;
+  hw->bltsize = ZMCOLHEIGHT*64+1;
 
 }
 

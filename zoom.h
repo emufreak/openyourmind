@@ -1,8 +1,10 @@
 #define ZMCPSIZE (256*41+35)*4
 #define ZMBPLDEPTH 5
-#define ZMBPLSIZE 320*ZMLINESIZE*ZMBPLDEPTH
+#define ZMCOLHEIGHT 128*3
+#define ZMBPLSIZE ZMCOLHEIGHT*ZMLINESIZE*ZMBPLDEPTH
 #define ZMBPLPTRS 56
 #define ZMLINESIZE 40
+
 
 #include "support/gcc8_c_support.h"
 #include <proto/exec.h>
