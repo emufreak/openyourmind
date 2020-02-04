@@ -1,3 +1,4 @@
 void ZoomTest();
 void ZoomTestDisplay();
-void ZoomTestRoutines();
+void TestBlitleftOfZoom();
+void TestCopyColumnOfZoom();

@@ -5,7 +5,8 @@
 
 void ZoomTest() {
   ZoomTestDisplay();
-  ZoomTestRoutines();
+  TestBlitleftOfZoom();
+  TestCopyColumnOfZoom();
 }
 
 void ZoomTestDisplay() {
@@ -64,7 +65,53 @@ void ZoomTestDisplay() {
 
 }
 
-void ZoomTestRoutines() {
+void TestBlitleftOfZoom() {
+  Zoom_Init();
+  PrepareDisplayZoom();
+
+  Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
+  if( Zoom_Source == 0) {
+    Write(  Output(), 
+                 "Zoomtestroutines: Can not allocate mem for Zoomsource.\n",54);
+    return;
+  }
+
+  UWORD *tstsource = Zoom_Source;
+  *tstsource++ = 0x0000;
+  *tstsource = 0x0080;
+  tstsource += 19;
+  *tstsource = 0x1000;
+  tstsource++;
+  *tstsource = 0x8e88;
+  tstsource += 19;
+
+  tstsource = (UWORD *)Zoom_Source + 127*ZMLINESIZE/2;
+  *tstsource++ = 0x0000;
+  *tstsource = 0x00ff;
+
+  Zoom_ZoomBlitLeft( Zoom_Source+1, (UWORD *)DrawBuffer, 8, 128);
+  WaitBlit();
+  UWORD *br = (UWORD *) 0x200;
+  *br = 0;
+  UWORD *destination = (UWORD *)DrawBuffer+1;
+  if( *destination != 0x0180) {
+    Write(  Output(), "Zoomblitleft - First row wrong.\n",32);
+  }
+  destination += 20;
+  if( *destination != 0x1d88)
+    Write(  Output(), "Zoomblitleft: Second row wrong.\n",32);
+
+  
+  destination = (UWORD *)DrawBuffer + 127*ZMLINESIZE/2;
+  destination++;
+  if( *destination != 0x01ff) {
+    Write(  Output(), "Zoomblitleft: Last row wrong.\n",40);
+  }
+  FreeMem( Zoom_Source, 40*256*5);
+  FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
+}
+
+void TestCopyColumnOfZoom() {
 
   PrepareDisplayZoom();
 
@@ -132,6 +179,6 @@ void ZoomTestRoutines() {
   if( *destination != 0x800f)
     Write(  Output(), "Zoomtest: CopyColumn - Last row wrong.\n",39);
 
-
+  FreeMem( Zoom_Source, 40*256*5);
   FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
 }

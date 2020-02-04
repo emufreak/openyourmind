@@ -30,6 +30,52 @@ void  Zoom_CopyColumn( UWORD *source, UWORD *destination,
 
 }
 
+void Zoom_ZoomBlitLeft( UWORD *source, UWORD *destination, UWORD colnr, 
+                                                                 UWORD height) {
+  
+  UWORD *srca = source;       //12...f0|S12.X.f S = Sourceaddress X=Colnr
+  UWORD shifta = 15 << 12;    //SEEEEE0|12.X..f E=Empty
+  UWORD *srcb = source - 1;   //S2...f0|012.X.f
+  *Zoom_ZoomBlitMask = (0xffff << (16-colnr)) & 0xffff; 
+                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
+              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
+
+  WaitBlit();
+
+  /*Mintterm
+  ABCD
+  0000
+  0010
+  0101
+  0110
+  1000
+  1011
+  1101
+  1111*/
+  
+  
+  hw->bltcon1 = 0; 
+  hw->bltcon0 = 0xfe4 + shifta;
+  //hw->bltcon0 = 0xff0 + shifta;
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltbmod = ZMLINESIZE - 4;
+  hw->bltcmod = -4;
+  hw->bltdmod = ZMLINESIZE - 4;
+  hw->bltcpt= (UWORD *) Zoom_ZoomBlitMask;
+  hw->bltapt = srca;
+  hw->bltbpt = srcb;
+  hw->bltdpt = destination;
+  hw->bltsize = height*64+2;
+
+}
+
+void Zoom_Init() {
+  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+}
+
+
 ULONG * ClbuildZoom() {
   
   ULONG *retval = AllocMem(  ZMCPSIZE, MEMF_CHIP);
