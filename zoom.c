@@ -30,13 +30,31 @@ void  Zoom_CopyColumn( UWORD *source, UWORD *destination,
 
 }
 
+void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shift, 
+                                                                 UWORD height) {
+
+  UWORD shiftright = shift << 12;
+  WaitBlit();
+  
+  hw->bltcon1 = 0; 
+  hw->bltcon0 = 0x9f0 + shiftright;
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltdmod = ZMLINESIZE - 4;
+  hw->bltapt = (UWORD *) source;
+  hw->bltdpt = (UWORD *) destination;
+  hw->bltsize = height*64+2;
+
+}
+
 void Zoom_ZoomBlitLeft( UWORD *source, UWORD *destination, UWORD colnr, 
                                                                  UWORD height) {
   
   UWORD *srca = source;       //12...f0|S12.X.f S = Sourceaddress X=Colnr
   UWORD shifta = 15 << 12;    //SEEEEE0|12.X..f E=Empty
   UWORD *srcb = source - 1;   //S2...f0|012.X.f
-  *Zoom_ZoomBlitMask = (0xffff << (16-colnr)) & 0xffff; 
+  //*Zoom_ZoomBlitMask = (0xffff << (16-colnr)) & 0xffff; 
                               //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
 
@@ -55,15 +73,16 @@ void Zoom_ZoomBlitLeft( UWORD *source, UWORD *destination, UWORD colnr,
   
   
   hw->bltcon1 = 0; 
-  hw->bltcon0 = 0xfe4 + shifta;
+  hw->bltcon0 = 0xde4 + shifta;
   //hw->bltcon0 = 0xff0 + shifta;
   hw->bltafwm = 0xffff;
   hw->bltalwm = 0xffff;
   hw->bltamod = ZMLINESIZE - 4;
   hw->bltbmod = ZMLINESIZE - 4;
-  hw->bltcmod = -4;
+  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
+  //hw->bltcmod = -4;
   hw->bltdmod = ZMLINESIZE - 4;
-  hw->bltcpt= (UWORD *) Zoom_ZoomBlitMask;
+  //hw->bltcpt= (UWORD *) Zoom_ZoomBlitMask;
   hw->bltapt = srca;
   hw->bltbpt = srcb;
   hw->bltdpt = destination;
@@ -140,6 +159,12 @@ ULONG * ClbuildZoom() {
   SwapCl();
   Zoom_SetBplPointers();
   return 0;
+}
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
+  UWORD *pos4source = source+ZMLINESIZE/2-2+ZMLINESIZE/2*8;
+  UWORD *pos4dest = destination+ZMLINESIZE/2-2;
+  UWORD shiftright = 7; 
+  Zoom_CopyWord( pos4source, pos4dest, shiftright, 16);
 }
 
 void Zoom_SetBplPointers() {

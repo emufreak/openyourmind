@@ -57,6 +57,13 @@ font2distance:
 	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
 
 	.text
+	FUNC(__PutChar2)
+	.globl	SYM (__PutChar2)
+SYM (__PutChar):
+  move.b d0,(a3)+
+  RTS
+
+	.text
 	FUNC(__WriteText)
 	.globl	SYM (__WriteText)
 SYM (__WriteText):

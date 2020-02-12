@@ -1,4 +1,8 @@
 #include "utils.h"
+#include <proto/exec.h>
+#include <exec/types.h>
+
+
 
 volatile struct Custom *hw;
 
@@ -69,20 +73,20 @@ void SetBplPointers() {
   UWORD highword = (ULONG)DrawBuffer >> 16;
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;
   
-  UWORD *copword = DrawCopper;
+  UWORD *copword = (UWORD *) DrawCopper;
   copword[CopBpl1Low] = lowword;
   copword[CopBpl1High] = highword;
   
-  ULONG tmp = DrawBuffer;
+  ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
-  ViewBuffer = tmp;
+  ViewBuffer = (ULONG *) tmp;
 }
 
 void SwapCl() {
-  ULONG tmp = DrawCopper;
+  ULONG tmp = (ULONG) DrawCopper;
   DrawCopper = ViewCopper;
-  ViewCopper = tmp;
-  hw->cop1lc = ViewCopper;
+  ViewCopper = (ULONG *)tmp;
+  hw->cop1lc = (ULONG) ViewCopper;
   hw->copjmp1 = tmp;
 }
 void TakeSystem() {

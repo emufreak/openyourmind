@@ -3,7 +3,7 @@
 #define ZMCOLHEIGHT 128*3
 #define ZMBPLSIZE ZMCOLHEIGHT*ZMLINESIZE*ZMBPLDEPTH
 #define ZMBPLPTRS 56
-#define ZMLINESIZE 40
+#define ZMLINESIZE 44
 
 
 #include "support/gcc8_c_support.h"
@@ -21,9 +21,12 @@ ULONG ClScreenZoom[12];
 void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
                                                                UWORD destcolnr);
 
-void Zoom_ZoomBlitLeft(UWORD *source, UWORD *destinatiln, UWORD colnr,
+void Zoom_ZoomBlitLeft(UWORD *source, UWORD *destination, UWORD colnr,
                                                                     UWORD size);
+void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shiftleft,
+                                                                  UWORD height);                                                                    
 void Zoom_Init();
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination);
 ULONG *Zoom_ZoomBlitMask;
 UWORD *Zoom_Source;
 void Zoom_SetBplPointers();

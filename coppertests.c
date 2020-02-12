@@ -66,7 +66,6 @@ int TestCopperlistBatch(  long *instructions, int pos, long *batch,
 
 //Check if a certain position in a copperlist has the expected value
 int TestCopperlistPos(  long *instructions, int pos, long value) {
-  int test1 = instructions[pos];
   if( instructions[pos] == value ) 
     return 1;
   else 
@@ -86,8 +85,8 @@ void TestCopperList() {
     Write(Output(), "Screen section of copper starting on pos 16 messed up\n",
                                                                             54);   
   
-  DrawBuffer = 0x40000;
-  ViewBuffer = 0x50000;
+  DrawBuffer = (ULONG *)0x40000;
+  ViewBuffer = (ULONG *)0x50000;
   SetBplPointers();
   if( DrawBuffer != 0x50000 || ViewBuffer != 0x40000)
     Write( Output(), 
@@ -133,23 +132,23 @@ void TestCopperList() {
   RunFrame();
   UWORD *copword = ViewCopper;
   ULONG pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
-  if( pointer != Bitplane2) 
+  if( pointer != (ULONG) Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after first frame.\n", 72);
   
   RunFrame();
 
-  copword = ViewCopper;
+  copword = (UWORD *) ViewCopper;
   pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
-  if( pointer != Bitplane1) 
+  if( pointer != (ULONG) Bitplane1) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
                                                   " after second frame.\n", 73);
   
   RunFrame();
 
-  copword = ViewCopper;
+  copword = (UWORD *) ViewCopper;
   pointer = copword[CopBpl1Low] + (copword[CopBpl1High] << 16);
-  if( pointer != Bitplane2) 
+  if( pointer != (ULONG) Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after third frame.\n", 72);
 

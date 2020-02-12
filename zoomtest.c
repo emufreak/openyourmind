@@ -2,11 +2,15 @@
 #include "zoomtest.h"
 #include "zoom.h"
 #include "utils.h"
+#include "utilsasm.h"
+#include <string.h>
 
 void ZoomTest() {
   ZoomTestDisplay();
   TestBlitleftOfZoom();
   TestCopyColumnOfZoom();
+  TestCopyWord();
+  TestZoom4Picture();
 }
 
 void ZoomTestDisplay() {
@@ -76,14 +80,15 @@ void TestBlitleftOfZoom() {
     return;
   }
 
+  
   UWORD *tstsource = Zoom_Source;
   *tstsource++ = 0x0000;
   *tstsource = 0x0080;
-  tstsource += 19;
+  tstsource += ZMLINESIZE/2-1;
   *tstsource = 0x1000;
   tstsource++;
   *tstsource = 0x8e88;
-  tstsource += 19;
+  tstsource += ZMLINESIZE/2-1;
 
   tstsource = (UWORD *)Zoom_Source + 127*ZMLINESIZE/2;
   *tstsource++ = 0x0000;
@@ -91,13 +96,11 @@ void TestBlitleftOfZoom() {
 
   Zoom_ZoomBlitLeft( Zoom_Source+1, (UWORD *)DrawBuffer, 8, 128);
   WaitBlit();
-  UWORD *br = (UWORD *) 0x200;
-  *br = 0;
   UWORD *destination = (UWORD *)DrawBuffer+1;
   if( *destination != 0x0180) {
     Write(  Output(), "Zoomblitleft - First row wrong.\n",32);
   }
-  destination += 20;
+  destination += ZMLINESIZE/2;
   if( *destination != 0x1d88)
     Write(  Output(), "Zoomblitleft: Second row wrong.\n",32);
 
@@ -117,7 +120,7 @@ void TestCopyColumnOfZoom() {
 
   UWORD *destination = (UWORD *)DrawBuffer;
   *destination= 0x0000;
-  destination += 20;
+  destination += ZMLINESIZE/2;
   *destination= 0x000f;
   destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
   *destination = 0x000f;
@@ -130,7 +133,7 @@ void TestCopyColumnOfZoom() {
 
   UWORD *tstsource = Zoom_Source;
   *tstsource = 0xffff;
-  tstsource += 20;
+  tstsource += ZMLINESIZE/2;
   *tstsource = 0xffff;
   tstsource = (UWORD *)Zoom_Source + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
   *tstsource = 0xc000;
@@ -141,7 +144,7 @@ void TestCopyColumnOfZoom() {
   if( *destination != 0x4000)
     Write(  Output(), "Zoomtest: CopyColumn2 - First row wrong.\n",41);
 
-  destination+= 20;
+  destination+= ZMLINESIZE/2;
   if( *destination != 0x400f)
     Write(  Output(), "Zoomtest: CopyColumn2 - Second row wrong.\n",42);
 
@@ -150,16 +153,16 @@ void TestCopyColumnOfZoom() {
   if( *destination != 0x400f)
     Write(  Output(), "Zoomtest: CopyColumn2 - Last row wrong.\n",40);
 
-  destination = DrawBuffer;
+  destination = (UWORD *)DrawBuffer;
   *destination= 0x0000;
-  destination += 20;
+  destination += ZMLINESIZE/2;
   *destination= 0x000f;
   destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
   *destination = 0x000f;
 
   tstsource = Zoom_Source;
   *tstsource = 0xffff;
-  tstsource += 20;
+  tstsource += ZMLINESIZE/2;
   *tstsource = 0xffff;
   tstsource = (UWORD *)Zoom_Source + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
   *tstsource = 0x8000;
@@ -170,7 +173,7 @@ void TestCopyColumnOfZoom() {
   if( *destination != 0x8000)
     Write(  Output(), "Zoomtest: CopyColumn - First row wrong.\n",40);
 
-  destination+= 20;
+  destination+= ZMLINESIZE/2;
   if( *destination != 0x800f)
     Write(  Output(), "Zoomtest: CopyColumn - Second row wrong.\n",41);
 
@@ -181,4 +184,118 @@ void TestCopyColumnOfZoom() {
 
   FreeMem( Zoom_Source, 40*256*5);
   FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
+}
+
+void TestCopyWord() {
+  UWORD *source = AllocMem( ZMLINESIZE*30, MEMF_CHIP);
+  if( source == 0) {
+    Write(  Output(), "TestCopyWord: Memory for Source cannot be allocated.\n",
+                                                                            53);
+    return;
+  }
+  UWORD *destination = AllocMem(ZMLINESIZE*30, MEMF_CHIP);
+  if( destination == 0) {
+    Write(  Output(), "TestCopyWord: Memory for Source cannot be allocated.\n",
+                                                                            53);
+    return;
+  }
+  
+  UWORD *tmp = source;
+  for( int i=0; i<8;i++) {
+    *tmp++ = 0;
+    *tmp++ = 0xaaaa;
+    *tmp++ = 0xaaaa;
+    *tmp = 0;
+    tmp += ZMLINESIZE/2-3;
+    *tmp++ = 0;
+    *tmp++ = 0x5555;
+    *tmp++ = 0x5555;
+    *tmp = 0;
+    tmp += ZMLINESIZE/2-3;
+  }
+  tmp = destination;
+  for( int i=0; i<ZMLINESIZE/2*30; i++) {
+    *tmp++ = 0;
+  }
+
+  Zoom_CopyWord( (UWORD *)source+1, (UWORD *)destination, 3, 16);
+  WaitBlit();
+  tmp = destination+1;
+  if( *tmp != 0x5555) 
+    Write(  Output(), "TestCopyWord: First row wrong.\n",31);
+  tmp += ZMLINESIZE/2;
+  if( *tmp != 0xaaaa)
+    Write(  Output(), "TestCopyWord: Second row wrong.\n",32);
+  
+  FreeMem( source,ZMLINESIZE*30);
+  FreeMem( destination,ZMLINESIZE*30);
+}
+
+UWORD destline[] = { 0x0055, 0x5552, 0xaaaa, 0x9555, 0x58aa, 0xaaa5, 0x5555, 
+        0x2aaa,  0xa955, 0x558a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5558, 0xaaaa, 
+                                0xa555, 0x552a, 0xaaa9, 0x5555, 0x8aaa, 0xaa00};
+/*
+9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a bcde fghi jkl1 2345 6789
+0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101 0101 0101 0100 1010 1010 
+5    5    5    2    a    a    a    a    9    5    5    5    5    8    a    a
+abcd efgh ijkl 1234 5678 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a
+1010 1010 1010 0101 0101 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101
+a    a    a    5    5    5    5    5    2    a    a    a    a    9    5    5*/ 
+void TestZoom4Picture() {
+  UWORD *source =AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  if( source == 0) {
+    Write(  Output(), 
+               "TestZoom4Picture: Memory for Source cannot be allocated.\n",57);
+    return;
+  }
+
+  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  if( destination == 0) {
+    Write(  Output(), 
+          "TestZoom4Picture: Memory for Destination cannot be allocated.\n",61);
+    return;
+  }
+  ULONG *tmp4source = (ULONG *)source;
+  for(int i=0;i<128+8;i++) {
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *tmp4source++ = 0x55555555;
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *tmp4source++ = 0xaaaaaaaa;
+  }
+  
+  Zoom_ZoomIntoPicture( source, destination);
+  WaitBlit();
+  UWORD *valactual = destination+ZMLINESIZE/2-1; 
+  UWORD *valsupposed = destline+ZMLINESIZE/2-1;
+  for(int i=0;i<16;i+=2) {
+    TestRow( valsupposed, valactual, 0x0000, i);
+    //valsupposed += ZMLINESIZE/2;
+    valactual += ZMLINESIZE/2;
+      UWORD *bp = (UWORD *)0x200;
+  *bp = 0;
+    TestRow( valsupposed, valactual, 0xffff, i+1);
+    //valsupposed += ZMLINESIZE/2;
+    valactual += ZMLINESIZE/2;
+  }
+}
+
+void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 
+                                                             int numberofline) {    
+  char str[ 100] = { 0 };
+  UWORD data[2];
+  data[0] = numberofline;
+
+  if( ( (*testpattern++ ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
+    RawDoFmt( "TestZoom4Picture: Word 0 Row %d wrong.\n", data, PutChar, str);
+    Write(  Output(), str, 100);
+  }
+  /*for(int i=1; i<2;i++) {
+    data[0] = i;
+    data[1] = numberofline;
+    destination++;
+    if( ( *testpattern++ & 0x00ff) != ( *destination ^ xormask)) {
+      RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
+      Write(  Output(), str, 100);
+    }
+  }*/
 }
