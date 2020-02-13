@@ -165,6 +165,9 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
   UWORD *pos4dest = destination+ZMLINESIZE/2-2;
   UWORD shiftright = 7; 
   Zoom_CopyWord( pos4source, pos4dest, shiftright, 16);
+  pos4source += ZMLINESIZE/2*16;
+  pos4dest += ZMLINESIZE/2*16;
+  Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
 }
 
 void Zoom_SetBplPointers() {

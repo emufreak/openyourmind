@@ -267,15 +267,16 @@ void TestZoom4Picture() {
   WaitBlit();
   UWORD *valactual = destination+ZMLINESIZE/2-1; 
   UWORD *valsupposed = destline+ZMLINESIZE/2-1;
-  for(int i=0;i<16;i+=2) {
-    TestRow( valsupposed, valactual, 0x0000, i);
-    //valsupposed += ZMLINESIZE/2;
-    valactual += ZMLINESIZE/2;
+  for(int i=0;i<1;i++) {
+    for(int i2=0;i2<16;i2+=2) {
+      TestRow( valsupposed, valactual, 0x0000, i2);
+      valactual += ZMLINESIZE/2;
       UWORD *bp = (UWORD *)0x200;
-  *bp = 0;
-    TestRow( valsupposed, valactual, 0xffff, i+1);
-    //valsupposed += ZMLINESIZE/2;
-    valactual += ZMLINESIZE/2;
+      *bp = 0;
+      TestRow( valsupposed, valactual, 0xffff, i2+1);
+      valactual += ZMLINESIZE/2;
+    }
+    TestRow( valsupposed, valactual, 0x0000, 16+i*16);
   }
 }
 
