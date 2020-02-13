@@ -163,11 +163,17 @@ ULONG * ClbuildZoom() {
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
   UWORD *pos4source = source+ZMLINESIZE/2-2+ZMLINESIZE/2*8;
   UWORD *pos4dest = destination+ZMLINESIZE/2-2;
-  UWORD shiftright = 7; 
-  Zoom_CopyWord( pos4source, pos4dest, shiftright, 16);
-  pos4source += ZMLINESIZE/2*16;
-  pos4dest += ZMLINESIZE/2*16;
-  Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
+  UWORD shiftright = 7;
+  for(int i=0;i<16;i++) {
+    //Copy rectangle 
+    Zoom_CopyWord( pos4source, pos4dest, shiftright, 16);
+    pos4source += ZMLINESIZE/2*16;
+    pos4dest += ZMLINESIZE/2*16;
+    //Add aditional line
+    Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
+    //Source doesn't change copy line
+    pos4dest += ZMLINESIZE/2;
+  }
 }
 
 void Zoom_SetBplPointers() {
