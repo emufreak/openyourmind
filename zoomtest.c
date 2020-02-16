@@ -94,21 +94,21 @@ void TestBlitleftOfZoom() {
   *tstsource++ = 0x0000;
   *tstsource = 0x00ff;
 
-  Zoom_ZoomBlitLeft( Zoom_Source+1, (UWORD *)DrawBuffer, 8, 128);
+  Zoom_ZoomBlit( Zoom_Source, (UWORD *)DrawBuffer, 0, 8, 128);
   WaitBlit();
   UWORD *destination = (UWORD *)DrawBuffer+1;
   if( *destination != 0x0180) {
-    Write(  Output(), "Zoomblitleft - First row wrong.\n",32);
+    Write(  Output(), "Zoomblit - First row wrong.\n",28);
   }
   destination += ZMLINESIZE/2;
   if( *destination != 0x1d88)
-    Write(  Output(), "Zoomblitleft: Second row wrong.\n",32);
+    Write(  Output(), "Zoomblit: Second row wrong.\n",28);
 
   
   destination = (UWORD *)DrawBuffer + 127*ZMLINESIZE/2;
   destination++;
   if( *destination != 0x01ff) {
-    Write(  Output(), "Zoomblitleft: Last row wrong.\n",40);
+    Write(  Output(), "Zoomblit: Last row wrong.\n",26);
   }
   FreeMem( Zoom_Source, 40*256*5);
   FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
@@ -231,13 +231,13 @@ void TestCopyWord() {
   FreeMem( destination,ZMLINESIZE*30);
 }
 
-UWORD destline[] = { 0x0055, 0x5552, 0xaaaa, 0x9555, 0x58aa, 0xaaa5, 0x5555, 
-        0x2aaa,  0xa955, 0x558a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5558, 0xaaaa, 
-                                0xa555, 0x552a, 0xaaa9, 0x5555, 0x8aaa, 0xaa00};
+UWORD destline[] = { 0x0055, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
+        0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
+                                0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
 /*
 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a bcde fghi jkl1 2345 6789
 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101 0101 0101 0100 1010 1010 
-5    5    5    2    a    a    a    a    9    5    5    5    5    8    a    a
+5    5    5    2    a    a    a    a    9    5    5    5    5    4    a    a
 abcd efgh ijkl 1234 5678 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a
 1010 1010 1010 0101 0101 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101
 a    a    a    5    5    5    5    5    2    a    a    a    a    9    5    5*/ 
@@ -265,17 +265,18 @@ void TestZoom4Picture() {
   
   Zoom_ZoomIntoPicture( source, destination);
   WaitBlit();
-  UWORD *valactual = destination+ZMLINESIZE/2-1; 
-  UWORD *valsupposed = destline+ZMLINESIZE/2-1;
+  UWORD *valactual = destination+ZMLINESIZE/2-2; 
+  UWORD *valsupposed = destline+ZMLINESIZE/2-2;
   for(int i=0;i<16;i++) {
     for(int i2=0;i2<16;i2+=2) {
       TestRow( valsupposed, valactual, 0x0000, i2+i*17);
       valactual += ZMLINESIZE/2;
-      UWORD *bp = (UWORD *)0x200;
-      *bp = 0;
+     
       TestRow( valsupposed, valactual, 0xffff, i2+1+i*17);
       valactual += ZMLINESIZE/2;
     }
+    UWORD *bp = (UWORD *)0x200;
+    *bp = 0;
     TestRow( valsupposed, valactual, 0x0000, 16+i*17);
     valactual += ZMLINESIZE/2;
   }
@@ -285,19 +286,18 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
                                                              int numberofline) {    
   char str[ 100] = { 0 };
   UWORD data[2];
-  data[0] = numberofline;
+  data[1] = numberofline;
 
-  if( ( (*testpattern++ ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
-    RawDoFmt( "TestZoom4Picture: Word 0 Row %d wrong.\n", data, PutChar, str);
-    Write(  Output(), str, 100);
-  }
-  /*for(int i=1; i<2;i++) {
-    data[0] = i;
-    data[1] = numberofline;
-    destination++;
-    if( ( *testpattern++ & 0x00ff) != ( *destination ^ xormask)) {
+  for(int i=0;i<1;i++) {
+    if( (*testpattern++ ^ xormask) != *destination++) {
+      data[0] = i;
       RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
       Write(  Output(), str, 100);
     }
-  }*/
+  }
+  if( ( (*testpattern++ ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
+    data[0] = ZMLINESIZE/2;
+    RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
+    Write(  Output(), str, 100);
+  }
 }
