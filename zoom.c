@@ -170,12 +170,12 @@ ULONG * ClbuildZoom() {
   return 0;
 }
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
-  //UWORD *pos4source = source+ZMLINESIZE/2-2+ZMLINESIZE/2*8;
-  //UWORD *pos4dest = destination+ZMLINESIZE/2-2;
+   //UWORD *bp = (UWORD *) 0x200;
+       // *bp = 0;
   UWORD shiftright = 7;
   UWORD startofword = 336;
   UWORD nextzoom = 352-28;
-  for(int i=0;i<2;i++) {
+  for(int i=0;i<4;i++) {
     UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*8-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
 
@@ -192,7 +192,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
       }
     } else {
       UWORD colnr = nextzoom - startofword - 1; 
-      nextzoom -= 20;
+      nextzoom -= 21;
       for(int i=0;i<16;i++) {
         //-1 because colnr starts with 0
         Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 16);
@@ -202,7 +202,8 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
         Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 1);
         //Source doesn't change. Only forward dest
         pos4dest += ZMLINESIZE/2;
-      }  
+      }
+      shiftright--;  
     }
     startofword -= 16;
   }

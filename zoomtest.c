@@ -265,8 +265,8 @@ void TestZoom4Picture() {
   
   Zoom_ZoomIntoPicture( source, destination);
   WaitBlit();
-  UWORD *valactual = destination+ZMLINESIZE/2-2; 
-  UWORD *valsupposed = destline+ZMLINESIZE/2-2;
+  UWORD *valactual = destination+ZMLINESIZE/2-4; 
+  UWORD *valsupposed = destline+ZMLINESIZE/2-4;
   for(int i=0;i<16;i++) {
     for(int i2=0;i2<16;i2+=2) {
       TestRow( valsupposed, valactual, 0x0000, i2+i*17);
@@ -288,7 +288,7 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
   UWORD data[2];
   data[1] = numberofline;
 
-  for(int i=0;i<1;i++) {
+  for(int i=0;i<3;i++) {
     if( (*testpattern++ ^ xormask) != *destination++) {
       data[0] = i;
       RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
