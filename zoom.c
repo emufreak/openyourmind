@@ -175,7 +175,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
   UWORD shiftright = 7;
   UWORD startofword = 336;
   UWORD nextzoom = 352-28;
-  for(int i=0;i<4;i++) {
+  for(int i=0;i<22;i++) {
     UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*8-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
 

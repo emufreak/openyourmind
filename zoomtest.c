@@ -231,7 +231,7 @@ void TestCopyWord() {
   FreeMem( destination,ZMLINESIZE*30);
 }
 
-UWORD destline[] = { 0x0055, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
+UWORD destline[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
         0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
                                 0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
 /*
@@ -242,7 +242,7 @@ abcd efgh ijkl 1234 5678 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a
 1010 1010 1010 0101 0101 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101
 a    a    a    5    5    5    5    5    2    a    a    a    a    9    5    5*/ 
 void TestZoom4Picture() {
-  UWORD *source =AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
   if( source == 0) {
     Write(  Output(), 
                "TestZoom4Picture: Memory for Source cannot be allocated.\n",57);
@@ -265,8 +265,8 @@ void TestZoom4Picture() {
   
   Zoom_ZoomIntoPicture( source, destination);
   WaitBlit();
-  UWORD *valactual = destination+ZMLINESIZE/2-4; 
-  UWORD *valsupposed = destline+ZMLINESIZE/2-4;
+  UWORD *valactual = destination+2; 
+  UWORD *valsupposed = destline;
   for(int i=0;i<16;i++) {
     for(int i2=0;i2<16;i2+=2) {
       TestRow( valsupposed, valactual, 0x0000, i2+i*17);
@@ -288,7 +288,7 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
   UWORD data[2];
   data[1] = numberofline;
 
-  for(int i=0;i<3;i++) {
+  for(int i=0;i<21;i++) {
     if( (*testpattern++ ^ xormask) != *destination++) {
       data[0] = i;
       RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
