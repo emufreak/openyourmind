@@ -30,9 +30,9 @@ void  Zoom_CopyColumn( UWORD *source, UWORD *destination,
 
 }
 
-void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shift, 
+void  Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift, 
                                                                  UWORD height) {
-
+                                                                 
   UWORD shiftright = shift << 12;
   WaitBlit();
 
@@ -48,7 +48,7 @@ void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shift,
 
 }
 
-void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD shift, UWORD colnr, 
+void Zoom_ZoomBlit( UWORD *source, UWORD *destination, WORD shift, UWORD colnr, 
                                                                  UWORD height) {
 
   UWORD *srcb = source;       //12...f0|S12.X.f S = Sourceaddress X=Colnr
@@ -172,9 +172,10 @@ ULONG * ClbuildZoom() {
   return 0;
 }
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
-  UWORD shiftright = 7;
+  WORD shiftright = 7;
   UWORD startofword = 336;
   UWORD nextzoom = 352-28 + (zoomnr << 3);
+  UWORD shifttoleft = 0;
 
   for(int i=0;i<22;i++) {
     UWORD *bp = (UWORD *)0x200;
@@ -195,12 +196,13 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
         } 
 
         //Copy rectangle 
-        Zoom_CopyWord( pos4source, pos4dest, shiftright, ZoomHorizontal);
+        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, shiftright, 
+                                                                ZoomHorizontal);
         pos4source += ZMLINESIZE/2*ZoomHorizontal;
         pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
         if( linesleft>0) {
-          Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
+          Zoom_CopyWord( pos4source+shifttoleft, pos4dest, shiftright, 1);
           linesleft--;
           //Source doesn't change. Only forward dest
           pos4dest += ZMLINESIZE/2;
@@ -218,13 +220,14 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           linesleft = 0;
         }
 
-        //-1 because colnr starts with 0
-        Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, ZoomHorizontal);
+        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, shiftright, colnr, 
+                                                                ZoomHorizontal);
         pos4source += ZMLINESIZE/2*ZoomHorizontal;
         pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
         if( linesleft>0) {
-          Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 1);
+          Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, shiftright, colnr, 
+                                                                             1);
           //Source doesn't change. Only forward dest
           pos4dest += ZMLINESIZE/2;
           linesleft--;
@@ -232,6 +235,10 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
         ZoomHorizontal = 16 - zoomnr + (zoomnr << 1);
       }
       shiftright--;  
+      if(shiftright < 0) {
+        shiftright += 16;
+        shifttoleft = 1;
+      }
     }
     startofword -= 16;
   }

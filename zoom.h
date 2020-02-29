@@ -22,9 +22,9 @@ ULONG ClScreenZoom[12];
 void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
                                                                UWORD destcolnr);
 
-void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD shift, UWORD colnr,
+void Zoom_ZoomBlit(UWORD *source, UWORD *destination, WORD shift, UWORD colnr,
                                                                     UWORD size);
-void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shiftleft,
+void Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift,
                                                                   UWORD height);                                                                    
 void Zoom_Init();
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr);

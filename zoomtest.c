@@ -234,7 +234,7 @@ void TestCopyWord() {
 UWORD destlinezoom1[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
         0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
                                 0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
- UWORD destlinezoom2[] = { 0x5555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
+ UWORD destlinezoom2[] = { 0xd555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
     0x5553, 0x5555, 0x4d55, 0x5535, 0x5554, 0xd555,  0x5355, 0x554d, 0x5555, 
     0x3555, 0x54d5, 0x5553, 0x5555, 0x4d55, 0x5535, 0x5554 };     
 /*
@@ -285,7 +285,7 @@ void TestZoom4Picture() {
     TestRow( valsupposed, valactual, 0x0000, 16+i*17);
     valactual += ZMLINESIZE/2;
   }
-
+  
   UWORD *tmp = source;
   source = destination;
   destination = tmp;
@@ -345,10 +345,10 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
   UWORD data[2];
   data[1] = numberofline;
 
-  testpattern += 10;
-  destination += 10;
+  testpattern += 0;
+  destination += 0;
 
-  for(int i=0;i<11;i++) {
+  for(int i=0;i<21;i++) {
     if( (*testpattern++ ^ xormask) != *destination++) {
       data[0] = i;
       /*KPrintF("Testpattern:0x%08x Destination:0x%08x",
