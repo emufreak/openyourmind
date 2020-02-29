@@ -35,7 +35,7 @@ void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shift,
 
   UWORD shiftright = shift << 12;
   WaitBlit();
-  
+
   hw->bltcon1 = 0; 
   hw->bltcon0 = 0x9f0 + shiftright;
   hw->bltafwm = 0xffff;
@@ -99,8 +99,10 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD shift, UWORD colnr,
 
 }
 
+
 void Zoom_Init() {
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+  ZoomHorizontal = 16;
 }
 
 
@@ -169,44 +171,71 @@ ULONG * ClbuildZoom() {
   Zoom_SetBplPointers();
   return 0;
 }
-void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination) {
-   //UWORD *bp = (UWORD *) 0x200;
-       // *bp = 0;
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   UWORD shiftright = 7;
   UWORD startofword = 336;
-  UWORD nextzoom = 352-28;
+  UWORD nextzoom = 352-28 + (zoomnr << 3);
+
   for(int i=0;i<22;i++) {
+    UWORD *bp = (UWORD *)0x200;
+    *bp = 0;
+    UWORD linesleft = 272;
     UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*8-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
+    ZoomHorizontal = 16 - zoomnr * 6;
 
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
       for(int i=0;i<16;i++) {
+        if( linesleft >= ZoomHorizontal+1) {
+          linesleft -= ZoomHorizontal;
+        } else {
+       
+          ZoomHorizontal = linesleft;
+          linesleft = 0;
+        } 
+
         //Copy rectangle 
-        Zoom_CopyWord( pos4source, pos4dest, shiftright, 16);
-        pos4source += ZMLINESIZE/2*16;
-        pos4dest += ZMLINESIZE/2*16;
+        Zoom_CopyWord( pos4source, pos4dest, shiftright, ZoomHorizontal);
+        pos4source += ZMLINESIZE/2*ZoomHorizontal;
+        pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
-        Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
-        //Source doesn't change. Only forward dest
-        pos4dest += ZMLINESIZE/2;
+        if( linesleft>0) {
+          Zoom_CopyWord( pos4source, pos4dest, shiftright, 1);
+          linesleft--;
+          //Source doesn't change. Only forward dest
+          pos4dest += ZMLINESIZE/2;
+        }
+        ZoomHorizontal = 16 - zoomnr + (zoomnr << 1);
       }
     } else {
       UWORD colnr = nextzoom - startofword - 1; 
-      nextzoom -= 21;
+      nextzoom -= (21 + zoomnr);
       for(int i=0;i<16;i++) {
+        if( linesleft >= ZoomHorizontal+1) {
+          linesleft -= ZoomHorizontal;
+        } else {
+          ZoomHorizontal = linesleft;
+          linesleft = 0;
+        }
+
         //-1 because colnr starts with 0
-        Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 16);
-        pos4source += ZMLINESIZE/2*16;
-        pos4dest += ZMLINESIZE/2*16;
+        Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, ZoomHorizontal);
+        pos4source += ZMLINESIZE/2*ZoomHorizontal;
+        pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
-        Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 1);
-        //Source doesn't change. Only forward dest
-        pos4dest += ZMLINESIZE/2;
+        if( linesleft>0) {
+          Zoom_ZoomBlit( pos4source, pos4dest, shiftright, colnr, 1);
+          //Source doesn't change. Only forward dest
+          pos4dest += ZMLINESIZE/2;
+          linesleft--;
+        }
+        ZoomHorizontal = 16 - zoomnr + (zoomnr << 1);
       }
       shiftright--;  
     }
     startofword -= 16;
   }
+  //ZoomHorizontal = 10;
 }
 
 void Zoom_SetBplPointers() {

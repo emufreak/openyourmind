@@ -16,6 +16,7 @@
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 
+UWORD ZoomHorizontal;
 int PrepareDisplayZoom();
 ULONG ClScreenZoom[12];
 void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
@@ -26,7 +27,7 @@ void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD shift, UWORD colnr,
 void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD shiftleft,
                                                                   UWORD height);                                                                    
 void Zoom_Init();
-void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination);
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr);
 ULONG *Zoom_ZoomBlitMask;
 UWORD *Zoom_Source;
 void Zoom_SetBplPointers();

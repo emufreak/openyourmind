@@ -231,10 +231,17 @@ void TestCopyWord() {
   FreeMem( destination,ZMLINESIZE*30);
 }
 
-UWORD destline[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
+UWORD destlinezoom1[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
         0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
                                 0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
+ UWORD destlinezoom2[] = { 0x5555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
+    0x5553, 0x5555, 0x4d55, 0x5535, 0x5554, 0xd555,  0x5355, 0x554d, 0x5555, 
+    0x3555, 0x54d5, 0x5553, 0x5555, 0x4d55, 0x5535, 0x5554 };     
 /*
+1234 5678 9abc defg hijk 1122 3456 789a bcde fghi jk11 2234 ...
+0101 0101 0101 0101 0101 0011 0101 0101 0101 0101 0100 1101 ...
+5    5    5    5    5    3    5    5    5    5    4    d
+
 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a bcde fghi jkl1 2345 6789
 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101 0101 0101 0100 1010 1010 
 5    5    5    2    a    a    a    a    9    5    5    5    5    4    a    a
@@ -263,10 +270,10 @@ void TestZoom4Picture() {
       *tmp4source++ = 0xaaaaaaaa;
   }
   
-  Zoom_ZoomIntoPicture( source, destination);
+  Zoom_ZoomIntoPicture( source, destination, 0);
   WaitBlit();
   UWORD *valactual = destination+2; 
-  UWORD *valsupposed = destline;
+  UWORD *valsupposed = destlinezoom1;
   for(int i=0;i<16;i++) {
     for(int i2=0;i2<16;i2+=2) {
       TestRow( valsupposed, valactual, 0x0000, i2+i*17);
@@ -275,11 +282,61 @@ void TestZoom4Picture() {
       TestRow( valsupposed, valactual, 0xffff, i2+1+i*17);
       valactual += ZMLINESIZE/2;
     }
-    UWORD *bp = (UWORD *)0x200;
-    *bp = 0;
     TestRow( valsupposed, valactual, 0x0000, 16+i*17);
     valactual += ZMLINESIZE/2;
   }
+
+  UWORD *tmp = source;
+  source = destination;
+  destination = tmp;
+          //return;
+  UWORD *bp = (UWORD *)0x202;
+  *bp = 0;
+  Zoom_ZoomIntoPicture( source, destination, 1);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom2;
+  for(int i=0;i<8;i+=2) {   
+    TestRow( valsupposed, valactual, 0x0000, i);
+    valactual += ZMLINESIZE/2;
+     
+    TestRow( valsupposed, valactual, 0xffff, i+1);
+    valactual += ZMLINESIZE/2;
+  }
+  TestRow( valsupposed, valactual, 0x0000, 8);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 9);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 10);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 11);
+  valactual += ZMLINESIZE/2;
+
+  for(int i=0;i<14;i++) {
+    for(int i2=0;i2<14;i2+=2) {
+      TestRow( valsupposed, valactual, 0x0000, i2+i*18+12);
+      valactual += ZMLINESIZE/2;
+     
+      TestRow( valsupposed, valactual, 0xffff, i2+1+i*18+12);
+      valactual += ZMLINESIZE/2;
+    }
+    TestRow( valsupposed, valactual, 0x0000, 14+12+i*18);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0x0000, 15+12+i*18);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0xffff, 16+12+i*18);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0xffff, 17+12+i*18);
+    valactual += ZMLINESIZE/2;
+  }
+  for(int i=0;i<8;i+=2) {
+    TestRow( valsupposed, valactual, 0x0000, 264+i);
+    valactual += ZMLINESIZE/2;
+     
+    TestRow( valsupposed, valactual, 0xffff, 265+i);
+    valactual += ZMLINESIZE/2;
+  }
+ 
 }
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 
@@ -288,16 +345,26 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
   UWORD data[2];
   data[1] = numberofline;
 
-  for(int i=0;i<21;i++) {
+  testpattern += 10;
+  destination += 10;
+
+  for(int i=0;i<11;i++) {
     if( (*testpattern++ ^ xormask) != *destination++) {
       data[0] = i;
-      RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
+      /*KPrintF("Testpattern:0x%08x Destination:0x%08x",
+                                                 --*testpattern,--*destination);*/
+      RawDoFmt( "TestZoom4Picture Zoom 1: Word %d Row %d wrong.\n", data,
+                                                                  PutChar, str);
       Write(  Output(), str, 100);
     }
   }
-  if( ( (*testpattern++ ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
-    data[0] = ZMLINESIZE/2;
-    RawDoFmt( "TestZoom4Picture: Word %d Row %d wrong.\n", data, PutChar, str);
+  if( ( (*testpattern ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
+    data[0] = 22;
+    RawDoFmt( "TestZoom4Picture Zoom 1: Word %d Row %d wrong.\n", data, PutChar, 
+                                                                           str);
     Write(  Output(), str, 100);
+         KPrintF("Testpattern:0x%08x Destination:0x%08x",
+                                                   *testpattern,*destination);
+     
   }
 }
