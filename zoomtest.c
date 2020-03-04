@@ -234,13 +234,35 @@ void TestCopyWord() {
 UWORD destlinezoom1[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
         0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
                                 0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
- UWORD destlinezoom2[] = { 0xd555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
+UWORD destlinezoom2[] = { 0xd555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
     0x5553, 0x5555, 0x4d55, 0x5535, 0x5554, 0xd555,  0x5355, 0x554d, 0x5555, 
-    0x3555, 0x54d5, 0x5553, 0x5555, 0x4d55, 0x5535, 0x5554 };     
-/*
-1234 5678 9abc defg hijk 1122 3456 789a bcde fghi jk11 2234 ...
-0101 0101 0101 0101 0101 0011 0101 0101 0101 0101 0100 1101 ...
-5    5    5    5    5    3    5    5    5    5    4    d
+    0x3555, 0x54d5, 0x5553, 0x5555, 0x4d55, 0x5535, 0x5554 };
+
+/*UWORD destlinezoom3 = { 0x5553, 0x2aaa, 0xa655, 0x554c, 0xaaaa, 0x9955, 0x5532,
+   0xaaaa, 0x6555, 0x54cd, 0x5554, 0xcaaa, 0xa995, 0x5553, 0x2aaa, 0xa655, 
+   0x554c, 0xaaaa, 0x9955, 0x5532, 0xaaaa, 0x6555 };*/
+
+UWORD destlinezoom3[] = { 0x5553, 0x2aaa, 0xa655, 0x554c, 0xaaaa, 0x9955, 0x5532,
+   0xaaaa, 0x6555, 0x54ca, 0xaaa9, 0x9555, 0x532a, 0xaaa6, 0x5555, 0x4caa, 
+   0xaa99, 0x5555, 0x32aa, 0xaa65, 0x5554, 0xcaaa };
+/* 1st part level3
+9abc defg hijk 1122 3345 6789 abcd efgh ijk1 1223 3456 789a bcde fghi jk11 2233
+0101 0101 0101 0011 0010 1010 1010 1010 1010 0110 0101 0101 0101 0101 0100 1100
+5    5    5    3    2    a    a    a    a    6    5    5    5    5    4    c
+4567 89ab cdef ghij k112 2334 5678 ....
+1010 1010 1010 1010 1001 1001 0101
+a    a    a    a    9    9    5
+2nd Part Level 3
+fghi jk11 2233 4456 789a bcde fghi jk11 2233 4567 89ab cdef ghij k112 2334 5678
+0101 0100 1100 1101 0101 0101 0101 0100 1100 1010 1010 1010 1010 1001 1001 0101
+5    4    c    d    5    5    5    4    c    a    a    a    a    9    9    5
+9abc defg hijk 1122 3345 6789 abcd efgh ijk1 1223 3456 ...
+0101 0101 0101 0011 0010 1010 1010 1010 1010 0110 0101 ...
+5    5    5    3    2    a    a    a    a    6    5
+
+2234 5678 9abc defg hijk 1122 3456 789a bcde fghi jk11 2234 ...
+1101 0101 0101 0101 0101 0011 0101 0101 0101 0101 0100 1101 ...
+d    5    5    5    5    3    5    5    5    5    4    d
 
 9abc defg hijk l123 4567 89ab cdef ghij kl12 3456 789a bcde fghi jkl1 2345 6789
 0101 0101 0101 0010 1010 1010 1010 1010 1001 0101 0101 0101 0101 0100 1010 1010 
@@ -336,7 +358,49 @@ void TestZoom4Picture() {
     TestRow( valsupposed, valactual, 0xffff, 265+i);
     valactual += ZMLINESIZE/2;
   }
- 
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 2);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom3;
+  
+  TestRow( valsupposed, valactual, 0x0000, 0);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 1);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 2);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 3);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 4);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 5);
+  valactual += ZMLINESIZE/2;
+
+  for(int i=0;i<14;i++) {
+    UWORD mask = 0xffff;
+    for(int i2=0;i2<13;i2++) {
+      TestRow( valsupposed, valactual, mask, i2+6+i*19);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+    TestRow( valsupposed, valactual, 0x0000, 19+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0x0000, 19+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0xffff, 19+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0xffff, 19+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0x0000, 19+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, 0x0000, 19+i*19);
+    valactual += ZMLINESIZE/2;
+  }
 }
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 

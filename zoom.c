@@ -171,11 +171,22 @@ ULONG * ClbuildZoom() {
   Zoom_SetBplPointers();
   return 0;
 }
+
+/*UWORD *Zoom_NumberOfColumns2Copy = { 
+                        vZoom_NumberOfColumns2Copy0, Zoom_NumberOfColumns2Copy1, 
+                                                   Zoom_NumberOfColumns2Copy2 };
+
+UWORD Zoom_NumberOfColumns2Copy0 = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+UWORD Zoom_NumberOfColumns2Copy1 = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+UWORD Zoom_NumberOfColumns2Copy2 = { 1,1,1,1,1,1,2,1,1,1,1,1,1,1,1 };*/
+
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   WORD shiftright = 7;
   UWORD startofword = 336;
   UWORD nextzoom = 352-28 + (zoomnr << 3);
   UWORD shifttoleft = 0;
+
+  WORD linesforzoom = 16;
 
   for(int i=0;i<22;i++) {
     UWORD *bp = (UWORD *)0x200;
@@ -190,7 +201,6 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
         } else {
-       
           ZoomHorizontal = linesleft;
           linesleft = 0;
         } 
@@ -222,6 +232,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
 
         Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, shiftright, colnr, 
                                                                 ZoomHorizontal);
+
         pos4source += ZMLINESIZE/2*ZoomHorizontal;
         pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
