@@ -231,9 +231,15 @@ void TestCopyWord() {
   FreeMem( destination,ZMLINESIZE*30);
 }
 
-UWORD destlinezoom1[] = { 0xaa55, 0x5552, 0xaaaa, 0x9555, 0x54aa, 0xaaa5, 0x5555, 
-        0x2aaa,  0xa955, 0x554a, 0xaaaa, 0x5555, 0x52aa, 0xaa95, 0x5554, 0xaaaa, 
-                                0xa555, 0x552a, 0xaaa9, 0x5555, 0x4aaa, 0xaa00};
+UWORD destlinezoom1[] = { 0xaa55, 0x554a, 0xaaa9, 0x5555, 0x2aaa, 0xa555, 
+  0x54aa, 0xaa95, 0x5552, 0xaaaa, 0x5555, 0x4aaa, 0xa955, 0x552a, 0xaaa5, 
+  0x5554, 0xaaaa, 0x9555, 0x52aa, 0xaa55, 0x554a, 0xaaa9 };
+/* cdef ghi1 1234 5678 9abc defg hi11 2345 6789 abcd efgh i112 3456 789a bcde
+   1010 1010 0101 0101 0101 0101 0100 1010 1010 1010 1010 1001 0101 0101 0101
+   a    a    5    5    5    5    4    a    a    a    a    9    5    5    5
+fghi 1123 4567 89ab ...
+0101 0010 1010 1010
+5    2    a    a */
 UWORD destlinezoom2[] = { 0xd555, 0x5355, 0x554d, 0x5555, 0x3555, 0x54d5, 
     0x5553, 0x5555, 0x4d55, 0x5535, 0x5554, 0xd555,  0x5355, 0x554d, 0x5555, 
     0x3555, 0x54d5, 0x5553, 0x5555, 0x4d55, 0x5535, 0x5554 };
@@ -291,20 +297,21 @@ void TestZoom4Picture() {
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
       *tmp4source++ = 0xaaaaaaaa;
   }
-  
+
   Zoom_ZoomIntoPicture( source, destination, 0);
   WaitBlit();
   UWORD *valactual = destination+2; 
   UWORD *valsupposed = destlinezoom1;
-  for(int i=0;i<16;i++) {
-    for(int i2=0;i2<16;i2+=2) {
-      TestRow( valsupposed, valactual, 0x0000, i2+i*17);
+  UWORD mask = 0x0;
+  for(int i=0;i<17;i++) {
+    for(int i2=0;i2<15;i2++) { 
+      UWORD *bp = (UWORD *)0x200;
+      *bp = 0; 
+      TestRow( valsupposed, valactual, mask, i2+i*16);
       valactual += ZMLINESIZE/2;
-     
-      TestRow( valsupposed, valactual, 0xffff, i2+1+i*17);
-      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
     }
-    TestRow( valsupposed, valactual, 0x0000, 16+i*17);
+    TestRow( valsupposed, valactual, mask, 15+i*16);
     valactual += ZMLINESIZE/2;
   }
   
@@ -312,8 +319,6 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
           //return;
-  UWORD *bp = (UWORD *)0x202;
-  *bp = 0;
   Zoom_ZoomIntoPicture( source, destination, 1);
   WaitBlit();
   valactual = destination+2; 
@@ -382,7 +387,7 @@ void TestZoom4Picture() {
   valactual += ZMLINESIZE/2;
 
   for(int i=0;i<14;i++) {
-    UWORD mask = 0xffff;
+    mask = 0xffff;
     for(int i2=0;i2<13;i2++) {
       TestRow( valsupposed, valactual, mask, i2+6+i*19);
       valactual += ZMLINESIZE/2;
@@ -423,7 +428,7 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
     }
   }
   if( ( (*testpattern ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
-    data[0] = 22;
+    data[0] = 21;
     RawDoFmt( "TestZoom4Picture Zoom 1: Word %d Row %d wrong.\n", data, PutChar, 
                                                                            str);
     Write(  Output(), str, 100);
