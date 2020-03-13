@@ -32,7 +32,7 @@ void  Zoom_CopyColumn( UWORD *source, UWORD *destination,
 
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift, 
                                                                  UWORD height) {
-                                                                 
+
   UWORD shiftright = shift << 12;
   WaitBlit();
 
@@ -40,6 +40,9 @@ void  Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift,
   hw->bltcon0 = 0x9f0 + shiftright;
   hw->bltafwm = 0xffff;
   hw->bltalwm = 0xffff;
+   UWORD *bp = (UWORD *)0x202;
+  *bp = 0;
+
   hw->bltamod = ZMLINESIZE - 4;
   hw->bltdmod = ZMLINESIZE - 4;
   hw->bltapt = (UWORD *) source;
@@ -92,6 +95,9 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, WORD shift, UWORD colnr,
   //hw->bltcmod = -4;
   hw->bltdmod = ZMLINESIZE - 4;
   //hw->bltcpt= (UWORD *) Zoom_ZoomBlitMask;
+  UWORD *bp = (UWORD *)0x202;
+  *bp = 0;
+
   hw->bltapt = srca;
   hw->bltbpt = srcb;
   hw->bltdpt = destination;
@@ -183,20 +189,36 @@ UWORD Zoom_NumberOfColumns2Copy2 = { 1,1,1,1,1,1,2,1,1,1,1,1,1,1,1 };*/
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   WORD shiftright = 9;
   UWORD startofword = 21*16;
-  UWORD nextzoom = 22*16 - 20 + (zoomnr << 3);
+  UWORD nextzoom = 22*16 - 20 + zoomnr * 10;
+  while( nextzoom > 22 * 16) {
+    nextzoom -= (19 + zoomnr);
+    shiftright--;
+  } 
   //UWORD nextzoom = 352-28 + (zoomnr << 3);
   UWORD shifttoleft = 0;
+  //WORD linesforzoom = 16;
 
-  WORD linesforzoom = 16;
+  UWORD *bp2 = (UWORD *)0x206;
+  *bp2 = 0;
+    
 
   for(int i=0;i<22;i++) {
-    UWORD linesleft = 272;
+
+    if( i == 16) {
+      UWORD *bp = (UWORD *)0x204;
+      *bp = 0;
+    }
+
+    WORD linesleft = 272;
     UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*8-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
     ZoomHorizontal = 15 - zoomnr * 6;
+    while( ZoomHorizontal < 0) {
+      ZoomHorizontal += (15 - zoomnr + (zoomnr << 1));
+    } 
 
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
-      for(int i=0;i<17;i++) {
+      while(linesleft > 0) {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
         } else {
@@ -221,7 +243,8 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
     } else {
       UWORD colnr = nextzoom - startofword - 1; 
       nextzoom -= (19 + zoomnr);
-      for(int i=0;i<17;i++) {
+      while( linesleft > 0)
+      {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
         } else {

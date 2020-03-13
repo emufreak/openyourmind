@@ -16,7 +16,7 @@
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 
-UWORD ZoomHorizontal;
+WORD ZoomHorizontal;
 int PrepareDisplayZoom();
 ULONG ClScreenZoom[12];
 void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
