@@ -188,6 +188,7 @@ UWORD Zoom_NumberOfColumns2Copy2 = { 1,1,1,1,1,1,2,1,1,1,1,1,1,1,1 };*/
 
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   WORD shiftright = 9;
+  UWORD shifthoriz = 8;
   UWORD startofword = 21*16;
   UWORD nextzoom = 22*16 - 20 + zoomnr * 10;
   while( nextzoom > 22 * 16) {
@@ -200,22 +201,20 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
 
   UWORD *bp2 = (UWORD *)0x206;
   *bp2 = 0;
-    
+
+  WORD ZoomHorizontalStart = 15 - zoomnr * 6;
+  while( ZoomHorizontalStart < 0) {
+      ZoomHorizontalStart += 1 + 15 + zoomnr;
+      shifthoriz--;
+  } 
 
   for(int i=0;i<22;i++) {
 
-    if( i == 16) {
-      UWORD *bp = (UWORD *)0x204;
-      *bp = 0;
-    }
+    ZoomHorizontal = ZoomHorizontalStart;
 
     WORD linesleft = 272;
-    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*8-2-i;
+    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
-    ZoomHorizontal = 15 - zoomnr * 6;
-    while( ZoomHorizontal < 0) {
-      ZoomHorizontal += (15 - zoomnr + (zoomnr << 1));
-    } 
 
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
       while(linesleft > 0) {
