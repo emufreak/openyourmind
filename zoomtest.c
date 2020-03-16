@@ -431,9 +431,7 @@ void TestZoom4Picture() {
   tmp = source;
   source = destination;
   destination = tmp;
-  
-  UWORD *bp = (UWORD *)0x200;
-  *bp = 0;
+
   Zoom_ZoomIntoPicture( source, destination, 3);
   WaitBlit();
   valactual = destination+2; 
@@ -497,6 +495,77 @@ void TestZoom4Picture() {
     valactual += ZMLINESIZE/2;
     mask = mask ^ 0xffff;
   }
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 4);
+  WaitBlit();
+
+  valactual = destination+2; 
+  valsupposed = destlinezoom5;
+  mask = 0xffff;
+  
+
+  for(int i2=0;i2<3;i2++) {  
+    TestRow( valsupposed, valactual, mask, i2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  mask = 0;
+  for(int i=0;i<13;i++) {  
+    TestRow( valsupposed, valactual, mask, 0+9+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 1+9+i*19);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+    TestRow( valsupposed, valactual, mask, 2+9+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 3+9+i*19);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+    TestRow( valsupposed, valactual, mask, 4+9+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 5+9+i*19);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+    TestRow( valsupposed, valactual, mask, 6+9+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 7+9+i*19);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+    TestRow( valsupposed, valactual, mask, 6+9+i*19);
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 7+9+i*19);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+    for(int i2=0;i2<10;i2++) {  
+      TestRow( valsupposed, valactual, mask, i2+i*19+9);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  }
+
+  TestRow( valsupposed, valactual, 0xffff, 0+9+19*13);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 1+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 2+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 3+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 4+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0xffff, 5+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 6+9+13*19);
+  valactual += ZMLINESIZE/2;
+  TestRow( valsupposed, valactual, 0x0000, 7+9+13*19);
+  valactual += ZMLINESIZE/2; 
+  TestRow( valsupposed, valactual, 0xffff, 7+9+13*19);
+  valactual += ZMLINESIZE/2; 
  
 }
 
