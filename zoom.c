@@ -188,7 +188,7 @@ UWORD Zoom_NumberOfColumns2Copy2 = { 1,1,1,1,1,1,2,1,1,1,1,1,1,1,1 };*/
 
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   WORD shiftright = 9;
-  UWORD shifthoriz = 8;
+  UWORD shifthoriz = 7;
   UWORD startofword = 21*16;
   UWORD nextzoom = 22*16 - 20 + zoomnr * 10;
   while( nextzoom > 22 * 16) {
@@ -202,9 +202,9 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   UWORD *bp2 = (UWORD *)0x206;
   *bp2 = 0;
 
-  WORD ZoomHorizontalStart = 15 - zoomnr * 6;
+  WORD ZoomHorizontalStart = 18 - zoomnr * 5;
   while( ZoomHorizontalStart < 0) {
-      ZoomHorizontalStart += 1 + 15 + zoomnr;
+      ZoomHorizontalStart += 1 + 18 + zoomnr;
       shifthoriz--;
   } 
 
@@ -237,7 +237,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           //Source doesn't change. Only forward dest
           pos4dest += ZMLINESIZE/2;
         }
-        ZoomHorizontal = 15 - zoomnr + (zoomnr << 1);
+        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
     } else {
       UWORD colnr = nextzoom - startofword - 1; 
@@ -264,7 +264,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           pos4dest += ZMLINESIZE/2;
           linesleft--;
         }
-        ZoomHorizontal = 15 - zoomnr + (zoomnr << 1);
+        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
       shiftright--;  
       if(shiftright < 0) {
