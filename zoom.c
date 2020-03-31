@@ -125,8 +125,6 @@ void Init_Blit() {
 }
 
 void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
-
-  WaitBlit();
   ZoomBlit_Increment4SrcA = 0;
 
   UWORD colnr = nextzoom - startofword - 1;                                                                          
@@ -138,14 +136,15 @@ void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
   } else {
     shifta = (shiftright - 1) << 12;
   }
+  WaitBlit(); 
   hw->bltcon1 = shiftb; 
   hw->bltcon0 = 0xde4 + shifta;
   hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
 }
 
 void Init_Copy( WORD shift) {
-  WaitBlit();
   UWORD shiftright = shift << 12;
+  WaitBlit();
   hw->bltcon0 = 0x9f0 + shiftright;
   hw->bltcon1 = 0;
 }

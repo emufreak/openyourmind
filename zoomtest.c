@@ -6,7 +6,7 @@
 #include <string.h>
 
 void ZoomTest() {
-  //TestZoomSpeed();
+  TestZoomSpeed();
   ZoomTestDisplay();
   TestBlitleftOfZoom();
   TestCopyWord();
@@ -60,8 +60,10 @@ void TestZoomSpeed() {
   for( int i=0; i<5; i++)
     Zoom_ZoomIntoPicture( source, destination, 0);
   RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 7)
+  if( Counter4Frames > 9)
     Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
+  FreeMem( source, ( ZMLINESIZE+4)*272);
+  FreeMem( destination, ( ZMLINESIZE+4)*272);
 }
 
 void ZoomTestDisplay() {
@@ -1316,21 +1318,16 @@ void TestZoom4Picture() {
   valactual += ZMLINESIZE/2;
   mask = mask ^ 0xffff;
 
-  for(int i2=0;i2<5;i2++) {
+  for(int i2=0;i2<4;i2++) {
     TestRow( valsupposed, valactual, mask, 1+i2*2);   
     valactual += ZMLINESIZE/2;
-    return;
     TestRow( valsupposed, valactual, mask, 2+i2*2);
     valactual += ZMLINESIZE/2;
     mask = mask ^ 0xffff;
   }
 
-  for(int i=0;i<7;i++) {
-      TestRow( valsupposed, valactual, mask, 10+i*35);
-      valactual += ZMLINESIZE/2;
-      mask = mask ^ 0xffff;
-    
-    for(int i2=0;i2<17;i2++) {
+  for(int i=0;i<7;i++) {  
+    for(int i2=0;i2<18;i2++) {
       TestRow( valsupposed, valactual, mask, 11+i*35+i2*2);   
       valactual += ZMLINESIZE/2;
       TestRow( valsupposed, valactual, mask, 12+i*35+i2*2);
@@ -1339,17 +1336,17 @@ void TestZoom4Picture() {
     }
   } 
 
-  TestRow( valsupposed, valactual, mask, 255);
-  valactual += ZMLINESIZE/2;
-  mask = mask ^ 0xffff;
-
-  for(int i2=0;i2<7;i2++) {
+  for(int i2=0;i2<4;i2++) {
     TestRow( valsupposed, valactual, mask, 256+i2*2);   
     valactual += ZMLINESIZE/2;
     TestRow( valsupposed, valactual, mask, 257+i2*2);
     valactual += ZMLINESIZE/2;
     mask = mask ^ 0xffff;
   }
+  TestRow( valsupposed, valactual, mask, 0);
+  valactual += ZMLINESIZE/2;
+  mask = mask ^ 0xffff;
+
 }
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 
