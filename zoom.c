@@ -5,19 +5,15 @@ ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81,
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080000, 
                                                        0x010a0000, 0x01002200 };
 
-void  Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift, 
-                                                                 UWORD height) {
-
-  UWORD shiftright = shift << 12;
+void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
   WaitBlt();
 
-  hw->bltcon1 = 0; 
-  hw->bltcon0 = 0x9f0 + shiftright;
   hw->bltapt = (UWORD *) source;
   hw->bltdpt = (UWORD *) destination;
   hw->bltsize = height*64+2;
 
 }
+
 
 void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
@@ -130,6 +126,7 @@ void Init_Blit() {
 
 void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
 
+  WaitBlit();
   ZoomBlit_Increment4SrcA = 0;
 
   UWORD colnr = nextzoom - startofword - 1;                                                                          
@@ -144,6 +141,13 @@ void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
   hw->bltcon1 = shiftb; 
   hw->bltcon0 = 0xde4 + shifta;
   hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
+}
+
+void Init_Copy( WORD shift) {
+  WaitBlit();
+  UWORD shiftright = shift << 12;
+  hw->bltcon0 = 0x9f0 + shiftright;
+  hw->bltcon1 = 0;
 }
 
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
@@ -176,6 +180,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
 
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
+      Init_Copy( shiftright);
       while(linesleft > 0) {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
@@ -185,13 +190,12 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
         } 
 
         //Copy rectangle 
-        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, shiftright, 
-                                                                ZoomHorizontal);
+        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal);
         pos4source += ZMLINESIZE/2*ZoomHorizontal;
         pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
         if( linesleft>0) {
-          Zoom_CopyWord( pos4source+shifttoleft, pos4dest, shiftright, 1);
+          Zoom_CopyWord( pos4source+shifttoleft, pos4dest, 1);
           linesleft--;
           //Source doesn't change. Only forward dest
           pos4dest += ZMLINESIZE/2;

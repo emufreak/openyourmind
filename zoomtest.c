@@ -200,13 +200,10 @@ void TestCopyWord() {
   }
 
   WaitBlit();
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltamod = ZMLINESIZE - 4;
-  hw->bltbmod = ZMLINESIZE - 4;
-  hw->bltdmod = ZMLINESIZE - 4;
 
-  Zoom_CopyWord( (UWORD *)source+1, (UWORD *)destination, 3, 16);
+  Zoom_Init();
+  Init_Copy( 3);
+  Zoom_CopyWord( (UWORD *)source+1, (UWORD *)destination, 16);
   WaitBlit();
   tmp = destination+1;
   if( *tmp != 0x5555) 

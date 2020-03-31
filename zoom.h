@@ -23,10 +23,10 @@ void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
                                                                UWORD destcolnr);
 
 void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD size);
-void Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift,
-                                                                  UWORD height);                                                                    
+void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height);                                                                    
 void Zoom_Init();
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr);
+void Init_Copy( WORD shift);
 void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright);
 void Init_Blit();
 
