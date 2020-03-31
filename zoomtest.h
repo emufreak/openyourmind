@@ -17,6 +17,9 @@ void ZoomTestDisplay();
 void TestBlitleftOfZoom();
 void TestCopyColumnOfZoom();
 void TestCopyWord();
+void TestZoomSpeed();
+void Vblankcounter();
+
 extern void PutChar();
 /*UWORD destlinezoom2[22];
 UWORD destlinezoom1[22];*/

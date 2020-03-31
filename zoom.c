@@ -5,70 +5,26 @@ ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81,
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080000, 
                                                        0x010a0000, 0x01002200 };
 
-void  Zoom_CopyColumn( UWORD *source, UWORD *destination, 
-                                              UWORD srccolnr, UWORD destcolnr) {
-  
-  unsigned int bitnr = 15 - (srccolnr & 0xf);
-  UWORD bltmask = 0x1 << bitnr;
-  ULONG destpos = (ULONG) destination + (destcolnr >> 4);
-  ULONG sourcepos = (ULONG) source + (srccolnr >> 4);
-
-  WaitBlit();
-  
-  hw->bltcon1 = 0; 
-  hw->bltcon0 = 0xde4;
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltamod = ZMLINESIZE - 2;
-  hw->bltbmod = ZMLINESIZE - 2;
-  hw->bltdmod = ZMLINESIZE - 2;
-  hw->bltcdat = bltmask;
-  hw->bltapt = (UWORD *) sourcepos;
-  hw->bltbpt = (UWORD *) destpos;
-  hw->bltdpt = (UWORD *) destpos;
-  hw->bltsize = ZMCOLHEIGHT*64+1;
-
-}
-
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, WORD shift, 
                                                                  UWORD height) {
 
   UWORD shiftright = shift << 12;
-  WaitBlit();
+  WaitBlt();
 
   hw->bltcon1 = 0; 
   hw->bltcon0 = 0x9f0 + shiftright;
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-   UWORD *bp = (UWORD *)0x202;
-  *bp = 0;
-
-  hw->bltamod = ZMLINESIZE - 4;
-  hw->bltdmod = ZMLINESIZE - 4;
   hw->bltapt = (UWORD *) source;
   hw->bltdpt = (UWORD *) destination;
   hw->bltsize = height*64+2;
 
 }
 
-void Zoom_ZoomBlit( UWORD *source, UWORD *destination, WORD shift, UWORD colnr, 
-                                                                 UWORD height) {
+void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
-  UWORD *srcb = source;       //12...f0|S12.X.f S = Sourceaddress X=Colnr
-  UWORD shiftb = shift << 12;    //SEEEEE0|12.X..f E=Empty
-  UWORD *srca;
-  UWORD shifta;
-  if( shift == 0) {
-    srca = source + 1;
-    shifta = 15 << 12;
-  } else {
-    srca = source;
-    shifta = (shift - 1) << 12;
-  }
                               //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
 
-  WaitBlit();
+  WaitBlt();
 
   /*Mintterm
   ABCD
@@ -84,22 +40,8 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, WORD shift, UWORD colnr,
   //0000 0001 0101 0101 0101 0101
   //                     4    a
   
-  hw->bltcon1 = shiftb; 
-  hw->bltcon0 = 0xde4 + shifta;
-  //hw->bltcon0 = 0xff0 + shifta;
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltamod = ZMLINESIZE - 4;
-  hw->bltbmod = ZMLINESIZE - 4;
-  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
-  //hw->bltcmod = -4;
-  hw->bltdmod = ZMLINESIZE - 4;
-  //hw->bltcpt= (UWORD *) Zoom_ZoomBlitMask;
-  UWORD *bp = (UWORD *)0x202;
-  *bp = 0;
-
-  hw->bltapt = srca;
-  hw->bltbpt = srcb;
+  hw->bltapt = source + ZoomBlit_Increment4SrcA;
+  hw->bltbpt = source;
   hw->bltdpt = destination;
   hw->bltsize = height*64+2;
 
@@ -178,19 +120,39 @@ ULONG * ClbuildZoom() {
   return 0;
 }
 
-/*UWORD *Zoom_NumberOfColumns2Copy = { 
-                        vZoom_NumberOfColumns2Copy0, Zoom_NumberOfColumns2Copy1, 
-                                                   Zoom_NumberOfColumns2Copy2 };
+void Init_Blit() {
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltbmod = ZMLINESIZE - 4;
+  hw->bltdmod = ZMLINESIZE - 4;
+}
 
-UWORD Zoom_NumberOfColumns2Copy0 = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
-UWORD Zoom_NumberOfColumns2Copy1 = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
-UWORD Zoom_NumberOfColumns2Copy2 = { 1,1,1,1,1,1,2,1,1,1,1,1,1,1,1 };*/
+void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
+
+  ZoomBlit_Increment4SrcA = 0;
+
+  UWORD colnr = nextzoom - startofword - 1;                                                                          
+  UWORD shiftb = shiftright << 12;    //SEEEEE0|12.X..f E=Empty
+  UWORD shifta;
+  if( shiftright == 0) {
+    ZoomBlit_Increment4SrcA = 1;
+    shifta = 15 << 12;
+  } else {
+    shifta = (shiftright - 1) << 12;
+  }
+  hw->bltcon1 = shiftb; 
+  hw->bltcon0 = 0xde4 + shifta;
+  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
+}
 
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
+  WaitBlit();
+  Init_Blit();
   WORD shiftright = 9;
   UWORD shifthoriz = 7;
   UWORD startofword = 21*16;
-  UWORD nextzoom = 22*16 - 20 + zoomnr * 10;
+  WORD nextzoom = 22*16 - 20 + zoomnr * 10;
   while( nextzoom > 22 * 16) {
     nextzoom -= (19 + zoomnr);
     shiftright--;
@@ -198,9 +160,6 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
   //UWORD nextzoom = 352-28 + (zoomnr << 3);
   UWORD shifttoleft = 0;
   //WORD linesforzoom = 16;
-
-  UWORD *bp2 = (UWORD *)0x206;
-  *bp2 = 0;
 
   WORD ZoomHorizontalStart = 18 - zoomnr * 5;
   while( ZoomHorizontalStart < 0) {
@@ -239,11 +198,11 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
         }
         ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
-    } else {
-      UWORD colnr = nextzoom - startofword - 1; 
+    } else {  
+      Init_ZoomBlit( startofword, nextzoom, shiftright);   
+      
       nextzoom -= (19 + zoomnr);
-      while( linesleft > 0)
-      {
+      while( linesleft > 0) {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
         } else {
@@ -251,15 +210,13 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           linesleft = 0;
         }
 
-        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, shiftright, colnr, 
-                                                                ZoomHorizontal);
+        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal);
 
         pos4source += ZMLINESIZE/2*ZoomHorizontal;
         pos4dest += ZMLINESIZE/2*ZoomHorizontal;
         //Add aditional line
         if( linesleft>0) {
-          Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, shiftright, colnr, 
-                                                                             1);
+          Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, 1);
           //Source doesn't change. Only forward dest
           pos4dest += ZMLINESIZE/2;
           linesleft--;

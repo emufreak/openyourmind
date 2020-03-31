@@ -6,11 +6,62 @@
 #include <string.h>
 
 void ZoomTest() {
+  //TestZoomSpeed();
   ZoomTestDisplay();
   TestBlitleftOfZoom();
-  TestCopyColumnOfZoom();
   TestCopyWord();
   TestZoom4Picture();
+}
+
+int Counter4Frames;
+
+void Vblankcounter() {
+  Counter4Frames++;
+}
+
+void TestZoomSpeed() {
+
+  Counter4Frames = 0;
+  struct Interrupt *vbint;
+
+  int counter = 0;
+                                                       
+  if (vbint = AllocMem(sizeof(struct Interrupt),    
+                         MEMF_PUBLIC|MEMF_CLEAR)) {
+    vbint->is_Node.ln_Type = NT_INTERRUPT;       
+    vbint->is_Node.ln_Pri = -60;
+    vbint->is_Node.ln_Name = "VertB-Example";
+    vbint->is_Data = NULL;
+    vbint->is_Code = Vblankcounter;
+  }
+
+  UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  if( source == 0) {
+    Write(  Output(), 
+               "TestZoomSpeed: Memory for Source cannot be allocated.\n",57);
+    return;
+  }
+
+  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  if( destination == 0) {
+    Write(  Output(), 
+          "TestZoomSpeed: Memory for Destination cannot be allocated.\n",61);
+    return;
+  }
+  ULONG *tmp4source = (ULONG *)source;
+  for(int i=0;i<128+8;i++) {
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *tmp4source++ = 0x55555555;
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *tmp4source++ = 0xaaaaaaaa;
+  }
+  WaitVbl();
+  AddIntServer(INTB_VERTB, vbint);
+  for( int i=0; i<5; i++)
+    Zoom_ZoomIntoPicture( source, destination, 0);
+  RemIntServer(INTB_VERTB, vbint);
+  if( Counter4Frames > 7)
+    Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
 }
 
 void ZoomTestDisplay() {
@@ -93,8 +144,10 @@ void TestBlitleftOfZoom() {
   tstsource = (UWORD *)Zoom_Source + 127*ZMLINESIZE/2;
   *tstsource++ = 0x0000;
   *tstsource = 0x00ff;
-
-  Zoom_ZoomBlit( Zoom_Source, (UWORD *)DrawBuffer, 0, 8, 128);
+  WaitBlit();
+  Init_Blit();
+  Init_ZoomBlit( 7, 16, 0);
+  Zoom_ZoomBlit( Zoom_Source, (UWORD *)DrawBuffer, 128);
   WaitBlit();
   UWORD *destination = (UWORD *)DrawBuffer+1;
   if( *destination != 0x0180) {
@@ -110,78 +163,6 @@ void TestBlitleftOfZoom() {
   if( *destination != 0x01ff) {
     Write(  Output(), "Zoomblit: Last row wrong.\n",26);
   }
-  FreeMem( Zoom_Source, 40*256*5);
-  FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
-}
-
-void TestCopyColumnOfZoom() {
-
-  PrepareDisplayZoom();
-
-  UWORD *destination = (UWORD *)DrawBuffer;
-  *destination= 0x0000;
-  destination += ZMLINESIZE/2;
-  *destination= 0x000f;
-  destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  *destination = 0x000f;
-  Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
-  if( Zoom_Source == 0) {
-    Write(  Output(), 
-                 "Zoomtestroutines: Can not allocate mem for Zoomsource.\n",54);
-    return;
-  }
-
-  UWORD *tstsource = Zoom_Source;
-  *tstsource = 0xffff;
-  tstsource += ZMLINESIZE/2;
-  *tstsource = 0xffff;
-  tstsource = (UWORD *)Zoom_Source + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  *tstsource = 0xc000;
-  Zoom_CopyColumn( Zoom_Source, (UWORD *)DrawBuffer, 1, 1);
-  
-  WaitBlit();
-  destination = (UWORD *)DrawBuffer;
-  if( *destination != 0x4000)
-    Write(  Output(), "Zoomtest: CopyColumn2 - First row wrong.\n",41);
-
-  destination+= ZMLINESIZE/2;
-  if( *destination != 0x400f)
-    Write(  Output(), "Zoomtest: CopyColumn2 - Second row wrong.\n",42);
-
-  
-  destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  if( *destination != 0x400f)
-    Write(  Output(), "Zoomtest: CopyColumn2 - Last row wrong.\n",40);
-
-  destination = (UWORD *)DrawBuffer;
-  *destination= 0x0000;
-  destination += ZMLINESIZE/2;
-  *destination= 0x000f;
-  destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  *destination = 0x000f;
-
-  tstsource = Zoom_Source;
-  *tstsource = 0xffff;
-  tstsource += ZMLINESIZE/2;
-  *tstsource = 0xffff;
-  tstsource = (UWORD *)Zoom_Source + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  *tstsource = 0x8000;
-  Zoom_CopyColumn( Zoom_Source, (UWORD *)DrawBuffer, 0, 0);
-  
-  WaitBlit();
-  destination = (UWORD *)DrawBuffer;
-  if( *destination != 0x8000)
-    Write(  Output(), "Zoomtest: CopyColumn - First row wrong.\n",40);
-
-  destination+= ZMLINESIZE/2;
-  if( *destination != 0x800f)
-    Write(  Output(), "Zoomtest: CopyColumn - Second row wrong.\n",41);
-
-  
-  destination = (UWORD *)DrawBuffer + (ZMCOLHEIGHT-1)*ZMLINESIZE/2;
-  if( *destination != 0x800f)
-    Write(  Output(), "Zoomtest: CopyColumn - Last row wrong.\n",39);
-
   FreeMem( Zoom_Source, 40*256*5);
   FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
 }
@@ -217,6 +198,13 @@ void TestCopyWord() {
   for( int i=0; i<ZMLINESIZE/2*30; i++) {
     *tmp++ = 0;
   }
+
+  WaitBlit();
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltamod = ZMLINESIZE - 4;
+  hw->bltbmod = ZMLINESIZE - 4;
+  hw->bltdmod = ZMLINESIZE - 4;
 
   Zoom_CopyWord( (UWORD *)source+1, (UWORD *)destination, 3, 16);
   WaitBlit();
@@ -366,6 +354,78 @@ UWORD destlinezoom12[] = { 0xcccc, 0xcd53, 0x3333, 0x354c, 0xcccc, 0xd533,
    hi11 ...
    0100
    4 */
+
+UWORD destlinezoom13[] = { 0x3333, 0x2a66, 0x6666, 0x54cc, 0xcccc, 0xa999,
+   0x9999, 0x5333, 0x3332, 0xa666, 0x6665, 0x4ccc, 0xccca, 0x9999, 0x9995,
+   0x3333, 0x332a, 0x6666, 0x6654, 0xcccc, 0xcca9, 0x9999 };
+
+/* 5566 7788 99aa bbcc ddef ghi1 1223 3445 5667 7889 9aab bccd defg hi11
+   0011 0011 0011 0011 0010 1010 0110 0110 0110 0110 0110 0110 0101 0100
+   3    3    3    3    2    a    6    6    6    6    6    6    5    4
+
+   2233 4455 6677 8899 aabb ccdd efgh i112 2334 4556 6778 899a abbc cdde
+   1100 1100 1100 1100 1100 1100 1010 1001 1001 1001 1001 1001 1001 1001
+   c    c    c    c    c    c    a    9    9    9    9    9    9    9
+
+   fghi 1122 3344 ...
+   0101 0011 0011
+   5    3    3
+ */
+UWORD destlinezoom14[] = { 0xcccd, 0x4ccc, 0xcccd, 0x4ccc, 0xcccd, 0x4ccc,
+   0xcccd, 0x4ccc, 0xcccd, 0x4ccc, 0xcccd, 0x4ccc, 0xcccd, 0x4ccc, 0xcccd,
+   0x4ccc, 0xcccd, 0x4ccc, 0xcccd, 0x4ccc, 0xcccd, 0x4ccc };
+ /* 8899 aabb ccdd eefg hi11 2233 4455 6677 ...
+    1100 1100 1100 1101 0100 1100 1100 1100
+    c    c    c    d    4    c    c    c
+
+ */
+
+UWORD destlinezoom15[] = { 0x3329, 0x9999, 0x9994, 0xcccc, 0xccca, 0x6666,
+   0x6665, 0x3333, 0x3332, 0x9999, 0x9999, 0x4ccc, 0xcccc, 0xa666, 0x6666,
+   0x5333, 0x3333, 0x2999, 0x9999, 0x94cc, 0xcccc, 0xca66 };
+
+/* bbcc ddee ffgh i112 2334 4556 6778 899a abbc cdde effg hi11 2233 4455
+   0011 0011 0010 1001 1001 1001 1001 1001 1001 1001 1001 0100 1100 1100
+   3    3    2    9    9    9    9    9    9    9    9    4    c    c   
+   6677 8899 aabb ccdd eeff ghi1 1223 3445 5667 7889 9aab bccd deef fghi
+   1100 1100 1100 1100 1100 1010 0110 0110 0110 0110 0110 0110 0110 0101
+   c    c    c    c    c    a    6    6    6    6    6    6    6    5   
+   1122 3344 5566 7788 99aa ... 
+   0011 0011 0011 0011 0011 
+   3    3    3    3    3    */
+
+UWORD destlinezoom16[] = { 0xcd33, 0x3333, 0x334c, 0xcccc, 0xccd3, 0x3333, 
+   0x3334, 0xcccc, 0xcccd, 0x3333, 0x3333, 0x4ccc, 0xcccc, 0xd333, 0x3333, 
+   0x34cc, 0xcccc, 0xcd33, 0x3333, 0x334c, 0xcccc, 0xccd3 };
+
+/* eeff gghi 1122 3344 5566 7788 99aa bbcc ddee ffgg hi11 2233 4455 6677
+   1100 1101 0011 0011 0011 0011 0011 0011 0011 0011 0100 1100 1100 1100
+   a    b    3    3    3    3    3    3    3    3    4    a    a    a
+   8899 aabb ccdd ...
+   1100 1100 1100
+   a    a    a */
+
+UWORD destlinezoom17[] = { 0x2666, 0x6666, 0x64cc, 0xcccc, 0xcc99, 0x9999,
+  0x9993, 0x3333, 0x3332, 0x6666, 0x6666, 0x4ccc, 0xcccc, 0xc999, 0x9999,
+  0x9933, 0x3333, 0x3326, 0x6666, 0x6664, 0xcccc, 0xcccc };
+
+/* hhi1 1223 3445 5667 7889 9aab bccd deef fggh hi11 2233 4455 6677 8899
+   0010 0110 0110 0110 0110 0110 0110 0110 0110 0100 1100 1100 1100 1100
+   2    6    6    6    6    6    6    6    6    4    c    c    c    c
+   aabb ccdd eeff gghh i112 2334 4556 6778 899a abbc cdde effg ghhi 1122
+   1100 1100 1100 1100 1001 1001 1001 1001 1001 1001 1001 1001 1001 0011
+   c    c    c    c    9    9    9    9    9    9    9    9    9    3
+   3344 5566 7788 99aa bbcc ddee ffgg ...
+   0011 0011 0011 0011 0011 0011 0011 
+   3    3    3    3    3    3    3 */
+
+UWORD destlinezoom18[] = { 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc,
+   0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc,
+   0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc };
+
+/* 2233 4455 6677 8899 aabb ccdd eeff gghh ii11 ...
+   1100 1100 1100 1100 1100 1100 1100 1100 1100
+   c    c    c    c    c    c    c    c    c */
 
 void TestZoom4Picture() {
   UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
@@ -1008,7 +1068,291 @@ void TestZoom4Picture() {
     mask = mask ^ 0xffff;
   }
 
-  return;
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 12);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom13;
+
+  mask = 0xffff;
+
+  for(int i2=0;i2<11;i2++) {
+    TestRow( valsupposed, valactual, mask, 0+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 1+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  } 
+
+  for(int i=0;i<8;i++) {
+    for(int i2=0;i2<5;i2++) {  
+      TestRow( valsupposed, valactual, mask, 22+i2+i*31);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+    
+    for(int i2=0;i2<13;i2++) {
+      TestRow( valsupposed, valactual, mask, 27+i*31+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 28+i*31+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  } 
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 13);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom14;
+
+  mask = 0xffff;
+
+  TestRow( valsupposed, valactual, mask, 0);   
+  valactual += ZMLINESIZE/2; 
+  mask = mask ^ 0xffff; 
+
+  for(int i2=0;i2<9;i2++) {
+    TestRow( valsupposed, valactual, mask, 1+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 2+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  } 
+
+  for(int i=0;i<7;i++) {
+    for(int i2=0;i2<4;i2++) {  
+      TestRow( valsupposed, valactual, mask, 19+i2+i*32);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+    
+    for(int i2=0;i2<14;i2++) {
+      TestRow( valsupposed, valactual, mask, 23+i*32+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 24+i*32+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  }
+
+  for(int i2=0;i2<4;i2++) {  
+    TestRow( valsupposed, valactual, mask, 243+i2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i2=0;i2<12;i2++) {
+    TestRow( valsupposed, valactual, mask, 247+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 248+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 14);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom15;
+
+  mask = 0x0000;
+
+  for(int i2=0;i2<8;i2++) {
+    TestRow( valsupposed, valactual, mask, 0+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 1+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i=0;i<7;i++) {
+    for(int i2=0;i2<3;i2++) {  
+      TestRow( valsupposed, valactual, mask, 16+i2+i*33);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+    
+    for(int i2=0;i2<15;i2++) {
+      TestRow( valsupposed, valactual, mask, 19+i*33+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 19+i*33+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  }
+
+  for(int i2=0;i2<3;i2++) {  
+    TestRow( valsupposed, valactual, mask, 247+i2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i2=0;i2<10;i2++) {
+    TestRow( valsupposed, valactual, mask, 250+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 251+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 15);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom16;
+
+  mask = 0x0000;
+
+  TestRow( valsupposed, valactual, mask, 0);   
+  valactual += ZMLINESIZE/2;
+  mask = mask ^ 0xffff;
+  for(int i2=0;i2<6;i2++) {
+    TestRow( valsupposed, valactual, mask, 0+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 1+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i=0;i<7;i++) {
+    for(int i2=0;i2<2;i2++) {  
+      TestRow( valsupposed, valactual, mask, 13+i2+i*34);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+    
+    for(int i2=0;i2<16;i2++) {
+      TestRow( valsupposed, valactual, mask, 16+i*34+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 17+i*34+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  }
+
+  for(int i2=0;i2<2;i2++) {
+    TestRow( valsupposed, valactual, mask, 251+i2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i2=0;i2<8;i2++) {
+    TestRow( valsupposed, valactual, mask, 253+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 254+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  Zoom_ZoomIntoPicture( source, destination, 16);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom17;
+
+  mask = 0xffff;
+
+  for(int i2=0;i2<5;i2++) {
+    TestRow( valsupposed, valactual, mask, 0+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 1+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i=0;i<7;i++) {
+      TestRow( valsupposed, valactual, mask, 10+i*35);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    
+    for(int i2=0;i2<17;i2++) {
+      TestRow( valsupposed, valactual, mask, 11+i*35+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 12+i*35+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  } 
+
+  TestRow( valsupposed, valactual, mask, 255);
+  valactual += ZMLINESIZE/2;
+  mask = mask ^ 0xffff;
+
+  for(int i2=0;i2<7;i2++) {
+    TestRow( valsupposed, valactual, mask, 256+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 257+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }   
+
+  tmp = source;
+  source = destination;
+  destination = tmp;
+
+  UWORD *bp = (UWORD *)0x200;
+  *bp = 0;
+  Zoom_ZoomIntoPicture( source, destination, 17);
+  WaitBlit();
+  valactual = destination+2; 
+  valsupposed = destlinezoom18;
+
+  mask = 0xffff;
+
+  TestRow( valsupposed, valactual, mask, 0);
+  valactual += ZMLINESIZE/2;
+  mask = mask ^ 0xffff;
+
+  for(int i2=0;i2<5;i2++) {
+    TestRow( valsupposed, valactual, mask, 1+i2*2);   
+    valactual += ZMLINESIZE/2;
+    return;
+    TestRow( valsupposed, valactual, mask, 2+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
+
+  for(int i=0;i<7;i++) {
+      TestRow( valsupposed, valactual, mask, 10+i*35);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    
+    for(int i2=0;i2<17;i2++) {
+      TestRow( valsupposed, valactual, mask, 11+i*35+i2*2);   
+      valactual += ZMLINESIZE/2;
+      TestRow( valsupposed, valactual, mask, 12+i*35+i2*2);
+      valactual += ZMLINESIZE/2;
+      mask = mask ^ 0xffff;
+    }
+  } 
+
+  TestRow( valsupposed, valactual, mask, 255);
+  valactual += ZMLINESIZE/2;
+  mask = mask ^ 0xffff;
+
+  for(int i2=0;i2<7;i2++) {
+    TestRow( valsupposed, valactual, mask, 256+i2*2);   
+    valactual += ZMLINESIZE/2;
+    TestRow( valsupposed, valactual, mask, 257+i2*2);
+    valactual += ZMLINESIZE/2;
+    mask = mask ^ 0xffff;
+  }
 }
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 

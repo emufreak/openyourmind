@@ -19,9 +19,8 @@ int main() {
 
 	KPrintF("Hello debugger from Amiga!\n");
 	Write(Output(), "Hello console!\n", 15);
-  RunTests();
 	Delay(50);
-
+  RunTests();
 	warpmode(1);
 	// TODO: precalc stuff here
 	warpmode(0);
