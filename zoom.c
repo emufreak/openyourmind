@@ -6,8 +6,9 @@ ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81,
                                                        0x010a0000, 0x01002200 };
 
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
+  //hw->color[0] = 0xf00;
   WaitBlt();
-
+  //hw->color[0] = 0x000;
   hw->bltapt = (UWORD *) source;
   hw->bltdpt = (UWORD *) destination;
   hw->bltsize = height*64+2;
@@ -20,7 +21,9 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
                               //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
 
+  //hw->color[0] = 0xf00;
   WaitBlt();
+  //hw->color[0] = 0x000;
 
   /*Mintterm
   ABCD
@@ -149,7 +152,8 @@ void Init_Copy( WORD shift) {
   hw->bltcon1 = 0;
 }
 
-void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
+                                                                 UWORD planes) {
   WaitBlit();
   Init_Blit();
   WORD shiftright = 9;
@@ -177,9 +181,13 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
     WORD linesleft = 272;
     UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
+    /*UWORD size4blitsmall = ZMLINESIZE/2*ZoomHorizontal*planes;
+    UWORD size4blitbig = ZMLINESIZE/2*(ZoomHorizontal+1)*planes;*/
 
+    UWORD onestep = ZMLINESIZE/2*planes;
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
       Init_Copy( shiftright);
+              
       while(linesleft > 0) {
         if( linesleft >= ZoomHorizontal+1) {
           linesleft -= ZoomHorizontal;
@@ -187,23 +195,27 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           ZoomHorizontal = linesleft;
           linesleft = 0;
         } 
-
-        //Copy rectangle 
-        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal);
-        pos4source += ZMLINESIZE/2*ZoomHorizontal;
-        pos4dest += ZMLINESIZE/2*ZoomHorizontal;
+        UWORD size4blit = ZoomHorizontal*onestep; 
         //Add aditional line
         if( linesleft>0) {
-          Zoom_CopyWord( pos4source+shifttoleft, pos4dest, 1);
-          linesleft--;
+          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
+          UWORD *tmpdest = pos4dest +  size4blit;
+          
+          UWORD *bp = (UWORD *) 0x200;
+          *bp = 0;
+          Zoom_CopyWord( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
-          pos4dest += ZMLINESIZE/2;
+          //pos4dest += ZMLINESIZE/2;
+          linesleft--;
         }
+        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
+        pos4source += size4blit;
+        pos4dest += size4blit + onestep; 
+        
         ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
     } else {  
       Init_ZoomBlit( startofword, nextzoom, shiftright);   
-      
       nextzoom -= (19 + zoomnr);
       while( linesleft > 0) {
         if( linesleft >= ZoomHorizontal+1) {
@@ -212,18 +224,22 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr) {
           ZoomHorizontal = linesleft;
           linesleft = 0;
         }
-
-        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal);
-
-        pos4source += ZMLINESIZE/2*ZoomHorizontal;
-        pos4dest += ZMLINESIZE/2*ZoomHorizontal;
+        UWORD size4blit = ZoomHorizontal*onestep;
         //Add aditional line
         if( linesleft>0) {
-          Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, 1);
+          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
+          UWORD *tmpdest = pos4dest + size4blit;
+          
+          UWORD *bp = (UWORD *) 0x200;
+          *bp = 0;
+          Zoom_ZoomBlit( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
-          pos4dest += ZMLINESIZE/2;
+          //pos4dest += ZMLINESIZE/2;
           linesleft--;
         }
+        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
+        pos4source += size4blit;
+        pos4dest += size4blit + onestep;   
         ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
       shiftright--;  

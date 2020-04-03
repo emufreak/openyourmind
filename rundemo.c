@@ -1,5 +1,6 @@
 #include "rundemo.h"
 #include "utils.h"
+#include "zoomtest.h"
 
 //INCBIN(colors, "colors.bin")
 
@@ -28,6 +29,7 @@ void RunDemo() {
 }
 
 void RunFrame() {
+  //TestZoomSpeed();
   SwapCl();
   SetBplPointers();
 }

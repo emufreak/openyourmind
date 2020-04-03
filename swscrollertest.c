@@ -25,7 +25,7 @@ void SwScrollerTest() {
 
   WriteFont(  sw_testfont, DrawBuffer, sw_text);
 
-  UWORD *tstpointer = DrawBuffer;
+  UWORD *tstpointer = (UWORD *)DrawBuffer;
   if( *tstpointer != 0xff00)
     Write( Output(), "SwScrollerTest: Test Font not correctly Written.\n", 49);
 

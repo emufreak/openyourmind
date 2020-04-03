@@ -21,10 +21,9 @@ void Vblankcounter() {
 
 void TestZoomSpeed() {
 
+  hw->dmacon = 0b1000010000000000; //Blitter nasty
   Counter4Frames = 0;
   struct Interrupt *vbint;
-
-  int counter = 0;
                                                        
   if (vbint = AllocMem(sizeof(struct Interrupt),    
                          MEMF_PUBLIC|MEMF_CLEAR)) {
@@ -35,14 +34,14 @@ void TestZoomSpeed() {
     vbint->is_Code = Vblankcounter;
   }
 
-  UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  UWORD *source = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
   if( source == 0) {
     Write(  Output(), 
                "TestZoomSpeed: Memory for Source cannot be allocated.\n",57);
     return;
   }
 
-  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
+  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
   if( destination == 0) {
     Write(  Output(), 
           "TestZoomSpeed: Memory for Destination cannot be allocated.\n",61);
@@ -55,15 +54,18 @@ void TestZoomSpeed() {
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
       *tmp4source++ = 0xaaaaaaaa;
   }
+
   WaitVbl();
+  Init_Blit();
+  Init_ZoomBlit(322, 336, 0);
   AddIntServer(INTB_VERTB, vbint);
-  for( int i=0; i<5; i++)
-    Zoom_ZoomIntoPicture( source, destination, 0);
+  
+  Zoom_ZoomIntoPicture( source, destination, 0, 5);
   RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 9)
+  if( Counter4Frames > 5)
     Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
-  FreeMem( source, ( ZMLINESIZE+4)*272);
-  FreeMem( destination, ( ZMLINESIZE+4)*272);
+  FreeMem( source, ( ZMLINESIZE+4)*272*5);
+  FreeMem( destination, ( ZMLINESIZE+4)*272*5);
 }
 
 void ZoomTestDisplay() {
@@ -448,7 +450,7 @@ void TestZoom4Picture() {
       *tmp4source++ = 0xaaaaaaaa;
   }
 
-  Zoom_ZoomIntoPicture( source, destination, 0);
+  Zoom_ZoomIntoPicture( source, destination, 0, 1);
   WaitBlit();
   UWORD *valactual = destination+2; 
   UWORD *valsupposed = destlinezoom1;
@@ -473,7 +475,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
   
-  Zoom_ZoomIntoPicture( source, destination, 1);
+  Zoom_ZoomIntoPicture( source, destination, 1, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom2;
@@ -522,7 +524,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 2);
+  Zoom_ZoomIntoPicture( source, destination, 2, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom3;
@@ -582,7 +584,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 3);
+  Zoom_ZoomIntoPicture( source, destination, 3,1 );
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom4;
@@ -636,7 +638,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 4);
+  Zoom_ZoomIntoPicture( source, destination, 4, 1);
   WaitBlit();
 
   valactual = destination+2; 
@@ -731,7 +733,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 5);
+  Zoom_ZoomIntoPicture( source, destination, 5, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom6;
@@ -776,7 +778,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 6);
+  Zoom_ZoomIntoPicture( source, destination, 6, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom7;
@@ -818,7 +820,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 7);
+  Zoom_ZoomIntoPicture( source, destination, 7, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom8;
@@ -870,7 +872,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 8);
+  Zoom_ZoomIntoPicture( source, destination, 8, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom9;
@@ -924,7 +926,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 9);
+  Zoom_ZoomIntoPicture( source, destination, 9, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom10;
@@ -972,7 +974,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 10);
+  Zoom_ZoomIntoPicture( source, destination, 10, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom11;
@@ -1026,7 +1028,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 11);
+  Zoom_ZoomIntoPicture( source, destination, 11, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom12;
@@ -1071,7 +1073,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 12);
+  Zoom_ZoomIntoPicture( source, destination, 12, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom13;
@@ -1106,7 +1108,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 13);
+  Zoom_ZoomIntoPicture( source, destination, 13, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom14;
@@ -1159,7 +1161,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 14);
+  Zoom_ZoomIntoPicture( source, destination, 14, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom15;
@@ -1208,7 +1210,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 15);
+  Zoom_ZoomIntoPicture( source, destination, 15, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom16;
@@ -1260,7 +1262,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  Zoom_ZoomIntoPicture( source, destination, 16);
+  Zoom_ZoomIntoPicture( source, destination, 16, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom17;
@@ -1305,9 +1307,7 @@ void TestZoom4Picture() {
   source = destination;
   destination = tmp;
 
-  UWORD *bp = (UWORD *)0x200;
-  *bp = 0;
-  Zoom_ZoomIntoPicture( source, destination, 17);
+  Zoom_ZoomIntoPicture( source, destination, 17, 1);
   WaitBlit();
   valactual = destination+2; 
   valsupposed = destlinezoom18;

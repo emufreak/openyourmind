@@ -8,6 +8,12 @@
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 
+
+#define COPBPL1HIGH 57
+#define COPBPL1LOW 59
+#define COPBPL2HIGH 61
+#define COPBPL2LOW 63
+
 struct ExecBase *SysBase;
 extern volatile struct Custom *hw;
 struct DosLibrary *DOSBase;
@@ -19,8 +25,6 @@ ULONG *Bitplane2;
 ULONG ClColor[2];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
-int CopBpl1High;
-int CopBpl1Low;
 
 ULONG *Copperlist1;
 ULONG *Copperlist2;

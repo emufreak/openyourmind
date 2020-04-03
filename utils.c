@@ -6,11 +6,6 @@
 
 volatile struct Custom *hw;
 
-int CopBpl1High = 28*2+1;
-int CopBpl1Low = 29*2+1;
-int CopBpl2High = 30*2+1;
-int CopBpl2Low = 31*2+1;
-
 APTR GetVBR(void) {
 	APTR vbr = 0;
 	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
@@ -74,8 +69,8 @@ void SetBplPointers() {
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;
   
   UWORD *copword = (UWORD *) DrawCopper;
-  copword[CopBpl1Low] = lowword;
-  copword[CopBpl1High] = highword;
+  copword[COPBPL1LOW] = lowword;
+  copword[COPBPL1HIGH] = highword;
   
   ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
