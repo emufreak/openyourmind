@@ -1,9 +1,18 @@
 #include "zoom.h"
 #include "utils.h"
 
+void Zoom_LoadImage( ULONG *destination) {
+  for(int i=0;i<128+8;i++) {
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x55555555;
+    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0xaaaaaaaa;
+  }
+}
+
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
-         0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080000, 
-                                                       0x010a0000, 0x01002200 };
+         0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
+                                                       0x010a0000, 0x01001200 };
 
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
   //hw->color[0] = 0xf00;
@@ -46,6 +55,38 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
 }
 
+void Zoom_InitRun() {
+       
+  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+  ZoomHorizontal = 16;
+  Zoom_PrepareDisplay();
+  UWORD volatile *bp = (UWORD *) 0x200;
+  *bp = 0;
+  Zoom_LoadImage( ViewBuffer);
+  *bp = 1;
+  Zoom_LoadImage( DrawBuffer);
+  Zoom_LevelOfZoom = 0;
+}
+  
+int Zoom_PrepareDisplay() {
+  Copperlist1 = ClbuildZoom( );
+  Copperlist2 = ClbuildZoom( );
+  Bitplane1 = AllocMem(ZMLINESIZE*270, MEMF_CHIP);
+  if(Bitplane1 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+    Exit(1);
+  }
+  DrawBuffer = Bitplane1+2;
+  DrawCopper = Copperlist1;
+  Bitplane2 = AllocMem(ZMLINESIZE*270, MEMF_CHIP);
+  if(Bitplane2 == 0) {
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+    Exit(1);
+  }
+  ViewBuffer = Bitplane2+2;
+  ViewCopper = Copperlist2;
+  return 0;
+}
 
 void Zoom_Init() {
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
@@ -67,7 +108,8 @@ ULONG * ClbuildZoom() {
   clpartinstruction = ClsSprites;
   for(int i=0; i<16;i++)
     *cl++ = *clpartinstruction++;
-  clpartinstruction = ClScreenZoom;
+  //clpartinstruction = ClScreenZoom;
+  clpartinstruction = ClScreen;
   for(int i=0; i<12;i++)
     *cl++ = *clpartinstruction++;
   //cl[CopBpl1High] = (long) cl + 2;
@@ -81,13 +123,13 @@ ULONG * ClbuildZoom() {
   for(int i=0; i<2;i++)
     *cl++ = *clpartinstruction++;
 
-  for(int i=0x2c; i<0x2c+256; i++) {
+  /*for(int i=0x2c; i<0x2c+256; i++) {
     *cl++ = (i<<24)+0x07fffe;
     for(int i2=0;i2<20;i2++) {
       *cl++ = 0x018200f0;
       *cl++ = 0x01820f00;
     }
-  }
+  }*/
 
    *cl = 0xfffffffe;
 

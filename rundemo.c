@@ -1,6 +1,7 @@
 #include "rundemo.h"
 #include "utils.h"
 #include "zoomtest.h"
+#include "zoom.h"
 
 //INCBIN(colors, "colors.bin")
 
@@ -19,7 +20,7 @@ void RunDemo() {
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
   //PrepareDisplay();
 
-	while(!MouseLeft()) {
+	while(!MouseRight()) {
 		WaitVbl();
 		// DEMO - set colors from INCBIN (contains 64 colors)
     RunFrame();
@@ -28,8 +29,17 @@ void RunDemo() {
 	SetInterruptHandler((APTR)interruptHandler);
 }
 
+
+
 void RunFrame() {
   //TestZoomSpeed();
-  SwapCl();
   SetBplPointers();
+  SwapCl();
+  while( !MouseLeft()) {}
+  Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 1 );
+  if( Zoom_LevelOfZoom == 17)
+    Zoom_LevelOfZoom = 0;
+  else
+    Zoom_LevelOfZoom++;
+  
 }
