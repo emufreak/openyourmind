@@ -11,6 +11,7 @@ void ZoomTest() {
   TestBlitleftOfZoom();
   TestCopyWord();
   TestZoom4Picture();
+  TestZoom4PictureOn5Planes();
 }
 
 int Counter4Frames;
@@ -25,8 +26,8 @@ void TestZoomSpeed() {
   Counter4Frames = 0;
   struct Interrupt *vbint;
                                                        
-  if (vbint = AllocMem(sizeof(struct Interrupt),    
-                         MEMF_PUBLIC|MEMF_CLEAR)) {
+  if ((vbint = AllocMem(sizeof(struct Interrupt),    
+                         MEMF_PUBLIC|MEMF_CLEAR))) {
     vbint->is_Node.ln_Type = NT_INTERRUPT;       
     vbint->is_Node.ln_Pri = -60;
     vbint->is_Node.ln_Name = "VertB-Example";
@@ -427,6 +428,58 @@ UWORD destlinezoom18[] = { 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc, 0xcccc,
 /* 2233 4455 6677 8899 aabb ccdd eeff gghh ii11 ...
    1100 1100 1100 1100 1100 1100 1100 1100 1100
    c    c    c    c    c    c    c    c    c */
+
+
+void TestZoom4PictureOn5Planes() {
+  UWORD *source = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
+  if( source == 0) {
+    Write(  Output(), 
+               "TestZoom4Picture: Memory for Source cannot be allocated.\n",57);
+    return;
+  }
+
+  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
+  if( destination == 0) {
+    Write(  Output(), 
+          "TestZoom4Picture: Memory for Destination cannot be allocated.\n",61);
+    return;
+  }
+  ULONG *tmp4source = (ULONG *)source;
+  for(int i=0;i<128+8;i++) {
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
+      *tmp4source++ = 0x55555555;
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
+      *tmp4source++ = 0xaaaaaaaa;
+  }
+
+  Zoom_ZoomIntoPicture( source, destination, 0, 5);
+  WaitBlit();
+  UWORD *valactual = destination+2; 
+  UWORD *valsupposed = destlinezoom1;
+  UWORD mask = 0xffff;
+  for(int i=0;i<14;i++) {
+    for(int i2=0;i2<18;i2++) { 
+      for( int i3=0;i3<5;i3++) {
+        TestRow( valsupposed, valactual, mask, i2+i*19);
+        valactual += ZMLINESIZE/2;
+      }
+      mask = mask ^ 0xffff;
+    }
+    for( int i3=0;i3<5;i3++) {
+      TestRow( valsupposed, valactual, mask, 18+i*19);
+      valactual += ZMLINESIZE/2;
+    }
+  }
+  for(int i2=0;i2<4;i2++) { 
+    for( int i3=0;i3<5;i3++) {
+      TestRow( valsupposed, valactual, mask, i2+265);
+      valactual += ZMLINESIZE/2;
+    }
+    mask = mask ^ 0xffff;
+  } 
+  FreeMem( source, (ZMLINESIZE+4)*272*5);
+  FreeMem( destination, (ZMLINESIZE+4)*272*5);
+}
 
 void TestZoom4Picture() {
   UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
@@ -1346,7 +1399,8 @@ void TestZoom4Picture() {
   TestRow( valsupposed, valactual, mask, 0);
   valactual += ZMLINESIZE/2;
   mask = mask ^ 0xffff;
-
+  FreeMem( source, (ZMLINESIZE+4)*272);
+  FreeMem( destination, (ZMLINESIZE+4)*272);
 }
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 

@@ -60,10 +60,7 @@ void Zoom_InitRun() {
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
-  UWORD volatile *bp = (UWORD *) 0x200;
-  *bp = 0;
   Zoom_LoadImage( ViewBuffer);
-  *bp = 1;
   Zoom_LoadImage( DrawBuffer);
   Zoom_LevelOfZoom = 0;
 }
@@ -221,7 +218,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
     ZoomHorizontal = ZoomHorizontalStart;
 
     WORD linesleft = 272;
-    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz-2-i;
+    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz*planes-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
     /*UWORD size4blitsmall = ZMLINESIZE/2*ZoomHorizontal*planes;
     UWORD size4blitbig = ZMLINESIZE/2*(ZoomHorizontal+1)*planes;*/
@@ -243,8 +240,8 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
           UWORD *tmpsource = pos4source + size4blit + shifttoleft;
           UWORD *tmpdest = pos4dest +  size4blit;
           
-          UWORD *bp = (UWORD *) 0x200;
-          *bp = 0;
+          /*UWORD *bp = (UWORD *) 0x200;
+          *bp = 0;*/
           Zoom_CopyWord( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
           //pos4dest += ZMLINESIZE/2;
@@ -272,8 +269,8 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
           UWORD *tmpsource = pos4source + size4blit + shifttoleft;
           UWORD *tmpdest = pos4dest + size4blit;
           
-          UWORD *bp = (UWORD *) 0x200;
-          *bp = 0;
+          /*UWORD *bp = (UWORD *) 0x200;
+          *bp = 0;*/
           Zoom_ZoomBlit( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
           //pos4dest += ZMLINESIZE/2;

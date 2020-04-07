@@ -19,6 +19,7 @@ void TestCopyColumnOfZoom();
 void TestCopyWord();
 void TestZoomSpeed();
 void Vblankcounter();
+void TestZoom4PictureOn5Planes();
 
 extern void PutChar();
 /*UWORD destlinezoom2[22];
