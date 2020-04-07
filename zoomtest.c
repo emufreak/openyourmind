@@ -7,10 +7,10 @@
 
 void ZoomTest() {
   TestZoomSpeed();
-  ZoomTestDisplay();
+  /*ZoomTestDisplay();
   TestBlitleftOfZoom();
   TestCopyWord();
-  TestZoom4Picture();
+  TestZoom4Picture();*/
 }
 
 int Counter4Frames;
@@ -25,8 +25,8 @@ void TestZoomSpeed() {
   Counter4Frames = 0;
   struct Interrupt *vbint;
                                                        
-  if (vbint = AllocMem(sizeof(struct Interrupt),    
-                         MEMF_PUBLIC|MEMF_CLEAR)) {
+  if ( ( vbint = AllocMem( sizeof( struct Interrupt),    
+                         MEMF_PUBLIC|MEMF_CLEAR))) {
     vbint->is_Node.ln_Type = NT_INTERRUPT;       
     vbint->is_Node.ln_Pri = -60;
     vbint->is_Node.ln_Name = "VertB-Example";
@@ -59,10 +59,9 @@ void TestZoomSpeed() {
   Init_Blit();
   Init_ZoomBlit(322, 336, 0);
   AddIntServer(INTB_VERTB, vbint);
-  
   Zoom_ZoomIntoPicture( source, destination, 0, 5);
   RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 5)
+  if( Counter4Frames > 7)
     Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
   FreeMem( source, ( ZMLINESIZE+4)*272*5);
   FreeMem( destination, ( ZMLINESIZE+4)*272*5);
@@ -70,7 +69,7 @@ void TestZoomSpeed() {
 
 void ZoomTestDisplay() {
 
-  PrepareDisplayZoom();
+  PrepareDisplay();
 
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
     Write( Output(), "Sprite section of copper starting on pos 0 messed up\n", 
@@ -80,7 +79,7 @@ void ZoomTestDisplay() {
                                                                             54);
   DrawBuffer = (ULONG *) 0x40000;
   ViewBuffer = (ULONG *) 0x50000;
-  Zoom_SetBplPointers();
+  SetBplPointers( 1, 0);
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
     Write( Output(), 
             "SetBplPointers: Draw and ViewBuffer not proberly switched.\n", 59);
@@ -126,7 +125,7 @@ void ZoomTestDisplay() {
 
 void TestBlitleftOfZoom() {
   Zoom_Init();
-  PrepareDisplayZoom();
+  PrepareDisplay();
 
   Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
   if( Zoom_Source == 0) {

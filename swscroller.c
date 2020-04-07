@@ -22,9 +22,9 @@
   ViewBuffer = Bitplane2;
   ViewCopper = Copperlist2;
   SwapCl();
-  SetBplPointers();
+  SetBplPointers( 1, 0);
   SwapCl();
-  SetBplPointers();
+  SetBplPointers( 1, 0);
   return 0;
 }
 

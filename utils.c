@@ -52,10 +52,15 @@ ULONG ClsSprites[] = { 0x01200000, 0x01220000,0x01240000,0x01260000, 0x01280000,
                  0x01360000, 0x01380000, 0x013a0000, 0x013c0000, 0x013e0000  };
 
 ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 0x00902cc1,
-         0x00920038, 0x009400d0, 0x01020000, 0x01040000, 0x01080008, 0x010a0008, 
-                                                                  0x01001200 };
+         0x00920038, 0x009400d0, 0x01020000, 0x01040000, 0x010800c8, 0x010a00c8, 
+                                                                  0x01005200 };
 
-ULONG ClColor[] = { 0x01800f00, 0x01820000 };
+ULONG ClColor[] = { 0x01800f00, 0x01820f00, 0x01840f00, 0x01860f00, 0x01880f00,
+        0x018a0f00, 0x018c0f00, 0x018e0f00, 0x01900f00, 0x01920f00, 0x01940f00, 
+        0x01960f00, 0x01980f00, 0x019a0f00, 0x019c0f00, 0x019e0f00, 0x01a00f00, 
+        0x01a20f00, 0x01a40f00, 0x01a60f00, 0x01a80f00, 0x01aa0f00, 0x01ac0f00, 
+        0x01ae0f00, 0x01b00f00, 0x01b20f00, 0x01b40f00, 0x01b60f00, 0x01b80f00, 
+        0x01ba0f00, 0x01bc0f00, 0x01be0000 };
 
 void FreeDisplay( int clsize, int bplsize) {
   if( Copperlist1 != 0) FreeMem( Copperlist1, clsize);
@@ -64,14 +69,19 @@ void FreeDisplay( int clsize, int bplsize) {
   if( Bitplane2 != 0) FreeMem( Bitplane2, bplsize);
 }
 
-void SetBplPointers() {
-  UWORD highword = (ULONG)DrawBuffer >> 16;
-  UWORD lowword = (ULONG)DrawBuffer & 0xffff;
-  
-  UWORD *copword = (UWORD *) DrawCopper;
-  copword[COPBPL1LOW] = lowword;
-  copword[COPBPL1HIGH] = highword;
-  
+void SetBplPointers( UWORD numberofplanes, UWORD sizeofplanes) {
+  ULONG startofplane = DrawBuffer;
+  UWORD *copword = (UWORD *) DrawCopper + COPBPL1HIGH;
+  for( int i=0; i<numberofplanes; i++) {
+    UWORD highword = startofplane >> 16;
+    UWORD lowword = startofplane & 0xffff;
+    *copword = highword;
+    copword += 2;
+    *copword = lowword;
+    copword += 2;
+    startofplane += sizeofplanes;
+  }
+    
   ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
   ViewBuffer = (ULONG *) tmp;

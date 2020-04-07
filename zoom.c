@@ -3,19 +3,22 @@
 
 void Zoom_LoadImage( ULONG *destination) {
   for(int i=0;i<128+8;i++) {
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0x55555555;
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0xaaaaaaaa;
   }
 }
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
-                                                       0x010a0000, 0x01001200 };
+                                                       0x010a0000, 0x01005200 };
 
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
   //hw->color[0] = 0xf00;
+  UWORD *bp = 0x200;
+  *bp = 0;
+
   WaitBlt();
   //hw->color[0] = 0x000;
   hw->bltapt = (UWORD *) source;
@@ -24,9 +27,10 @@ void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
 
 }
 
-
 void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
+  UWORD *bp = 0x200;
+  *bp = 0;
                               //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
 
@@ -60,10 +64,7 @@ void Zoom_InitRun() {
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
-  UWORD volatile *bp = (UWORD *) 0x200;
-  *bp = 0;
   Zoom_LoadImage( ViewBuffer);
-  *bp = 1;
   Zoom_LoadImage( DrawBuffer);
   Zoom_LevelOfZoom = 0;
 }
@@ -118,9 +119,15 @@ ULONG * ClbuildZoom() {
   *cl++ = 0x00e20000;
   *cl++ = 0x00e40000;
   *cl++ = 0x00e60000;
+  *cl++ = 0x00e80000;
+  *cl++ = 0x00ea0000;
+  *cl++ = 0x00ec0000;
+  *cl++ = 0x00ee0000;
+  *cl++ = 0x00f00000;
+  *cl++ = 0x00f20000;
 
   clpartinstruction = ClColor;
-  for(int i=0; i<2;i++)
+  for(int i=0; i<32;i++)
     *cl++ = *clpartinstruction++;
 
   /*for(int i=0x2c; i<0x2c+256; i++) {
@@ -134,31 +141,6 @@ ULONG * ClbuildZoom() {
    *cl = 0xfffffffe;
 
   return retval;
-}
-
- int PrepareDisplayZoom() {
-
-  Copperlist1 = ClbuildZoom();
-  Copperlist2 = ClbuildZoom();
-  Bitplane1 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
-  if(Bitplane1 == 0) {
-    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    Exit(1);
-  }
-  DrawBuffer = Bitplane1;
-  DrawCopper = Copperlist1;
-  Bitplane2 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
-  if(Bitplane2 == 0) {
-    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    Exit(1);
-  }
-  ViewBuffer = Bitplane2;
-  ViewCopper = Copperlist2;
-  SwapCl();
-  Zoom_SetBplPointers();
-  SwapCl();
-  Zoom_SetBplPointers();
-  return 0;
 }
 
 void Init_Blit() {
@@ -202,6 +184,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
   UWORD shifthoriz = 7;
   UWORD startofword = 21*16;
   WORD nextzoom = 22*16 - 20 + zoomnr * 10;
+
   while( nextzoom > 22 * 16) {
     nextzoom -= (19 + zoomnr);
     shiftright--;
@@ -221,12 +204,13 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
     ZoomHorizontal = ZoomHorizontalStart;
 
     WORD linesleft = 272;
-    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz-2-i;
+    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz*planes-2-i;
     UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
     /*UWORD size4blitsmall = ZMLINESIZE/2*ZoomHorizontal*planes;
     UWORD size4blitbig = ZMLINESIZE/2*(ZoomHorizontal+1)*planes;*/
 
     UWORD onestep = ZMLINESIZE/2*planes;
+    
     if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
       Init_Copy( shiftright);
               
@@ -243,8 +227,6 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
           UWORD *tmpsource = pos4source + size4blit + shifttoleft;
           UWORD *tmpdest = pos4dest +  size4blit;
           
-          UWORD *bp = (UWORD *) 0x200;
-          *bp = 0;
           Zoom_CopyWord( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
           //pos4dest += ZMLINESIZE/2;
@@ -272,8 +254,6 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
           UWORD *tmpsource = pos4source + size4blit + shifttoleft;
           UWORD *tmpdest = pos4dest + size4blit;
           
-          UWORD *bp = (UWORD *) 0x200;
-          *bp = 0;
           Zoom_ZoomBlit( tmpsource, tmpdest, planes);
           //Source doesn't change. Only forward dest
           //pos4dest += ZMLINESIZE/2;
@@ -284,6 +264,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
         pos4dest += size4blit + onestep;   
         ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
       }
+ 
       shiftright--;  
       if(shiftright < 0) {
         shiftright += 16;
@@ -292,6 +273,9 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
     }
     startofword -= 16;
   }
+               UWORD *bp = 0x202; 
+  *bp = 0;
+
   //ZoomHorizontal = 10;
 }
 
