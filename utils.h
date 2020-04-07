@@ -22,7 +22,7 @@ struct GfxBase *GfxBase;
 ULONG *Bitplane1;
 ULONG *Bitplane2;
 
-ULONG ClColor[32];
+ULONG ClColor[2];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
 
@@ -33,7 +33,7 @@ ULONG *ViewBuffer;
 ULONG *DrawCopper;
 ULONG *ViewCopper;
 void FreeDisplay();
-void SetBplPointers( UWORD numberofpanes, UWORD sizeofplanes);
+void SetBplPointers();
 void SwapCl();
 UWORD SystemInts;
 UWORD SystemDMA;

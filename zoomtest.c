@@ -7,10 +7,10 @@
 
 void ZoomTest() {
   TestZoomSpeed();
-  /*ZoomTestDisplay();
+  ZoomTestDisplay();
   TestBlitleftOfZoom();
   TestCopyWord();
-  TestZoom4Picture();*/
+  TestZoom4Picture();
 }
 
 int Counter4Frames;
@@ -25,8 +25,8 @@ void TestZoomSpeed() {
   Counter4Frames = 0;
   struct Interrupt *vbint;
                                                        
-  if ( ( vbint = AllocMem( sizeof( struct Interrupt),    
-                         MEMF_PUBLIC|MEMF_CLEAR))) {
+  if (vbint = AllocMem(sizeof(struct Interrupt),    
+                         MEMF_PUBLIC|MEMF_CLEAR)) {
     vbint->is_Node.ln_Type = NT_INTERRUPT;       
     vbint->is_Node.ln_Pri = -60;
     vbint->is_Node.ln_Name = "VertB-Example";
@@ -59,9 +59,10 @@ void TestZoomSpeed() {
   Init_Blit();
   Init_ZoomBlit(322, 336, 0);
   AddIntServer(INTB_VERTB, vbint);
+  
   Zoom_ZoomIntoPicture( source, destination, 0, 5);
   RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 7)
+  if( Counter4Frames > 6)
     Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
   FreeMem( source, ( ZMLINESIZE+4)*272*5);
   FreeMem( destination, ( ZMLINESIZE+4)*272*5);
@@ -69,17 +70,17 @@ void TestZoomSpeed() {
 
 void ZoomTestDisplay() {
 
-  PrepareDisplay();
+  PrepareDisplayZoom();
 
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
     Write( Output(), "Sprite section of copper starting on pos 0 messed up\n", 
                                                                             44);
-  if(  TestCopperlistBatch(  Copperlist1, 16, ClScreenZoom, 12) == 0)
+  if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
     Write( Output(), "Screen section of copper starting on pos 16 messed up\n",
                                                                             54);
   DrawBuffer = (ULONG *) 0x40000;
   ViewBuffer = (ULONG *) 0x50000;
-  SetBplPointers( 1, 0);
+  Zoom_SetBplPointers();
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
     Write( Output(), 
             "SetBplPointers: Draw and ViewBuffer not proberly switched.\n", 59);
@@ -104,7 +105,7 @@ void ZoomTestDisplay() {
   if(  TestCopperlistBatch(  Copperlist1, 32, ClColor, 2) == 0)
     Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
   
-  ULONG clpart1[] = { 0x2c07fffe, 0x018200f0, 0x01820f00, 0x018200f0, 
+  /*ULONG clpart1[] = { 0x2c07fffe, 0x018200f0, 0x01820f00, 0x018200f0, 
          0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 
         0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0};
 
@@ -114,9 +115,9 @@ void ZoomTestDisplay() {
   ULONG clpart2[] = { 0x2d07fffe, 0x018200f0, 0x01820f00 };
 
   if( TestCopperlistBatch( Copperlist1, 75, clpart2, 3) == 0)
-    Write( Output(), "Copperlist: Starwars part line 2 messed up.\n", 44);
+    Write( Output(), "Copperlist: Starwars part line 2 messed up.\n", 44);*/
 
-  if( TestCopperlistPos( Copperlist1, 10530, 0xfffffffe) == 0)
+  if( TestCopperlistPos( Copperlist1, 34, 0xfffffffe) == 0)
     Write( Output(), "Copperlist End not correctly set.\n", 34);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
@@ -125,7 +126,7 @@ void ZoomTestDisplay() {
 
 void TestBlitleftOfZoom() {
   Zoom_Init();
-  PrepareDisplay();
+  PrepareDisplayZoom();
 
   Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
   if( Zoom_Source == 0) {

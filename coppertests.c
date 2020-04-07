@@ -31,27 +31,28 @@ ULONG * ClBuild() {
   return retval;
 }
 
-void PrepareDisplay() {
+int PrepareDisplay() {
   Copperlist1 = ClBuild( );
   Copperlist2 = ClBuild( );
-  Bitplane1 = AllocMem(48*272*5, MEMF_CHIP);
+  Bitplane1 = AllocMem(80*640, MEMF_CHIP);
   if(Bitplane1 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
     Exit(1);
   }
   ViewBuffer = Bitplane1;
   ViewCopper = Copperlist1;
-  Bitplane2 = AllocMem(48*272*5, MEMF_CHIP);
+  Bitplane2 = AllocMem(80*640, MEMF_CHIP);
   if(Bitplane2 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
     Exit(1);
   }
   DrawBuffer = Bitplane2;
   DrawCopper = Copperlist2;
-  SetBplPointers( 1, 0);
+  /*SwapCl();
+  SetBplPointers();
   SwapCl();
-  SetBplPointers( 1, 0);
-  SwapCl();
+  SetBplPointers();*/
+  return 0;
 }
 
 //Test a batch of copperlist instructions against a certain position
@@ -86,8 +87,10 @@ void TestCopperList() {
   
   DrawBuffer = (ULONG *)0x40000;
   ViewBuffer = (ULONG *)0x50000;
-  SetBplPointers( 1, 0); //Sizeofplane irrevelant if only one plane
-  if( DrawBuffer != (ULONG *) 0x50000 || ViewBuffer != (ULONG *)0x40000)
+  
+  SetBplPointers();
+  
+  if( DrawBuffer != 0x50000 || ViewBuffer != 0x40000)
     Write( Output(), 
             "SetBplPointers: Draw and ViewBuffer not proberly switched.\n", 59);
     
@@ -105,11 +108,13 @@ void TestCopperList() {
   
   if( TestCopperlistPos( Copperlist1, 32, 0xfffffffe) == 0)
     Write(Output(), "Copperlist End not correctly set.\n", 34);
-
+  
   SwapCl();
+  
   if( DrawCopper != Copperlist2)
     Write(  Output(), "SwapCl doesn't work.\n", 21);
 
+  
   PrepareDisplay();
   if( DrawBuffer != Bitplane2) 
     Write( Output(), "DrawBuffer should be set to Bitplane 2 on first frame.\n",
@@ -118,7 +123,7 @@ void TestCopperList() {
     Write( Output(), 
               "DrawCopper should be set to Copperlist 2 on first frame.\n", 57);
 
-  PrepareDisplay();
+  //PrepareDisplay();
 
   if( ViewBuffer != Bitplane1) 
     Write( Output(), 
@@ -127,30 +132,22 @@ void TestCopperList() {
   if( ViewCopper != Copperlist1) 
     Write( Output(), 
              "PrepareDisplay: ViewCopper should be set to Copperlist 1.\n", 58);
-
-
-  SetBplPointers( 1, 0);
-  SwapCl();
-
-  //RunFrame();
-  UWORD *copword = (UWORD *)ViewCopper;
+  
+  RunFrame();
+  UWORD *copword = ViewCopper;
   ULONG pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
   if( pointer != (ULONG) Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after first frame.\n", 72);
-  
-  SetBplPointers( 1, 0);
-  SwapCl();
+  RunFrame();
 
   copword = (UWORD *) ViewCopper;
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
   if( pointer != (ULONG) Bitplane1) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
                                                   " after second frame.\n", 73);
-
-  SetBplPointers( 1, 0);
-  SwapCl();
-
+  
+  RunFrame();
 
   copword = (UWORD *) ViewCopper;
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);

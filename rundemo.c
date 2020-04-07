@@ -33,11 +33,10 @@ void RunDemo() {
 
 void RunFrame() {
   //TestZoomSpeed();
-  SetBplPointers( 5, ZMLINESIZE);
+  SetBplPointers();
   SwapCl();
-  while( !MouseLeft()) {}
-  Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer-2,(UWORD *)DrawBuffer-2, 
-                                                            Zoom_LevelOfZoom,5);
+  //while( !MouseLeft()) {}
+  Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 1 );
   if( Zoom_LevelOfZoom == 17)
     Zoom_LevelOfZoom = 0;
   else
