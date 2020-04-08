@@ -3,9 +3,9 @@
 
 void Zoom_LoadImage( ULONG *destination) {
   for(int i=0;i<128+8;i++) {
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0x55555555;
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
+    for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0xaaaaaaaa;
   }
 }
@@ -68,14 +68,14 @@ void Zoom_InitRun() {
 int Zoom_PrepareDisplay() {
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
-  Bitplane1 = AllocMem(ZMLINESIZE*270, MEMF_CHIP);
+  Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
   if(Bitplane1 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
     Exit(1);
   }
   DrawBuffer = Bitplane1+2;
   DrawCopper = Copperlist1;
-  Bitplane2 = AllocMem(ZMLINESIZE*270, MEMF_CHIP);
+  Bitplane2 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
   if(Bitplane2 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
     Exit(1);

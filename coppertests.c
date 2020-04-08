@@ -133,13 +133,15 @@ void TestCopperList() {
     Write( Output(), 
              "PrepareDisplay: ViewCopper should be set to Copperlist 1.\n", 58);
   
-  RunFrame();
+  SetBplPointers();
+  SwapCl();
   UWORD *copword = ViewCopper;
   ULONG pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
   if( pointer != (ULONG) Bitplane2) 
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
                                                    " after first frame.\n", 72);
-  RunFrame();
+  SetBplPointers();
+  SwapCl();
 
   copword = (UWORD *) ViewCopper;
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
@@ -147,7 +149,8 @@ void TestCopperList() {
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
                                                   " after second frame.\n", 73);
   
-  RunFrame();
+  SetBplPointers();
+  SwapCl();
 
   copword = (UWORD *) ViewCopper;
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
