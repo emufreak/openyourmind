@@ -3,8 +3,6 @@
 #include "zoomtest.h"
 #include "zoom.h"
 
-//INCBIN(colors, "colors.bin")
-
 volatile int frameCounter = 0;
 
 static __attribute__((interrupt)) void interruptHandler() {
@@ -22,9 +20,7 @@ void RunDemo() {
 
 	while(!MouseRight()) {
 		WaitVbl();
-		// DEMO - set colors from INCBIN (contains 64 colors)
     RunFrame();
-		//hw->color[0] = ((UWORD*)colors)[frameCounter & 63];
 	}
 	SetInterruptHandler((APTR)interruptHandler);
 }
@@ -32,14 +28,13 @@ void RunDemo() {
 
 
 void RunFrame() {
-  //TestZoomSpeed();
-  SetBplPointers();
+  Zoom_SetBplPointers();
   SwapCl();
-  //while( !MouseLeft()) {}
+  //TestZoomSpeed();
+  while( !MouseLeft()) {}
   Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
   if( Zoom_LevelOfZoom == 17)
     Zoom_LevelOfZoom = 0;
   else
     Zoom_LevelOfZoom++;
-  
 }

@@ -63,7 +63,7 @@ void TestZoomSpeed() {
   
   Zoom_ZoomIntoPicture( source, destination, 0, 5);
   RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 6)
+  if( Counter4Frames > 7)
     Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
   FreeMem( source, ( ZMLINESIZE+4)*272*5);
   FreeMem( destination, ( ZMLINESIZE+4)*272*5);
@@ -74,52 +74,42 @@ void ZoomTestDisplay() {
   PrepareDisplayZoom();
 
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
-    Write( Output(), "Sprite section of copper starting on pos 0 messed up\n", 
-                                                                            44);
+    Write( Output(), 
+       "ZoomCopperlist: Sprite section of copper starting on pos 0 messed up\n", 
+                                                                            69);
   if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
-    Write( Output(), "Screen section of copper starting on pos 16 messed up\n",
-                                                                            54);
+    Write( Output(), 
+      "ZoomCopperlist: Screen section of copper starting on pos 16 messed up\n",
+                                                                            70);
   DrawBuffer = (ULONG *) 0x40000;
   ViewBuffer = (ULONG *) 0x50000;
   Zoom_SetBplPointers();
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
     Write( Output(), 
-            "SetBplPointers: Draw and ViewBuffer not proberly switched.\n", 59);
+            "ZoomCopperlist: Draw and ViewBuffer not proberly switched.\n", 59);
     
   if(  TestCopperlistPos(  Copperlist1, 28, 0x00e00004) == 0)
     Write(Output(), 
-           "SetBplPointers: Problem in Copperlist bpl1ph should be 0004\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl1ph should be 0004\n", 60);
   
   if(  TestCopperlistPos(  Copperlist1, 29, 0x00e20000) == 0)
     Write(Output(), 
-           "SetBplpointers: Problem in Copperlist bpl1pl should be 0000\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl1pl should be 0000\n", 60);
 
   if(  TestCopperlistPos(  Copperlist1, 30, 0x00e40004) == 0)
     Write(Output(), 
-           "SetBplPointers: Problem in Copperlist bpl2ph should be 0004\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl2ph should be 0004\n", 60);
   
-  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e62800) == 0)
+  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60030) == 0)
     Write(Output(), 
-           "SetBplpointers: Problem in Copperlist bpl2pl should be 2800\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl2pl should be 0030\n", 60);
 
 
-  if(  TestCopperlistBatch(  Copperlist1, 32, ClColor, 2) == 0)
-    Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
-  
-  /*ULONG clpart1[] = { 0x2c07fffe, 0x018200f0, 0x01820f00, 0x018200f0, 
-         0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 
-        0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0, 0x01820f00, 0x018200f0};
+  if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
+    Write(Output(), "ZoomCopperlist: Colorpart messed up.\n", 37);
 
-  if( TestCopperlistBatch( Copperlist1, 34, clpart1, 16) == 0)
-    Write( Output(), "Zoomtest: Cl for zoom messed up.\n", 33);
-
-  ULONG clpart2[] = { 0x2d07fffe, 0x018200f0, 0x01820f00 };
-
-  if( TestCopperlistBatch( Copperlist1, 75, clpart2, 3) == 0)
-    Write( Output(), "Copperlist: Starwars part line 2 messed up.\n", 44);*/
-
-  if( TestCopperlistPos( Copperlist1, 34, 0xfffffffe) == 0)
-    Write( Output(), "Copperlist End not correctly set.\n", 34);
+  if( TestCopperlistPos( Copperlist1, 70, 0xfffffffe) == 0)
+    Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
 

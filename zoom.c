@@ -1,6 +1,8 @@
 #include "zoom.h"
 #include "utils.h"
 
+INCBIN(startimage, "raw/eye352x272.raw")
+
 void Zoom_LoadImage( ULONG *destination) {
   for(int i=0;i<128+8;i++) {
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
@@ -115,9 +117,15 @@ ULONG * ClbuildZoom() {
   *cl++ = 0x00e20000;
   *cl++ = 0x00e40000;
   *cl++ = 0x00e60000;
+  *cl++ = 0x00e80000;
+  *cl++ = 0x00ea0000;
+  *cl++ = 0x00ec0000;
+  *cl++ = 0x00ee0000;
+  *cl++ = 0x00f00000;
+  *cl++ = 0x00f20000;
 
   clpartinstruction = ClColor;
-  for(int i=0; i<2;i++)
+  for(int i=0; i<32;i++)
     *cl++ = *clpartinstruction++;
 
   /*for(int i=0x2c; i<0x2c+256; i++) {
@@ -151,10 +159,10 @@ ULONG * ClbuildZoom() {
   }
   ViewBuffer = Bitplane2;
   ViewCopper = Copperlist2;
-  SwapCl();
+  /*SwapCl();
   Zoom_SetBplPointers();
   SwapCl();
-  Zoom_SetBplPointers();
+  Zoom_SetBplPointers();*/
   return 0;
 }
 
@@ -293,18 +301,19 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
 }
 
 void Zoom_SetBplPointers() {
-  ULONG ptr = (ULONG) DrawBuffer;
-  UWORD *copword = (UWORD *) DrawCopper;
-  copword += ZMBPLPTRS+1;
-  for(int i=1;i<=2;i++) {
-    UWORD highword = ptr >> 16;
-    UWORD lowword = ptr & 0xffff;
-    *copword = highword;
-    copword += 2;
-    *copword = lowword;
-    copword += 2;
-    ptr += 40*256;
+  ULONG plane2set = DrawBuffer;
+  UWORD *posofcopper = (UWORD *)DrawCopper + ZMCOPBPL1HIGH;
+  
+  for(int i=0;i<ZMBPLDEPTH;i++) {
+    UWORD highword = (ULONG)plane2set >> 16;
+    UWORD lowword = (ULONG)plane2set & 0xffff;
+    *posofcopper = highword;
+    posofcopper += 2;
+    *posofcopper = lowword;
+    posofcopper += 2;
+    plane2set += ZMLINESIZE; //Next plane (interleaved)
   }
+  
   ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
   ViewBuffer = (ULONG *) tmp;
