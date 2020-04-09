@@ -1,22 +1,25 @@
 #include "zoom.h"
 #include "utils.h"
 
-INCBIN(startimage, "raw/eye352x272.raw")
+INCBIN(startimage, "raw/eye352x272x5.raw")
 
-void Zoom_LoadImage( ULONG *destination) {
-  for(int i=0;i<128+8;i++) {
+void Zoom_LoadImage( ULONG *destination) {  
+  /*for(int i=0;i<128+8;i++) {
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0x55555555;
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0xaaaaaaaa;
-  }
+  }*/
+  UWORD *bp = 0x200;
+  *bp = 0;
+  CopyMem( startimage, destination, 48*272*5);
 }
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
                                                        0x010a0000, 0x01001200 };
 
-void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
+void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {  
   //hw->color[0] = 0xf00;
   WaitBlt();
   //hw->color[0] = 0x000;

@@ -22,7 +22,7 @@ struct GfxBase *GfxBase;
 ULONG *Bitplane1;
 ULONG *Bitplane2;
 
-ULONG ClColor[2];
+ULONG ClColor[32];
 ULONG ClsSprites[16];
 ULONG ClScreen[12];
 
@@ -49,6 +49,7 @@ void WaitVbl();
 void WaitBlt();
 void TakeSystem();
 void FreeSystem();
+void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size);
 
 short MouseLeft();
 short MouseRight();

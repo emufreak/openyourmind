@@ -55,12 +55,13 @@ ULONG ClScreen[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 0x00902cc1,
          0x00920038, 0x009400d0, 0x01020000, 0x01040000, 0x010800c8, 0x010a00c8, 
                                                                   0x01005200 };
 
-ULONG ClColor[] = { 0x01800000, 0x01820000, 0x01840000, 0x01860000, 0x01880000, 
-         0x018a0000, 0x018c0000, 0x018e0000, 0x01900000, 0x01920000, 0x01940000,  
-         0x01960000, 0x01980000, 0x019a0000, 0x019c0000, 0x019e0000, 0x01a00000,  
-         0x01a20000, 0x01a40000, 0x01a60000, 0x01a80000, 0x01aa0000, 0x01ac0000, 
-         0x01ae0000, 0x01b00000, 0x01b20000, 0x01b40000, 0x01b60000, 0x01b80000, 
-         0x01ba0000, 0x01bc0000, 0x01be0000 };
+//INCBIN(ClColor, "raw/eye.cop")
+ULONG ClColor[] = { 0x01800000, 0x01820fff, 0x01840dca, 0x01860ca3, 0x01880791, 
+         0x018a0671, 0x018c0461, 0x018e0341, 0x01900121, 0x01920110, 0x01940999,  
+         0x01960678, 0x01980446, 0x019a0334, 0x019c0122, 0x019e0112, 0x01a00111,  
+         0x01a20655, 0x01a40444, 0x01a60443, 0x01a80232, 0x01aa0212, 0x01ac0985, 
+         0x01ae0662, 0x01b00552, 0x01b20221, 0x01b40a51, 0x01b60531, 0x01b80210, 
+         0x01ba0100, 0x01bc0001, 0x01be0111 };
 
 void FreeDisplay( int clsize, int bplsize) {
   if( Copperlist1 != 0) FreeMem( Copperlist1, clsize);
@@ -147,6 +148,11 @@ void FreeSystem() {
 	WaitBlit();	
 	DisownBlitter();
 	Enable();
+}
+
+void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
+  for( int i=0;i<size;i++) 
+    *destination++ = *source++;  
 }
 
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
