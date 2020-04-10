@@ -1,6 +1,7 @@
 #include "coppertests.h"
 #include "zoomtest.h"
 #include "zoom.h"
+#include "zoom102.h"
 #include "utils.h"
 #include "utilsasm.h"
 #include <string.h>
@@ -108,7 +109,10 @@ void ZoomTestDisplay() {
   if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
     Write(Output(), "ZoomCopperlist: Colorpart messed up.\n", 37);
 
-  if( TestCopperlistPos( Copperlist1, 70, 0xfffffffe) == 0)
+  if(  TestCopperlistBatch(  Copperlist1, 71, Cl102Zoom, 21) == 0)
+    Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36);
+
+  if( TestCopperlistPos( Copperlist1, 256*21+71, 0xfffffffe) == 0)
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);

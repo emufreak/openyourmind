@@ -1,4 +1,5 @@
 #include "zoom.h"
+#include "zoom102.h"
 #include "utils.h"
 
 INCBIN(startimage, "raw/eye352x272x5.raw")
@@ -131,6 +132,12 @@ ULONG * ClbuildZoom() {
   for(int i=0; i<32;i++)
     *cl++ = *clpartinstruction++;
 
+  *cl++ = 0x2c01ff00;
+  for(int i2=0;i2<256;i2++) {
+    clpartinstruction = Cl102Zoom;
+    for( int i=0; i<21;i++)
+      *cl++ = *clpartinstruction++;
+  }
   /*for(int i=0x2c; i<0x2c+256; i++) {
     *cl++ = (i<<24)+0x07fffe;
     for(int i2=0;i2<20;i2++) {
