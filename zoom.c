@@ -11,9 +11,16 @@ void Zoom_LoadImage( ULONG *destination) {
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0xaaaaaaaa;
   }*/
+  for( int i=0;i<256;i++) {
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0xaaaaaaaa;
+    for( int i2=0;i2<ZMLINESIZE/4*4;i2++)
+      *destination++ = 0x0;
+  }
+
   UWORD *bp = 0x200;
   *bp = 0;
-  CopyMem( startimage, destination, 48*272*5);
+  //CopyMem( startimage, destination, 48*272*5);
 }
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
@@ -132,12 +139,33 @@ ULONG * ClbuildZoom() {
   for(int i=0; i<32;i++)
     *cl++ = *clpartinstruction++;
 
+  //*cl++ = 0x3d01ff00;
+  UWORD *wcl = (UWORD *) cl;
+  UWORD vpos= 0x2d3d;
+  
+  ULONG cop2 = cl+3;
+  ULONG cop2lch = 0x00840000 + ( cop2 >> 16);
+  ULONG cop2lcl = 0x00860000 + (cop2 & 0xffff);
+  clpartinstruction = Cl102ZoomInit;
+  *cl++ = cop2lch;
+  *cl++ = cop2lcl;
   *cl++ = 0x2c01ff00;
-  for(int i2=0;i2<256;i2++) {
+
+  ULONG cop2br1 = cop2 + ( (8+27)<<2);
+  ULONG cop2br2 = cop2 + ( (20+27+27+27)<<2);
+  clpartinstruction = Cl102ZoomRepeat;
+  clpartinstruction[6+27] = 0x00840000 + ( cop2br1 >> 16);
+  clpartinstruction[7+27] = 0x00860000 + ( cop2br1 & 0xffff);
+  clpartinstruction[17+27+27+27] = 0x00840000 + ( cop2br2 >> 16);
+  clpartinstruction[18+27+27+27] = 0x00860000 + ( cop2br2 & 0xffff);
+  for(int i=0;i<26+27+27+27+27;i++)
+    *cl++ = *clpartinstruction++;
+
+  /*for(int i2=0;i2<256;i2++) {
     clpartinstruction = Cl102Zoom;
-    for( int i=0; i<21;i++)
+    for( int i=0; i<4;i++)
       *cl++ = *clpartinstruction++;
-  }
+  }*/
   /*for(int i=0x2c; i<0x2c+256; i++) {
     *cl++ = (i<<24)+0x07fffe;
     for(int i2=0;i2<20;i2++) {
@@ -146,7 +174,7 @@ ULONG * ClbuildZoom() {
     }
   }*/
 
-   *cl = 0xfffffffe;
+   *cl++ = 0xfffffffe;
 
   return retval;
 }

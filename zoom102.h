@@ -1,1 +1,2 @@
-ULONG Cl102Zoom[21];
+ULONG Cl102ZoomInit[3];
+ULONG Cl102ZoomRepeat[135];

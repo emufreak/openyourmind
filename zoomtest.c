@@ -109,7 +109,7 @@ void ZoomTestDisplay() {
   if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
     Write(Output(), "ZoomCopperlist: Colorpart messed up.\n", 37);
 
-  if(  TestCopperlistBatch(  Copperlist1, 71, Cl102Zoom, 21) == 0)
+  if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36);
 
   if( TestCopperlistPos( Copperlist1, 256*21+71, 0xfffffffe) == 0)

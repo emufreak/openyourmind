@@ -32,7 +32,7 @@ void RunFrame() {
   SwapCl();
   //TestZoomSpeed();
   while( !MouseLeft()) {}
-  Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
+  //Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
   if( Zoom_LevelOfZoom == 17)
     Zoom_LevelOfZoom = 0;
   else
