@@ -116,7 +116,7 @@ ULONG Cl102ZoomRepeat[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
                             
                             0x00840000, // New Jumpaddress = br2
                             0x00860000, // 
-                            0x00e180fe, // Wait for last hpos on line > 0x80
+                            //0x18000f0, // Wait for last hpos on line > 0x80
                                         //br2
                             0x003d80fe, //Wait for hpos 3d on line < 0x80
                             0x1800f00, //Background red
