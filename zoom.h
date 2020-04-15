@@ -18,6 +18,7 @@
 #include <hardware/intbits.h>
 
 UWORD Zoom_LevelOfZoom;
+UWORD Zoom_LevelOf102Zoom;
 WORD ZoomHorizontal;
 int PrepareDisplayZoom();
 ULONG ClScreenZoom[12];

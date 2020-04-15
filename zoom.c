@@ -25,8 +25,8 @@ void Zoom_LoadImage( ULONG *destination) {
     
   }
 
-  UWORD *bp = 0x200;
-  *bp = 0;
+  /*UWORD *bp = 0x200;
+  *bp = 0;*/
   //CopyMem( startimage, destination, 48*272*5);
 }
 
@@ -78,6 +78,7 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 void Zoom_InitRun() {
        
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+  Zoom_LevelOf102Zoom = 16;
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
   Zoom_LoadImage( ViewBuffer);
@@ -145,10 +146,6 @@ ULONG * ClbuildZoom() {
   clpartinstruction = ClColor;
   for(int i=0; i<32;i++)
     *cl++ = *clpartinstruction++;
-
-  //*cl++ = 0x3d01ff00;
-  UWORD *wcl = (UWORD *) cl;
-  UWORD vpos= 0x2d3d;
   
   ULONG cop2 = cl+3;
   ULONG cop2lch = 0x00840000 + ( cop2 >> 16);

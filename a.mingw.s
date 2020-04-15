@@ -781,9 +781,9 @@ void warpmode(int on)
      8b6:	2f02           	move.l d2,-(sp)
      8b8:	42a7           	clr.l -(sp)
      8ba:	4879 0001 4ec0 	pea 14ec0 <incbin_startimage_end+0x34>
-     8c0:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8215>
+     8c0:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8182>
      8c4:	4878 0052      	pea 52 <main+0x4c>
-     8c8:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     8c8:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
      8ce:	4fef 0018      	lea 24(sp),sp
 		UaeConf(82, -1, on ? "blitter_cycle_exact false" : "blitter_cycle_exact true", 0, &outbuf, 1);
      8d2:	203c 0001 4ea6 	move.l #85670,d0
@@ -791,9 +791,9 @@ void warpmode(int on)
      8dc:	2f02           	move.l d2,-(sp)
      8de:	42a7           	clr.l -(sp)
      8e0:	2f00           	move.l d0,-(sp)
-     8e2:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8215>
+     8e2:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8182>
      8e6:	4878 0052      	pea 52 <main+0x4c>
-     8ea:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     8ea:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
 	}
 }
      8f0:	4fef 0018      	lea 24(sp),sp
@@ -807,9 +807,9 @@ void warpmode(int on)
      902:	2f02           	move.l d2,-(sp)
      904:	42a7           	clr.l -(sp)
      906:	4879 0001 4eca 	pea 14eca <incbin_startimage_end+0x3e>
-     90c:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8215>
+     90c:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8182>
      910:	4878 0052      	pea 52 <main+0x4c>
-     914:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     914:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
      91a:	4fef 0018      	lea 24(sp),sp
 		UaeConf(82, -1, on ? "blitter_cycle_exact false" : "blitter_cycle_exact true", 0, &outbuf, 1);
      91e:	203c 0001 4e8d 	move.l #85645,d0
@@ -817,9 +817,9 @@ void warpmode(int on)
      928:	2f02           	move.l d2,-(sp)
      92a:	42a7           	clr.l -(sp)
      92c:	2f00           	move.l d0,-(sp)
-     92e:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8215>
+     92e:	4878 ffff      	pea ffffffff <gcc8_c_support.c.e9862530+0xfffd8182>
      932:	4878 0052      	pea 52 <main+0x4c>
-     936:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     936:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
 }
      93c:	4fef 0018      	lea 24(sp),sp
      940:	241f           	move.l (sp)+,d2
@@ -831,7 +831,7 @@ void warpmode(int on)
      946:	4fef ff80      	lea -128(sp),sp
      94a:	48e7 0032      	movem.l a2-a3/a6,-(sp)
     if(*((ULONG *)UaeDbgLog)) {
-     94e:	4ab9 00f0 ff60 	tst.l f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     94e:	4ab9 00f0 ff60 	tst.l f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
      954:	6734           	beq.s 98a <KPrintF+0x44>
 		RawDoFmt(fmt, vl, PutChar, temp);
      956:	2c79 0001 6a8e 	movea.l 16a8e <SysBase>,a6
@@ -843,7 +843,7 @@ void warpmode(int on)
 		UaeDbgLog(86, temp);
      972:	2f0b           	move.l a3,-(sp)
      974:	4878 0056      	pea 56 <main+0x50>
-     978:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee8176>
+     978:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee80e3>
      97e:	508f           	addq.l #8,sp
 }
      980:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
@@ -2399,7 +2399,7 @@ void FreeDisplay( int clsize, int bplsize) {
 void WaitVbl() {
     1a12:	518f           	subq.l #8,sp
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
-    1a14:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdd721a>,d0
+    1a14:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdd7187>,d0
     1a1a:	2e80           	move.l d0,(sp)
 		vpos&=0x1ff00;
     1a1c:	2017           	move.l (sp),d0
@@ -2410,7 +2410,7 @@ void WaitVbl() {
     1a28:	0c80 0001 3700 	cmpi.l #79616,d0
     1a2e:	67e4           	beq.s 1a14 <WaitVbl+0x2>
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
-    1a30:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdd721a>,d0
+    1a30:	2039 00df f004 	move.l dff004 <gcc8_c_support.c.e9862530+0xdd7187>,d0
     1a36:	2f40 0004      	move.l d0,4(sp)
 		vpos&=0x1ff00;
     1a3a:	202f 0004      	move.l 4(sp),d0
@@ -2740,14 +2740,14 @@ void Zoom_SetBplPointers() {
     1e3a:	243c 0001 51c1 	move.l #86465,d2
     1e40:	7625           	moveq #37,d3
     1e42:	4eae ffd0      	jsr -48(a6)
-  Zoom_Shrink102( 4, (UWORD *) Copperlist1+73*2);
+  Zoom_Shrink102( 4, (UWORD *) Copperlist1);
     1e46:	2439 0001 6a70 	move.l 16a70 <Copperlist1>,d2
            0x01800f00, 0x01800000, 0x01800f00, 0x01800000, 0x01800f00, 0x01800000, 
            0x01800f00, 0x01800000 };*/
 
 void Zoom_Shrink102( UWORD levelofshrink, UWORD *copperlist )  {
   UWORD *values4shift = Values4Shift+levelofshrink*30;
-  copperlist+=3;
+  copperlist+=3+73*2;
     1e4c:	2242           	movea.l d2,a1
     1e4e:	43e9 012a      	lea 298(a1),a1
   UWORD *values4shift = Values4Shift+levelofshrink*30;
@@ -2827,7 +2827,7 @@ void Zoom_Shrink102( UWORD levelofshrink, UWORD *copperlist )  {
     1ee0:	7625           	moveq #37,d3
     1ee2:	4eae ffd0      	jsr -48(a6)
   if( TestCopperlistPos( Copperlist1, 73+133, 0xfffffffe) == 0)
-    1ee6:	4878 fffe      	pea fffffffe <gcc8_c_support.c.e9862530+0xfffd8214>
+    1ee6:	4878 fffe      	pea fffffffe <gcc8_c_support.c.e9862530+0xfffd8181>
     1eea:	4878 00ce      	pea ce <main+0xc8>
     1eee:	2f39 0001 6a70 	move.l 16a70 <Copperlist1>,-(sp)
     1ef4:	4e92           	jsr (a2)
@@ -7243,7 +7243,7 @@ SYM (__WriteText):
     4902:	48f9 7fff 0000 	movem.l d0-a6,47c8 <saveregs>
     4908:	47c8 
   lea 0xdff000,a5
-    490a:	4bf9 00df f000 	lea dff000 <gcc8_c_support.c.e9862530+0xdd7216>,a5
+    490a:	4bf9 00df f000 	lea dff000 <gcc8_c_support.c.e9862530+0xdd7183>,a5
   move.l sp@(4),a0  //Fontlocation
     4910:	206f 0004      	movea.l 4(sp),a0
   move.l sp@(8),a3  //Destination

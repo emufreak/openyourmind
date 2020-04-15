@@ -2,6 +2,7 @@
 #include "utils.h"
 #include "zoomtest.h"
 #include "zoom.h"
+#include "zoom102.h"
 
 volatile int frameCounter = 0;
 
@@ -32,9 +33,10 @@ void RunFrame() {
   SwapCl();
   //TestZoomSpeed();
   while( !MouseLeft()) {}
+  Zoom_Shrink102( Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
   //Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
-  if( Zoom_LevelOfZoom == 17)
-    Zoom_LevelOfZoom = 0;
+  if( Zoom_LevelOf102Zoom == 0)
+    Zoom_LevelOf102Zoom = 16;
   else
-    Zoom_LevelOfZoom++;
+    Zoom_LevelOf102Zoom--;
 }

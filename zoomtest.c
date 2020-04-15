@@ -112,7 +112,7 @@ void ZoomTestDisplay() {
   /*if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36); */
   
-  Zoom_Shrink102( 4, (UWORD *) Copperlist1+73*2);
+  Zoom_Shrink102( 4, (UWORD *) Copperlist1);
   if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomRepeat) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
 

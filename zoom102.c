@@ -15,7 +15,7 @@
 
 void Zoom_Shrink102( UWORD levelofshrink, UWORD *copperlist )  {
   UWORD *values4shift = Values4Shift+levelofshrink*30;
-  copperlist+=3;
+  copperlist+=3+73*2;
   for(int i = 0; i<29;i++) {
     *copperlist = *values4shift++;
     copperlist += 2;
