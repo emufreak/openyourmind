@@ -109,14 +109,54 @@ void ZoomTestDisplay() {
   if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
     Write(Output(), "ZoomCopperlist: Colorpart messed up.\n", 37);
 
-  if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
-    Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36);
+  /*if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
+    Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36); */
+  
+  Zoom_Shrink102( 4, (UWORD *) Copperlist1+73*2);
+  if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomRepeat) == 0)
+    Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
 
-  if( TestCopperlistPos( Copperlist1, 256*21+71, 0xfffffffe) == 0)
+  if( TestCopperlistPos( Copperlist1, 73+133, 0xfffffffe) == 0)
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
 
+}
+
+int TestZoom102Batch( ULONG *cl2test, UWORD position) {
+
+  for( int i=0;i<12;i++)
+    if( TestCopperlistPos( cl2test, i+position, 0x1020099) == 0)
+      return 0;
+  for( int i=0;i<2;i++)
+    if( TestCopperlistPos( cl2test, 12+i+position, 0x1020088) == 0)
+      return 0;
+  for( int i=0;i<2;i++)
+    if( TestCopperlistPos( cl2test, 14+i+position, 0x1020077) == 0)
+      return 0;
+  for( int i=0;i<2;i++)
+    if( TestCopperlistPos( cl2test, 16+i+position, 0x1020066) == 0)
+      return 0;
+  for( int i=0;i<11;i++)
+    if( TestCopperlistPos( cl2test, 18+i+position, 0x1020055) == 0)
+      return 0;
+  return 1;
+}
+
+int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
+                                                           ULONG *template4cl) {
+  if( TestCopperlistPos( cl2test, position, *template4cl) == 0)
+    return 0;
+  if( TestZoom102Batch( cl2test, position+1) == 0)
+    return 0;
+  if( TestZoom102Batch( cl2test, position+36) == 0)
+    return 0;
+  if( TestZoom102Batch( cl2test, position+69) == 0)
+    return 0;
+  if( TestZoom102Batch( cl2test, position+101) == 0)
+    return 0;
+
+  return 1;
 }
 
 void TestBlitleftOfZoom() {
@@ -129,7 +169,6 @@ void TestBlitleftOfZoom() {
                  "Zoomtestroutines: Can not allocate mem for Zoomsource.\n",54);
     return;
   }
-
   
   UWORD *tstsource = Zoom_Source;
   *tstsource++ = 0x0000;
@@ -214,6 +253,10 @@ void TestCopyWord() {
   FreeMem( source,ZMLINESIZE*30);
   FreeMem( destination,ZMLINESIZE*30);
 }
+
+
+
+
 
 UWORD destlinezoom1[] = { 0xaa55, 0x554a, 0xaaa9, 0x5555, 0x2aaa, 0xa555, 
   0x54aa, 0xaa95, 0x5552, 0xaaaa, 0x5555, 0x4aaa, 0xa955, 0x552a, 0xaaa5, 

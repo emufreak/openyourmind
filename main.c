@@ -20,8 +20,8 @@ int main() {
 	KPrintF("Hello debugger from Amiga!\n");
 	Write(Output(), "Hello console!\n", 15);
 	Delay(50);
-  Zoom_InitRun();
-  //RunTests();
+  //Zoom_InitRun();
+  RunTests();
 	warpmode(1);
 	// TODO: precalc stuff here
 	warpmode(0);
@@ -30,7 +30,7 @@ int main() {
 	WaitVbl();
 
 	// DEMO
-	RunDemo();
+	//RunDemo();
 
 	// END
 	FreeSystem();

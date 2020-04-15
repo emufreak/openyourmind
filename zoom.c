@@ -13,9 +13,16 @@ void Zoom_LoadImage( ULONG *destination) {
   }*/
   for( int i=0;i<256;i++) {
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
-      *destination++ = 0xaaaaaaaa;
-    for( int i2=0;i2<ZMLINESIZE/4*4;i2++)
-      *destination++ = 0x0;
+      *destination++ = 0xaaaaaaaa;                 
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)     
+      *destination++ = 0x33333333;        
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    
   }
 
   UWORD *bp = 0x200;
@@ -160,19 +167,6 @@ ULONG * ClbuildZoom() {
   clpartinstruction[18+27+27+27] = 0x00860000 + ( cop2br2 & 0xffff);
   for(int i=0;i<26+27+27+26+27;i++)
     *cl++ = *clpartinstruction++;
-
-  /*for(int i2=0;i2<256;i2++) {
-    clpartinstruction = Cl102Zoom;
-    for( int i=0; i<4;i++)
-      *cl++ = *clpartinstruction++;
-  }*/
-  /*for(int i=0x2c; i<0x2c+256; i++) {
-    *cl++ = (i<<24)+0x07fffe;
-    for(int i2=0;i2<20;i2++) {
-      *cl++ = 0x018200f0;
-      *cl++ = 0x01820f00;
-    }
-  }*/
 
    *cl++ = 0xfffffffe;
 

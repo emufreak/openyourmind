@@ -20,7 +20,11 @@ void TestCopyWord();
 void TestZoomSpeed();
 void Vblankcounter();
 void TestZoom4PictureOn5Planes();
+int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
+                                                           ULONG *template4cl);
+int TestZoom102Batch( ULONG *cl2test, UWORD position);
 
 extern void PutChar();
+
 /*UWORD destlinezoom2[22];
 UWORD destlinezoom1[22];*/
