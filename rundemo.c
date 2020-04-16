@@ -33,10 +33,11 @@ void RunFrame() {
   SwapCl();
   //TestZoomSpeed();
   while( !MouseLeft()) {}
-  Zoom_Shrink102( Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
+  while( MouseLeft()) {}
+  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
   //Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
-  if( Zoom_LevelOf102Zoom == 0)
-    Zoom_LevelOf102Zoom = 16;
+  if( Zoom_LevelOf102Zoom == 15)
+    Zoom_LevelOf102Zoom = 0;
   else
-    Zoom_LevelOf102Zoom--;
+    Zoom_LevelOf102Zoom++;
 }

@@ -78,11 +78,11 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 void Zoom_InitRun() {
        
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
-  Zoom_LevelOf102Zoom = 16;
+  Zoom_LevelOf102Zoom = 0;
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
-  Zoom_LoadImage( ViewBuffer);
-  Zoom_LoadImage( DrawBuffer);
+  Zoom_LoadImage( Bitplane1);
+  Zoom_LoadImage( Bitplane2);
   Zoom_LevelOfZoom = 0;
 }
   
@@ -94,14 +94,14 @@ int Zoom_PrepareDisplay() {
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
     Exit(1);
   }
-  DrawBuffer = Bitplane1+2;
+  DrawBuffer = Bitplane1;
   DrawCopper = Copperlist1;
   Bitplane2 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
   if(Bitplane2 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
     Exit(1);
   }
-  ViewBuffer = Bitplane2+2;
+  ViewBuffer = Bitplane2;
   ViewCopper = Copperlist2;
   return 0;
 }
@@ -156,13 +156,13 @@ ULONG * ClbuildZoom() {
   *cl++ = 0x2c01ff00;
 
   ULONG cop2br1 = cop2 + ( (8+27)<<2);
-  ULONG cop2br2 = cop2 + ( (20+27+27+26)<<2);
+  ULONG cop2br2 = cop2 + ( (20+27+27+26+1)<<2);
   clpartinstruction = Cl102ZoomRepeat;
   clpartinstruction[6+27] = 0x00840000 + ( cop2br1 >> 16);
   clpartinstruction[7+27] = 0x00860000 + ( cop2br1 & 0xffff);
-  clpartinstruction[17+27+27+27] = 0x00840000 + ( cop2br2 >> 16);
-  clpartinstruction[18+27+27+27] = 0x00860000 + ( cop2br2 & 0xffff);
-  for(int i=0;i<26+27+27+26+27;i++)
+  clpartinstruction[17+27+27+27+1] = 0x00840000 + ( cop2br2 >> 16);
+  clpartinstruction[18+27+27+27+1] = 0x00860000 + ( cop2br2 & 0xffff);
+  for(int i=0;i<26+27+27+26+27+1;i++)
     *cl++ = *clpartinstruction++;
 
    *cl++ = 0xfffffffe;

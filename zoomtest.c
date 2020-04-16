@@ -116,7 +116,7 @@ void ZoomTestDisplay() {
   if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomRepeat) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
 
-  if( TestCopperlistPos( Copperlist1, 73+133, 0xfffffffe) == 0)
+  if( TestCopperlistPos( Copperlist1, 73+134, 0xfffffffe) == 0)
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
@@ -140,6 +140,10 @@ int TestZoom102Batch( ULONG *cl2test, UWORD position) {
   for( int i=0;i<11;i++)
     if( TestCopperlistPos( cl2test, 18+i+position, 0x1020055) == 0)
       return 0;
+  if( TestCopperlistPos( cl2test, 29+position, 0x1020099) == 0)
+    return 0;
+
+
   return 1;
 }
 
@@ -153,7 +157,7 @@ int TestCopperListZoom102( ULONG *cl2test, UWORD position,
     return 0;
   if( TestZoom102Batch( cl2test, position+69) == 0)
     return 0;
-  if( TestZoom102Batch( cl2test, position+101) == 0)
+  if( TestZoom102Batch( cl2test, position+102) == 0)
     return 0;
 
   return 1;
