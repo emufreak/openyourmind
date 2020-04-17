@@ -11,6 +11,7 @@ void Zoom_LoadImage( ULONG *destination) {
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
       *destination++ = 0xaaaaaaaa;
   }*/
+  
   for( int i=0;i<256;i++) {
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
       *destination++ = 0xaaaaaaaa;                 

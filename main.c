@@ -17,22 +17,22 @@ int main() {
 	if (!DOSBase)
 		Exit(0);
 
-	KPrintF("Hello debugger from Amiga!\n");
+	//KPrintF("Hello debugger from Amiga!\n");
 	Write(Output(), "Hello console!\n", 15);
 	Delay(50);
-  //Zoom_InitRun();
-  RunTests();
-	warpmode(1);
+  Zoom_InitRun();
+  //RunTests();
+	//warpmode(1);
 	// TODO: precalc stuff here
-	warpmode(0);
+	//warpmode(0);
 
 	TakeSystem();
 	WaitVbl();
 
 	// DEMO
-	//RunDemo();
 
-	// END
+	RunDemo();	// END
+
 	FreeSystem();
 
 	CloseLibrary((struct Library*)DOSBase);
