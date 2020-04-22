@@ -156,14 +156,14 @@ ULONG * ClbuildZoom() {
   *cl++ = cop2lcl;
   *cl++ = 0x2c01ff00;
 
-  ULONG cop2br1 = cop2 + ( (8+27)<<2);
-  ULONG cop2br2 = cop2 + ( (20+27+27+26+1)<<2);
+  ULONG cop2br1 = cop2 + ( (33)<<2);
+  ULONG cop2br2 = cop2 + ( (95)<<2);
   clpartinstruction = Cl102ZoomRepeat;
-  clpartinstruction[6+27] = 0x00840000 + ( cop2br1 >> 16);
-  clpartinstruction[7+27] = 0x00860000 + ( cop2br1 & 0xffff);
-  clpartinstruction[17+27+27+27+1] = 0x00840000 + ( cop2br2 >> 16);
-  clpartinstruction[18+27+27+27+1] = 0x00860000 + ( cop2br2 & 0xffff);
-  for(int i=0;i<26+27+27+26+27+1;i++)
+  clpartinstruction[31] = 0x00840000 + ( cop2br1 >> 16);
+  clpartinstruction[32] = 0x00860000 + ( cop2br1 & 0xffff);
+  clpartinstruction[93] = 0x00840000 + ( cop2br2 >> 16);
+  clpartinstruction[94] = 0x00860000 + ( cop2br2 & 0xffff);
+  for(int i=0;i<26+27+27+26+27+1-8;i++)
     *cl++ = *clpartinstruction++;
 
    *cl++ = 0xfffffffe;
