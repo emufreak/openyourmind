@@ -4,6 +4,8 @@
 #define ZMBPLSIZE ZMCOLHEIGHT*ZMLINESIZE*ZMBPLDEPTH
 #define ZMBPLPTRS 56
 #define ZMLINESIZE 48
+#define ZMBPLMOD ZMLINESIZE*(ZMBPLDEPTH-1)+6
+#define ZMBPLMOD2 ZMBPLMOD+ZMLINESIZE*ZMBPLDEPTH
 #define ZMCOPBPL1HIGH 57
 #define ZMCOPBPL1LOW 59
 
@@ -19,6 +21,7 @@
 
 UWORD Zoom_LevelOfZoom;
 UWORD Zoom_LevelOf102Zoom;
+WORD Zoom_Direction;
 WORD ZoomHorizontal;
 int PrepareDisplayZoom();
 ULONG ClScreenZoom[12];

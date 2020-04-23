@@ -2,7 +2,7 @@
 #include "zoom102.h"
 #include "utils.h"
 
-INCBIN(startimage, "raw/eye352x272x5.raw")
+INCBIN(startimage, "raw/eye384x272x5.raw")
 
 void Zoom_LoadImage( ULONG *destination) {  
   /*for(int i=0;i<128+8;i++) {
@@ -12,11 +12,22 @@ void Zoom_LoadImage( ULONG *destination) {
       *destination++ = 0xaaaaaaaa;
   }*/
   
-  for( int i=0;i<256;i++) {
+  /*for( int i=0;i<64;i++) {
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
-      *destination++ = 0xaaaaaaaa;                 
+      *destination++ = 0x00000000;                 
     for( int i2=0;i2<ZMLINESIZE/4;i2++)     
-      *destination++ = 0x33333333;        
+      *destination++ = 0x00000000;        
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0xffffffff;                 
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)     
+      *destination++ = 0x00000000;        
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
       *destination++ = 0x00000000;
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
@@ -24,11 +35,32 @@ void Zoom_LoadImage( ULONG *destination) {
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
       *destination++ = 0x00000000;
     
-  }
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x0;                 
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)     
+      *destination++ = 0xffffffff;        
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0xffffffff;                 
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)     
+      *destination++ = 0xffffffff;        
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;
+    for( int i2=0;i2<ZMLINESIZE/4;i2++)
+      *destination++ = 0x00000000;  
+  }*
 
   /*UWORD *bp = 0x200;
   *bp = 0;*/
-  //CopyMem( startimage, destination, 48*272*5);
+  CopyMem( startimage, destination, 48*272*5);
 }
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
@@ -79,12 +111,13 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 void Zoom_InitRun() {
        
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
-  Zoom_LevelOf102Zoom = 0;
+  Zoom_LevelOf102Zoom = 15;
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
   Zoom_LoadImage( Bitplane1);
   Zoom_LoadImage( Bitplane2);
   Zoom_LevelOfZoom = 0;
+  Zoom_Direction = 1;
 }
   
 int Zoom_PrepareDisplay() {
@@ -110,6 +143,7 @@ int Zoom_PrepareDisplay() {
 void Zoom_Init() {
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   ZoomHorizontal = 16;
+  Zoom_LevelOf102Zoom = 15;
 }
 
 
@@ -331,7 +365,8 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
 }
 
 void Zoom_SetBplPointers() {
-  ULONG plane2set = DrawBuffer;
+  ULONG plane2set = DrawBuffer+( 8 - (Zoom_LevelOf102Zoom/2))
+                                                         *ZMLINESIZE*ZMBPLDEPTH/4;
   UWORD *posofcopper = (UWORD *)DrawCopper + ZMCOPBPL1HIGH;
   
   for(int i=0;i<ZMBPLDEPTH;i++) {

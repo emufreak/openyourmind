@@ -72,6 +72,7 @@ void TestZoomSpeed() {
 
 void ZoomTestDisplay() {
 
+  Zoom_Init();
   PrepareDisplayZoom();
 
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
@@ -93,15 +94,15 @@ void ZoomTestDisplay() {
     Write(Output(), 
            "ZoomCopperlist: Problem in Copperlist bpl1ph should be 0004\n", 60);
   
-  if(  TestCopperlistPos(  Copperlist1, 29, 0x00e20000) == 0)
+  if(  TestCopperlistPos(  Copperlist1, 29, 0x00e200f0) == 0)
     Write(Output(), 
-           "ZoomCopperlist: Problem in Copperlist bpl1pl should be 0000\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl1pl should be 00f0\n", 60);
 
   if(  TestCopperlistPos(  Copperlist1, 30, 0x00e40004) == 0)
     Write(Output(), 
            "ZoomCopperlist: Problem in Copperlist bpl2ph should be 0004\n", 60);
   
-  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60030) == 0)
+  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60120) == 0)
     Write(Output(), 
            "ZoomCopperlist: Problem in Copperlist bpl2pl should be 0030\n", 60);
 
@@ -112,54 +113,26 @@ void ZoomTestDisplay() {
   /*if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36); */
   
-  Zoom_Shrink102( 4, (UWORD *) Copperlist1);
-  if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomRepeat) == 0)
+  Zoom_Shrink102( 15, (UWORD *) Copperlist1);
+  if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomTest) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
 
-  if( TestCopperlistPos( Copperlist1, 73+134, 0xfffffffe) == 0)
+  if( TestCopperlistPos( Copperlist1, 73+126, 0xfffffffe) == 0)
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
 
 }
 
-int TestZoom102Batch( ULONG *cl2test, UWORD position) {
-
-  for( int i=0;i<12;i++)
-    if( TestCopperlistPos( cl2test, i+position, 0x1020099) == 0)
-      return 0;
-  for( int i=0;i<2;i++)
-    if( TestCopperlistPos( cl2test, 12+i+position, 0x1020088) == 0)
-      return 0;
-  for( int i=0;i<2;i++)
-    if( TestCopperlistPos( cl2test, 14+i+position, 0x1020077) == 0)
-      return 0;
-  for( int i=0;i<2;i++)
-    if( TestCopperlistPos( cl2test, 16+i+position, 0x1020066) == 0)
-      return 0;
-  for( int i=0;i<11;i++)
-    if( TestCopperlistPos( cl2test, 18+i+position, 0x1020055) == 0)
-      return 0;
-  if( TestCopperlistPos( cl2test, 29+position, 0x1020099) == 0)
-    return 0;
-
-
-  return 1;
-}
-
 int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
                                                            ULONG *template4cl) {
-  if( TestCopperlistPos( cl2test, position, *template4cl) == 0)
+  if( TestCopperlistBatch( cl2test, position, template4cl, 31) == 0)
     return 0;
-  if( TestZoom102Batch( cl2test, position+1) == 0)
+  if( TestCopperlistBatch( cl2test, position+33, template4cl+33, 60) == 0)
     return 0;
-  if( TestZoom102Batch( cl2test, position+36) == 0)
+  if( TestCopperlistBatch( cl2test, position+95, template4cl+95, 31) == 0)
     return 0;
-  if( TestZoom102Batch( cl2test, position+69) == 0)
-    return 0;
-  if( TestZoom102Batch( cl2test, position+102) == 0)
-    return 0;
-
+ 
   return 1;
 }
 
@@ -1474,3 +1447,138 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
      
   }
 }
+
+ULONG Cl102ZoomTest[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0xf010f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0xf010f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x10200ff, //Background black                           
+                            0x8001ff01, // If Line < 80 
+                            0x008a0000, // jump to start 
+                            0x00840000, // New Jumpaddress = br1
+                            0x00860000, // 
+                                        //br1:
+                            0x803d80fe, //Wait for hpos 3d on line >= 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0x8f018f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0x8f018f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x10200ff, //Background black 
+							
+							0xff01ff01,  // If Line < 255
+                            0x008a0000, //Jump to br1
+                            0x803d80fe, //Wait for hpos 3d on line >= 0x80
+                           0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0xff01ff01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0xff01ff01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x10200ff, //Background black 
+							              
+                            0x00840000, // New Jumpaddress = br2
+                            0x00860000, // 
+                            //0x18000f0, // Wait for last hpos on line > 0x80
+                                        //br2
+                            0x003d80fe, //Wait for hpos 3d on line < 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0x0f010f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0x0f010f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x1020000, //Background black 
+                            0x1020000, //Background red
+                            0x10200ff, //Background black 
+							
+                            0x2c01ff01, //If line < 2c
+                            0x008a0000, // jump to br2           
+                            }; 
+

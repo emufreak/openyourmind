@@ -32,12 +32,15 @@ void RunFrame() {
   Zoom_SetBplPointers();
   SwapCl();
   //TestZoomSpeed();
-  while( !MouseLeft()) {}
-  while( MouseLeft()) {}
+  /*while( !MouseLeft()) {}
+  while( MouseLeft()) {}*/
   Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
   //Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
-  if( Zoom_LevelOf102Zoom == 15)
-    Zoom_LevelOf102Zoom = 0;
-  else
-    Zoom_LevelOf102Zoom++;
+  /*if( Zoom_LevelOf102Zoom == 15) {
+    Zoom_Direction = -1;*/
+  if( Zoom_LevelOf102Zoom == 0)
+    Zoom_Direction = 1;
+  else if( Zoom_LevelOf102Zoom == 15)
+    Zoom_Direction = -1;
+  Zoom_LevelOf102Zoom += Zoom_Direction;
 }
