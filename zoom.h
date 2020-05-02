@@ -1,6 +1,6 @@
-#define ZMCPSIZE (71+256*22)*4
+#define ZMCPSIZE (73+126)*4
 #define ZMBPLDEPTH 5
-#define ZMCOLHEIGHT 128*3
+#define ZMCOLHEIGHT 272
 #define ZMBPLSIZE ZMCOLHEIGHT*ZMLINESIZE*ZMBPLDEPTH
 #define ZMBPLPTRS 56
 #define ZMLINESIZE 48
@@ -19,8 +19,12 @@
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
 
-UWORD Zoom_LevelOfZoom;
-UWORD Zoom_LevelOf102Zoom;
+UWORD *Zoom_StartImage;
+UWORD Zoom_MouseReleased;
+UWORD Zoom_Mousepressed;
+UWORD Zoom_Blit4ZoomFinished;
+UWORD volatile Zoom_LevelOfZoom;
+UWORD volatile Zoom_LevelOf102Zoom;
 WORD Zoom_Direction;
 WORD ZoomHorizontal;
 int PrepareDisplayZoom();
@@ -32,6 +36,7 @@ void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
 void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD size);
 void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height);                                                                    
 void Zoom_Init();
+void Zoom_InitRun();
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
                                                                   UWORD planes);
                                                                   
@@ -39,10 +44,17 @@ int Zoom_PrepareDisplay();
 void Init_Copy( WORD shift);
 void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright);
 void Init_Blit();
+void Zoom_VblankHandler();
+void Zoom_Dealloc();
 
 ULONG *Zoom_ZoomBlitMask;
 UWORD *Zoom_Source;
 UWORD ZoomBlit_Increment4SrcA;
- 
-void Zoom_SetBplPointers();
+struct Interrupt *Zoom_vbint;
+  
+
+UWORD Zoom_Counter;
 extern UWORD *font2;
+void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper);
+void Zoom_SwapBuffers();
+

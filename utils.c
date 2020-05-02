@@ -97,11 +97,13 @@ void SwapCl() {
   hw->cop1lc = (ULONG) ViewCopper;
   hw->copjmp1 = tmp;
 }
+
 void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
 	OwnBlitter();
 	WaitBlit();	
-	Disable();
+	//Disable();
+  Forbid();
 	
 	//Save current interrupts and DMA settings so we can restore them upon exit. 
 	SystemADKCON=hw->adkconr;
@@ -154,7 +156,8 @@ void FreeSystem() {
 	WaitTOF();
 	WaitBlit();	
 	DisownBlitter();
-	Enable();
+  Permit();
+	//Enable();
 }
 
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {

@@ -28,11 +28,11 @@ ULONG ClScreen[12];
 
 ULONG *Copperlist1;
 ULONG *Copperlist2;
-ULONG *DrawBuffer;
-ULONG *ViewBuffer;
-ULONG *DrawCopper;
-ULONG *ViewCopper;
-void FreeDisplay();
+ULONG volatile *DrawBuffer;
+ULONG volatile *ViewBuffer;
+ULONG volatile *DrawCopper;
+ULONG volatile *ViewCopper;
+void FreeDisplay( int clsize, int bplsize);
 void SetBplPointers();
 void SwapCl();
 UWORD SystemInts;

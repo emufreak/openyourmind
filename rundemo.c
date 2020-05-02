@@ -10,11 +10,19 @@ static __attribute__((interrupt)) void interruptHandler() {
 	hw->intreq=(1<<INTB_VERTB); hw->intreq=(1<<INTB_VERTB); //reset vbl req. twice for a4000 bug.
 	// DEMO - increment frameCounter
 	frameCounter++;
+  UWORD *bp = 0x200;
+  *bp = 0;
+  //Zoom_VblankHandler();
 }
 
 void RunDemo() {
-  hw->dmacon = 0b1001001111100000;
-	SetInterruptHandler((APTR)interruptHandler);
+//               5432109876543210
+  hw->dmacon = 0b1000011111111111;
+  //             1001001111100000	; copper,bitplane,blitter DMA
+
+  /*hw->dmacon =   
+  0x87e0;*/
+	//SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
   //PrepareDisplay();
@@ -23,24 +31,25 @@ void RunDemo() {
 		WaitVbl();
     RunFrame();
 	}
-	SetInterruptHandler((APTR)interruptHandler);
+	//SetInterruptHandler((APTR)interruptHandler);
 }
 
-
+void SetInterrupt() {
+  SetInterruptHandler((APTR)interruptHandler);
+	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
+	hw->intreq=1<<INTB_VERTB;//reset vbl req
+}
 
 void RunFrame() {
-  Zoom_SetBplPointers();
-  SwapCl();
-  //TestZoomSpeed();
-  /*while( !MouseLeft()) {}
-  while( MouseLeft()) {}*/
-  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
-  //Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer - 2, (UWORD *)DrawBuffer - 2, Zoom_LevelOfZoom, 5 );
-  /*if( Zoom_LevelOf102Zoom == 15) {
-    Zoom_Direction = -1;*/
-  if( Zoom_LevelOf102Zoom == 0)
-    Zoom_Direction = 1;
-  else if( Zoom_LevelOf102Zoom == 15)
-    Zoom_Direction = -1;
-  Zoom_LevelOf102Zoom += Zoom_Direction;
+  Zoom_Blit4ZoomFinished = 0;
+  UWORD tmp = Zoom_LevelOfZoom;
+  if(Zoom_LevelOfZoom == 0)
+    CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
+  else
+    Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer, (UWORD *)DrawBuffer, Zoom_LevelOfZoom, 5 );
+
+  Zoom_Blit4ZoomFinished = 1;
+  /*UWORD *bp = 0x200;
+  *bp = 0;*/
+  while( tmp == Zoom_LevelOfZoom) { }
 }

@@ -17,57 +17,26 @@ void ZoomTest() {
 
 int Counter4Frames;
 
-void Vblankcounter() {
-  Counter4Frames++;
-}
-
 void TestZoomSpeed() {
 
-  hw->dmacon = 0b1000010000000000; //Blitter nasty
-  Counter4Frames = 0;
-  struct Interrupt *vbint;
-                                                       
-  if ((vbint = AllocMem(sizeof(struct Interrupt),    
-                         MEMF_PUBLIC|MEMF_CLEAR))) {
-    vbint->is_Node.ln_Type = NT_INTERRUPT;       
-    vbint->is_Node.ln_Pri = -60;
-    vbint->is_Node.ln_Name = "VertB-Example";
-    vbint->is_Data = NULL;
-    vbint->is_Code = Vblankcounter;
-  }
+ 	TakeSystem();
+	WaitVbl();
+  //               fedcba9876543210
+  hw->dmacon = 0b1000011111100000;
+  Zoom_InitRun(); 
 
-  UWORD *source = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
-  if( source == 0) {
-    Write(  Output(), 
-               "TestZoomSpeed: Memory for Source cannot be allocated.\n",57);
-    return;
-  }
+  int success = 1;
+  RunFrame();
+  if( Zoom_Counter >= 9) success = 0;
+    
+  Zoom_Dealloc();
+  FreeSystem();
 
-  UWORD *destination = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
-  if( destination == 0) {
-    Write(  Output(), 
-          "TestZoomSpeed: Memory for Destination cannot be allocated.\n",61);
-    return;
-  }
-  ULONG *tmp4source = (ULONG *)source;
-  for(int i=0;i<128+8;i++) {
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
-      *tmp4source++ = 0x55555555;
-    for(int i2=0;i2<ZMLINESIZE/4;i2++)
-      *tmp4source++ = 0xaaaaaaaa;
-  }
+  if(success == 0) Write( Output(), "Testzoomspeed takes too long.\n", 28);
 
-  WaitVbl();
-  Init_Blit();
-  Init_ZoomBlit(322, 336, 0);
-  AddIntServer(INTB_VERTB, vbint);
+  //AddIntServer(INTB_VERTB, vbint);
+  //RemIntServer(INTB_VERTB, vbint);
   
-  Zoom_ZoomIntoPicture( source, destination, 0, 5);
-  RemIntServer(INTB_VERTB, vbint);
-  if( Counter4Frames > 7)
-    Write( Output(), "TestSpeed4Zoom: Takes too long\n", 31);
-  FreeMem( source, ( ZMLINESIZE+4)*272*5);
-  FreeMem( destination, ( ZMLINESIZE+4)*272*5);
 }
 
 void ZoomTestDisplay() {
@@ -85,7 +54,8 @@ void ZoomTestDisplay() {
                                                                             70);
   DrawBuffer = (ULONG *) 0x40000;
   ViewBuffer = (ULONG *) 0x50000;
-  Zoom_SetBplPointers();
+  Zoom_SetBplPointers( DrawBuffer, DrawCopper);
+  Zoom_SwapBuffers();
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
     Write( Output(), 
             "ZoomCopperlist: Draw and ViewBuffer not proberly switched.\n", 59);
@@ -94,17 +64,17 @@ void ZoomTestDisplay() {
     Write(Output(), 
            "ZoomCopperlist: Problem in Copperlist bpl1ph should be 0004\n", 60);
   
-  if(  TestCopperlistPos(  Copperlist1, 29, 0x00e200f0) == 0)
+  if(  TestCopperlistPos(  Copperlist1, 29, 0x00e200f4) == 0)
     Write(Output(), 
-           "ZoomCopperlist: Problem in Copperlist bpl1pl should be 00f0\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl1pl should be 00f4\n", 60);
 
   if(  TestCopperlistPos(  Copperlist1, 30, 0x00e40004) == 0)
     Write(Output(), 
            "ZoomCopperlist: Problem in Copperlist bpl2ph should be 0004\n", 60);
   
-  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60120) == 0)
+  if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60124) == 0)
     Write(Output(), 
-           "ZoomCopperlist: Problem in Copperlist bpl2pl should be 0030\n", 60);
+           "ZoomCopperlist: Problem in Copperlist bpl2pl should be 0034\n", 60);
 
 
   if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
@@ -117,7 +87,7 @@ void ZoomTestDisplay() {
   if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomTest) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
 
-  if( TestCopperlistPos( Copperlist1, 73+126, 0xfffffffe) == 0)
+  if( TestCopperlistPos( Copperlist1, 73+114, 0xfffffffe) == 0)
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
@@ -126,11 +96,11 @@ void ZoomTestDisplay() {
 
 int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
                                                            ULONG *template4cl) {
-  if( TestCopperlistBatch( cl2test, position, template4cl, 31) == 0)
+  if( TestCopperlistBatch( cl2test, position, template4cl, 28) == 0)
     return 0;
-  if( TestCopperlistBatch( cl2test, position+33, template4cl+33, 60) == 0)
+  if( TestCopperlistBatch( cl2test, position+30, template4cl+30, 54) == 0)
     return 0;
-  if( TestCopperlistBatch( cl2test, position+95, template4cl+95, 31) == 0)
+  if( TestCopperlistBatch( cl2test, position+86, template4cl+86, 28) == 0)
     return 0;
  
   return 1;
@@ -231,10 +201,6 @@ void TestCopyWord() {
   FreeMem( destination,ZMLINESIZE*30);
 }
 
-
-
-
-
 UWORD destlinezoom1[] = { 0xaa55, 0x554a, 0xaaa9, 0x5555, 0x2aaa, 0xa555, 
   0x54aa, 0xaa95, 0x5552, 0xaaaa, 0x5555, 0x4aaa, 0xa955, 0x552a, 0xaaa5, 
   0x5554, 0xaaaa, 0x9555, 0x52aa, 0xaa55, 0x554a, 0xaaa9 };
@@ -251,7 +217,7 @@ UWORD destlinezoom2[] = { 0xd555, 0x4d55, 0x54d5, 0x554d, 0x5554, 0xd555,
   0xd555, 0x4d55, 0x54d5, 0x554d, 0x5554, 0xd555, 0x4d55 };
    
 /* 2234 5678 9abc defg hi11  ...
-   0101 0101 0101 0101 0100 
+   1101 0101 0101 0101 0100 
    d    5    5    5    4    */
 
 UWORD destlinezoom3[] = { 0x554c, 0xaaaa, 0x6555, 0x532a, 0xaa99, 0x5554,
@@ -416,7 +382,7 @@ UWORD destlinezoom16[] = { 0xcd33, 0x3333, 0x334c, 0xcccc, 0xccd3, 0x3333,
 
 /* eeff gghi 1122 3344 5566 7788 99aa bbcc ddee ffgg hi11 2233 4455 6677
    1100 1101 0011 0011 0011 0011 0011 0011 0011 0011 0100 1100 1100 1100
-   a    b    3    3    3    3    3    3    3    3    4    a    a    a
+   c    d    3    3    3    3    3    3    3    3    4    a    a    a
    8899 aabb ccdd ...
    1100 1100 1100
    a    a    a */
@@ -1448,7 +1414,7 @@ void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask,
   }
 }
 
-ULONG Cl102ZoomTest[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
+/*ULONG Cl102ZoomTest[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
                             0x10200ee, //Background red
                             0x10801b6, //Background black
                             0x10200dd, //Background red
@@ -1580,5 +1546,125 @@ ULONG Cl102ZoomTest[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
 							
                             0x2c01ff01, //If line < 2c
                             0x008a0000, // jump to br2           
+                            }; */
+ULONG Cl102ZoomTest[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0xf018f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0xf018f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x00e180fe, //Background black 
+                            0x10200ff, //Background black                                                     
+                            0x8001ff01, // If Line < 80 
+                            0x008a0000, // jump to start 
+                            0x00840000, // New Jumpaddress = br1
+                            0x00860000, // 
+                                        //br1:
+                            0x803d80fe, //Wait for hpos 3d on line >= 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0x8f018f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0x8f018f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x80e180fe, //Background black 
+                            0x10200ff, //Background red 
+							0xff01ff01,  // If Line < 255
+                            0x008a0000, //Jump to br1
+                            0x803d80fe, //Wait for hpos 3d on line >= 0x80
+                           0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0xff01ff01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0xff01ff01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x80e180fe, //Background black 
+                            0x10200ff,     
+                            0x00840000, // New Jumpaddress = br2
+                            0x00860000, // 
+                            //0x18000f0, // Wait for last hpos on line > 0x80
+                                        //br2
+                            0x003d80fe, //Wait for hpos 3d on line < 0x80
+                            0x10200ee, //Background red
+                            0x10801b6, //Background black
+                            0x10200dd, //Background red
+                            0x10200cc, //Background black 
+                            0x10a01b6, //Background red
+                            0x10200bb, //Background black 
+                            0x0f018f01, //Background red
+                            0x10800c6, //Background black $$
+                            0x10200aa, //Background red
+                            0x10200aa, //Background black 
+                            0x1020099, //Background red
+                            0x1020088, //Background black 
+                            0x1020088, //Background red
+                            0x1020077, //Background black 
+                            0x1020066, //Background red
+                            0x1020055, //Background black 
+                            0x1020044, //Background red
+                            0x0f018f01, //Background black 
+                            0x10a00c6, //Background red
+                            0x1020033, //Background black 
+                            0x1020022, //Background red
+                            0x1020011, //Background black 
+                            0x1020000, //Background red
+                            0x00e180fe, //Background black 
+                            0x10200ff,
+                            0x2c01ff01, //If line < 2c
+                            0x008a0000, // jump to br2           
                             }; 
+
+                           
 
