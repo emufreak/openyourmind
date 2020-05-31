@@ -27,10 +27,12 @@ void RunDemo() {
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
   //PrepareDisplay();
 
-	while(!MouseRight()) {
+	while(Zoom_Counter < 1000) {
 		WaitVbl();
     RunFrame();
 	}
+  Zoom_Dealloc();
+
 	//SetInterruptHandler((APTR)interruptHandler);
 }
 

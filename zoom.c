@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "zoomtest.h"
 
-INCBIN(startimage, "raw/eye384x272x5.raw")
+INCBIN(startimage, "raw/zoom.raw")
 
 
 void Zoom_VblankHandler() {
@@ -44,6 +44,7 @@ void Zoom_VblankHandler() {
 }
 
 void Zoom_LoadImage( ULONG *destination) {  
+
   /*for(int i=0;i<272+8;i++) {
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
       *destination++ = 0x55555555;
@@ -52,7 +53,7 @@ void Zoom_LoadImage( ULONG *destination) {
     for( int i2=0;i2<ZMLINESIZE/4*3;i2++)
       *destination++ = 0x00000000;                 
    
-  }*/
+  } */
   
   /*for( int i=0;i<64;i++) {
     for( int i2=0;i2<ZMLINESIZE/4;i2++)
@@ -111,7 +112,9 @@ ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81,
 
 void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {  
   //hw->color[0] = 0xf00;
-  WaitBlit();
+  UWORD *bp = 0x200;
+  *bp = 0;
+  WaitBlt();
    /*UWORD *bp = 0x200;
    *bp = 0;*/
  
@@ -130,7 +133,9 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
   //hw->color[0] = 0xf00;
   ULONG blta = source + ZoomBlit_Increment4SrcA;
-  WaitBlit();
+  UWORD *bp = 0x200;
+  *bp = 0;
+  WaitBlt();
   /*UWORD *bp = 0x200;
   *bp = 0;*/
   //hw->color[0] = 0x000;
@@ -158,7 +163,7 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 
 
 void Zoom_InitRun() {
-       
+    
   Zoom_Counter = 0;
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   Zoom_LevelOf102Zoom = 15;
@@ -325,7 +330,7 @@ void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
   } else {
     shifta = (shiftright - 1) << 12;
   }
-  WaitBlit(); 
+  WaitBlt(); 
   hw->bltcon1 = shiftb; 
   hw->bltcon0 = 0xde4 + shifta;
   hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
@@ -333,14 +338,15 @@ void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
 
 void Init_Copy( WORD shift) {
   UWORD shiftright = shift << 12;
-  WaitBlit();
+  WaitBlt();
   hw->bltcon0 = 0x9f0 + shiftright;
   hw->bltcon1 = 0;
 }
 
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
                                                                  UWORD planes) {
-  WaitBlit();
+  
+  WaitBlt();  
   Init_Blit();
   WORD shiftright = 9;
   UWORD shifthoriz = 7;
@@ -444,8 +450,6 @@ void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper) {
                                                          *ZMLINESIZE*ZMBPLDEPTH/4;
   UWORD *posofcopper = (UWORD *)copper + ZMCOPBPL1HIGH;
   
-  UWORD *bp = 0x200;
-  *bp = 0;
   for(int i=0;i<ZMBPLDEPTH;i++) {
     UWORD highword = (ULONG)plane2set >> 16;
     UWORD lowword = (ULONG)plane2set & 0xffff;

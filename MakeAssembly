@@ -18,16 +18,7 @@ CCFLAGS = -g -Ofast -MP -MMD -m68000 -nostdlib -Wall -Wno-pointer-sign -Wno-unus
 ASFLAGS = -Wa,-g
 LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(OUT).map
 
-all: amosbin.adf
-
-amosbin.adf: $(OUT).amosbin
-	$(info create adf)
-	copytoadf amosbin amosbin.adf -new
-	copytoadf $(OUT).amosbin amosbin.adf
-
-$(OUT).amosbin: $(OUT).exe
-	$(info vlink $(OUT).amosbin)
-	vlink -bamigahunk -mall -o $(OUT).amosbin $(OUT).exe
+all: $(OUT).exe
 
 $(OUT).exe: $(OUT).elf
 	$(info Elf2Hunk $(OUT).exe)

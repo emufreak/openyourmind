@@ -1,0 +1,13 @@
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.exe
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.deps.json
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.runtimeconfig.json
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.runtimeconfig.dev.json
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.dll
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\bin\Debug\netcoreapp3.1\BitplaneOptimizer.pdb
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.csprojAssemblyReference.cache
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.csproj.CoreCompileInputs.cache
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.AssemblyInfoInputs.cache
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.AssemblyInfo.cs
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.dll
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.pdb
+C:\Users\uersu\Documents\GitData\VoidAnniversary\BitplaneOptimizer\obj\Debug\netcoreapp3.1\BitplaneOptimizer.genruntimeconfig.cache

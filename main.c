@@ -4,7 +4,11 @@
 
 int main() {
 
-  SysBase = *((struct ExecBase**)4UL);
+  UWORD test = 99;
+  /*UWORD *bp = 0x200;
+  *bp = test;*/
+  ULONG tmp = 4;
+  SysBase = *((struct ExecBase**)tmp);
 	hw = (struct Custom*)0xdff000;
 
 	// We will use the graphics library only to locate and restore the system copper list once we are through.
@@ -18,23 +22,22 @@ int main() {
 		Exit(0);
 
 	//KPrintF("Hello debugger from Amiga!\n");
-	Write(Output(), "Hello console!\n", 15);
-	Delay(50);
-  //Zoom_InitRun();
-  RunTests();
-	//warpmode(1);
+	//Write(Output(), "Hello console!\n", 15);
+	/*Delay(50);*/
+  Zoom_InitRun();
+  //RunTests(	//warpmode(1);
 	// TODO: precalc stuff here
 	//warpmode(0);
 
-	TakeSystem();
+	//TakeSystem();
 	WaitVbl();
 
 	// DEMO
 
-	//RunDemo();	// END
+	RunDemo();	// END
 
-	FreeSystem();
+	//FreeSystem();
 
-	CloseLibrary((struct Library*)DOSBase);
-	CloseLibrary((struct Library*)GfxBase);
+	/*CloseLibrary((struct Library*)DOSBase);
+	CloseLibrary((struct Library*)GfxBase);*/
 }
