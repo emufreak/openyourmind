@@ -2,8 +2,6 @@
 #include <proto/exec.h>
 #include <exec/types.h>
 
-
-
 volatile struct Custom *hw;
 
 APTR GetVBR(void) {
@@ -163,6 +161,12 @@ void FreeSystem() {
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
   for( int i=0;i<size;i++) 
     *destination++ = *source++;  
+}
+
+void Utils_FillLong( ULONG *target, ULONG pattern, ULONG size) {
+  for(long i=0;i<size; i+=4) {
+    *target++ = pattern;
+  }
 }
 
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	

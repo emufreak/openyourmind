@@ -4,6 +4,7 @@
 #define ZMBPLSIZE ZMCOLHEIGHT*ZMLINESIZE*ZMBPLDEPTH
 #define ZMBPLPTRS 56
 #define ZMLINESIZE 48
+#define ZMLINESIZE2 44
 #define ZMBPLMOD ZMLINESIZE*(ZMBPLDEPTH-1)+6
 #define ZMBPLMOD2 ZMBPLMOD+ZMLINESIZE*ZMBPLDEPTH
 #define ZMCOPBPL1HIGH 57
@@ -34,18 +35,25 @@ void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
                                                                UWORD destcolnr);
 
 void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD size);
-void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height);                                                                    
+
+void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height);
+
+void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
+                                                  UWORD bltamod, UWORD bltbmod);
+
 void Zoom_Init();
 void Zoom_InitRun();
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
                                                                   UWORD planes);
-                                                                  
+void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
+             UWORD levelofzoom, UWORD nrofplanes);
 int Zoom_PrepareDisplay();
 void Init_Copy( WORD shift);
 void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright);
 void Init_Blit();
 void Zoom_VblankHandler();
 void Zoom_Dealloc();
+extern UWORD *Zoom_Zl4Words;
 
 ULONG *Zoom_ZoomBlitMask;
 UWORD *Zoom_Source;

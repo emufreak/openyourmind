@@ -50,6 +50,7 @@ void WaitBlt();
 void TakeSystem();
 void FreeSystem();
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size);
+void Utils_FillLong( ULONG *target, ULONG pattern, ULONG size);
 
 short MouseLeft();
 short MouseRight();

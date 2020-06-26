@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "utilsasm.h"
 #include <string.h>
+#include "zoomtest2.h"
 
 void ZoomTest() {
   TestZoomSpeed();
@@ -13,6 +14,7 @@ void ZoomTest() {
   TestCopyWord();
   TestZoom4Picture();
   TestZoom4PictureOn5Planes();
+  Test_Zoom2();
 }
 
 int Counter4Frames;
