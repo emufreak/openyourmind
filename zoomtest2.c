@@ -38,8 +38,10 @@ void Test_Zoom2() {
   //16   16 ffff
   //8+16 40 ff00
   //8+16 64 0000
-  Utils_FillLong( pic1, 0x0, size4buffer);
-  Utils_FillLong( pic2, 0x0000ffff, size4buffer*2);
+  Utils_FillLong( pic1, 0xfff00f00, 272, 10, 0 );
+  Utils_FillLong( pic1+10*272, 0xfff00f00, 272, 10, 0 );
+  Utils_FillLong( pic2, 0x0000ffff, 272, 20, 0);
+  Utils_FillLong( pic2+20*272, 0x0000ffff, 272, 20, 0);
   //Utils_FillLong( pic2, 0x0000ffff, size4buffer*2);
 
   
@@ -50,23 +52,26 @@ void Test_Zoom2() {
     *bp = 0;
     UWORD *pos = (UWORD *) target + 1;
     //ULONG pattern = 0xffff << (16 - i*2);
-    UWORD pattern[3] = { 0x0, 0xff00, 0xffff };
-    for( int i2=0;i2<7;i2++) {
-      for( int i3=0; i3<3;i3++) {
-        if(*pos++ != pattern[i3])  {
-          pos--;
-          UWORD data[3];
-          char str[100];
-          data[0] = i;
-          data[1] = i2*3+i3;
-          data[2] = *pos;
-          pos++;
-          
-          RawDoFmt( "Test_Zoom2: Pattern for zoomlevel %d, byte %d messed up."
-                                      "Result was %x.\n", data, PutChar, str);
-          Write( Output(), str, 66);
+    UWORD pattern[3] = { 0x00ff, 0xff0f, 0xffff };
+    for( int i2=0;i2<2;i2++) {
+      for( int i3=0;i3<7;i3++) {
+        for( int i4=0; i4<3;i4++) {
+          if(*pos++ != pattern[i4])  {
+            pos--;
+            UWORD data[3];
+            char str[100];
+            data[0] = i;
+            data[1] = i3*3+i4;
+            data[2] = *pos;
+            pos++;
+            
+            RawDoFmt( "Test_Zoom2: Pattern for zoomlevel %d, byte %d messed up."
+                                        "Result was %x.\n", data, PutChar, str);
+            Write( Output(), str, 66);
+          }
         }
-      }
+      } 
+      pos+=2;
     }
   }
   FreeMem( pic1, size4buffer);

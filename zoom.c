@@ -447,7 +447,7 @@ void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target,
     ULONG pos4a = pos4astart + ( ( posx4a - 1) >> 4) * 2;
     ULONG pos4b = pos4bstart + ( ( posx4b - 1) >> 4) * 2;
     //shift channel a = R of (17 + zl - pos)/16
-    UWORD shifta = ( ( 17 + *zl4word - ( posx4a & 0xf)) & 0xf) << 12;
+    UWORD shifta = ( ( 16 + *zl4word - ( posx4a & 0xf)) & 0xf) << 12;
     //shift channel b = R of (17 - pos)/16 
     UWORD shiftb = ( (16  - ( posx4b & 0xf)) & 0xf) << 12;
     UWORD bltcon0 = 0xde4 + shifta;

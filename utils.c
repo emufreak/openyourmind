@@ -163,9 +163,12 @@ void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
     *destination++ = *source++;  
 }
 
-void Utils_FillLong( ULONG *target, ULONG pattern, ULONG size) {
-  for(long i=0;i<size; i+=4) {
-    *target++ = pattern;
+void Utils_FillLong( ULONG *target, ULONG pattern, ULONG lines, 
+                                            ULONG linelength, ULONG mod ) {
+  for( int i=0;i<lines; i++) {
+    for( int i2=0;i2<linelength;i2++) 
+      *target++ = pattern;
+    target += mod;
   }
 }
 
