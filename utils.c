@@ -1,10 +1,36 @@
-#include "utils.h"
 #include <proto/exec.h>
 #include <exec/types.h>
+#include "utils.h"
+
+/*struct ExecBase *SysBase;
+volatile struct Custom *hw;
+struct DosLibrary *DOSBase;
+struct GfxBase *GfxBase;*/
+
+ULONG *Bitplane1;
+ULONG *Bitplane2;
+
+ULONG ClColor[32];
+ULONG ClsSprites[16];
+ULONG ClScreen[12];
+
+ULONG *Copperlist1;
+ULONG *Copperlist2;
+ULONG volatile *DrawBuffer;
+ULONG volatile *ViewBuffer;
+ULONG volatile *DrawCopper;
+ULONG volatile *ViewCopper;
+
+/*UWORD SystemInts;
+UWORD SystemDMA;
+UWORD SystemADKCON;
+
+APTR SystemIrq;
+struct View *ActiView;*/
 
 volatile struct Custom *hw;
 
-APTR GetVBR(void) {
+/*APTR GetVBR(void) {
 	APTR vbr = 0;
 	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
 
@@ -12,19 +38,19 @@ APTR GetVBR(void) {
 		vbr = (APTR)Supervisor((void*)getvbr);
 
 	return vbr;
-}
+}*/
 
-void SetInterruptHandler(APTR interrupt) {
+/*void SetInterruptHandler(APTR interrupt) {
 	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
-}
+}*/
 
-APTR GetInterruptHandler() {
+/*APTR GetInterruptHandler() {
 	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
-}
+}*/
 
 //vblank begins at vpos 312 hpos 1 and ends at vpos 25 hpos 1
 //vsync begins at line 2 hpos 132 and ends at vpos 5 hpos 18 
-void WaitVbl() {
+/*void WaitVbl() {
 	while (1) {
 		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
 		vpos&=0x1ff00;
@@ -37,7 +63,7 @@ void WaitVbl() {
 		if (vpos==(311<<8))
 			break;
 	}
-}
+}*/
 
 inline void WaitBlt() {
 	UWORD tst=*(volatile UWORD*)&hw->dmaconr; //for compatiblity a1000
@@ -96,7 +122,7 @@ void SwapCl() {
   hw->copjmp1 = tmp;
 }
 
-void TakeSystem() {
+/*void TakeSystem() {
 	ActiView=GfxBase->ActiView; //store current view
 	OwnBlitter();
 	WaitBlit();	
@@ -118,7 +144,7 @@ void TakeSystem() {
 	/*for(int a=0;a<32;a++)
 		hw->color[a]=0;*/
 
-	LoadView(0);
+	/*LoadView(0);
 	WaitTOF();
 	WaitTOF();
 
@@ -127,9 +153,9 @@ void TakeSystem() {
 
 	VBR=GetVBR();
 	SystemIrq=GetInterruptHandler(); //store interrupt register
-}
+}*/
 
-void FreeSystem() { 
+/*void FreeSystem() { 
 	WaitVbl();
 	WaitBlt();
 	hw->intena=0x7fff;//disable all interrupts
@@ -137,15 +163,15 @@ void FreeSystem() {
 	hw->dmacon=0x7fff;//Clear all DMA channels
 
 	//restore interrupts
-	SetInterruptHandler(SystemIrq);
+	SetInterruptHandler(SystemIrq);*/
 
 	/*Restore system copper list(s). */
-	hw->cop1lc=(ULONG)GfxBase->copinit;
+	/*hw->cop1lc=(ULONG)GfxBase->copinit;
 	hw->cop2lc=(ULONG)GfxBase->LOFlist;
-	hw->copjmp1=0x7fff; //start coppper
+	hw->copjmp1=0x7fff; //start coppper*/
 
 	/*Restore all interrupts and DMA settings. */
-	hw->intena=SystemInts|0x8000;
+	/*hw->intena=SystemInts|0x8000;
 	hw->dmacon=SystemDMA|0x8000;
 	hw->adkcon=SystemADKCON|0x8000;
 
@@ -156,7 +182,7 @@ void FreeSystem() {
 	DisownBlitter();
   Permit();
 	//Enable();
-}
+}*/
 
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
   for( int i=0;i<size;i++) 

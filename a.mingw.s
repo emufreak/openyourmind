@@ -5,7457 +5,7466 @@ a.mingw.elf:     file format elf32-m68k
 Disassembly of section .text:
 
 00000000 <_start>:
-
-
-int main();
+extern void (*__init_array_start[])() __attribute__((weak));
+extern void (*__init_array_end[])() __attribute__((weak));
+extern void (*__fini_array_start[])() __attribute__((weak));
+extern void (*__fini_array_end[])() __attribute__((weak));
 
 __attribute__((used)) __attribute__((section(".text.unlikely"))) void _start() {
+       0:	518f           	subq.l #8,sp
+	// initialize globals, ctors etc.
+	unsigned long count;
+	unsigned long i;
+
+	count = __preinit_array_end - __preinit_array_start;
+       2:	203c 0001 a51e 	move.l #107806,d0
+       8:	0480 0001 a51e 	subi.l #107806,d0
+       e:	e480           	asr.l #2,d0
+      10:	2e80           	move.l d0,(sp)
+	for (i = 0; i < count; i++)
+      12:	42af 0004      	clr.l 4(sp)
+      16:	601a           	bra.s 32 <_start+0x32>
+		__preinit_array_start[i]();
+      18:	202f 0004      	move.l 4(sp),d0
+      1c:	d080           	add.l d0,d0
+      1e:	2240           	movea.l d0,a1
+      20:	d3c0           	adda.l d0,a1
+      22:	41f9 0001 a51e 	lea 1a51e <__fini_array_end>,a0
+      28:	2071 8800      	movea.l (0,a1,a0.l),a0
+      2c:	4e90           	jsr (a0)
+	for (i = 0; i < count; i++)
+      2e:	52af 0004      	addq.l #1,4(sp)
+      32:	202f 0004      	move.l 4(sp),d0
+      36:	b097           	cmp.l (sp),d0
+      38:	65de           	bcs.s 18 <_start+0x18>
+
+	count = __init_array_end - __init_array_start;
+      3a:	203c 0001 a51e 	move.l #107806,d0
+      40:	0480 0001 a51e 	subi.l #107806,d0
+      46:	e480           	asr.l #2,d0
+      48:	2e80           	move.l d0,(sp)
+	for (i = 0; i < count; i++)
+      4a:	42af 0004      	clr.l 4(sp)
+      4e:	601a           	bra.s 6a <_start+0x6a>
+		__init_array_start[i]();
+      50:	202f 0004      	move.l 4(sp),d0
+      54:	d080           	add.l d0,d0
+      56:	2240           	movea.l d0,a1
+      58:	d3c0           	adda.l d0,a1
+      5a:	41f9 0001 a51e 	lea 1a51e <__fini_array_end>,a0
+      60:	2071 8800      	movea.l (0,a1,a0.l),a0
+      64:	4e90           	jsr (a0)
+	for (i = 0; i < count; i++)
+      66:	52af 0004      	addq.l #1,4(sp)
+      6a:	202f 0004      	move.l 4(sp),d0
+      6e:	b097           	cmp.l (sp),d0
+      70:	65de           	bcs.s 50 <_start+0x50>
+
 	main();
-       0:	4ef9 0000 0d04 	jmp d04 <main>
-       6:	4e71           	nop
+      72:	4eb9 0000 090c 	jsr 90c <main>
 
-00000008 <GetVBR>:
-#include <proto/exec.h>
-#include <exec/types.h>
-
-volatile struct Custom *hw;
-
-APTR GetVBR(void) {
-       8:	4fef ffec      	lea -20(sp),sp
-       c:	2f0e           	move.l a6,-(sp)
-       e:	2f07           	move.l d7,-(sp)
-	APTR vbr = 0;
-      10:	42af 0018      	clr.l 24(sp)
-	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
-      14:	3f7c 4e7a 000a 	move.w #20090,10(sp)
-      1a:	3f7c 0801 000c 	move.w #2049,12(sp)
-      20:	3f7c 4e73 000e 	move.w #20083,14(sp)
-
-	if (SysBase->AttnFlags & AFF_68010) 
-      26:	2079 0001 ba7c 	movea.l 1ba7c <_edata>,a0
-      2c:	3028 0128      	move.w 296(a0),d0
-      30:	3000           	move.w d0,d0
-      32:	0280 0000 ffff 	andi.l #65535,d0
-      38:	7201           	moveq #1,d1
-      3a:	c081           	and.l d1,d0
-      3c:	4a80           	tst.l d0
-      3e:	672c           	beq.s 6c <GetVBR+0x64>
-		vbr = (APTR)Supervisor((void*)getvbr);
-      40:	41ef 001c      	lea 28(sp),a0
-      44:	41e8 ffee      	lea -18(a0),a0
-      48:	2f48 0014      	move.l a0,20(sp)
-      4c:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-      52:	2c40           	movea.l d0,a6
-      54:	2e2f 0014      	move.l 20(sp),d7
-      58:	cf8d           	exg d7,a5
-      5a:	4eae ffe2      	jsr -30(a6)
-      5e:	cf8d           	exg d7,a5
-      60:	2f40 0010      	move.l d0,16(sp)
-      64:	202f 0010      	move.l 16(sp),d0
-      68:	2f40 0018      	move.l d0,24(sp)
-
-	return vbr;
-      6c:	202f 0018      	move.l 24(sp),d0
+	// call dtors
+	count = __fini_array_end - __fini_array_start;
+      78:	203c 0001 a51e 	move.l #107806,d0
+      7e:	0480 0001 a51e 	subi.l #107806,d0
+      84:	e480           	asr.l #2,d0
+      86:	2e80           	move.l d0,(sp)
+	for (i = count; i > 0; i--)
+      88:	2f57 0004      	move.l (sp),4(sp)
+      8c:	601c           	bra.s aa <_start+0xaa>
+		__fini_array_start[i - 1]();
+      8e:	202f 0004      	move.l 4(sp),d0
+      92:	5380           	subq.l #1,d0
+      94:	d080           	add.l d0,d0
+      96:	2240           	movea.l d0,a1
+      98:	d3c0           	adda.l d0,a1
+      9a:	41f9 0001 a51e 	lea 1a51e <__fini_array_end>,a0
+      a0:	2071 8800      	movea.l (0,a1,a0.l),a0
+      a4:	4e90           	jsr (a0)
+	for (i = count; i > 0; i--)
+      a6:	53af 0004      	subq.l #1,4(sp)
+      aa:	4aaf 0004      	tst.l 4(sp)
+      ae:	66de           	bne.s 8e <_start+0x8e>
 }
-      70:	2e1f           	move.l (sp)+,d7
-      72:	2c5f           	movea.l (sp)+,a6
-      74:	4fef 0014      	lea 20(sp),sp
-      78:	4e75           	rts
+      b0:	508f           	addq.l #8,sp
+      b2:	4e75           	rts
 
-0000007a <SetInterruptHandler>:
-
-void SetInterruptHandler(APTR interrupt) {
-	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
-      7a:	2079 0001 baae 	movea.l 1baae <VBR.lto_priv.0>,a0
-      80:	41e8 006c      	lea 108(a0),a0
-      84:	20af 0004      	move.l 4(sp),(a0)
-}
-      88:	4e75           	rts
-
-0000008a <GetInterruptHandler>:
-
-APTR GetInterruptHandler() {
-	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
-      8a:	2079 0001 baae 	movea.l 1baae <VBR.lto_priv.0>,a0
-      90:	2028 006c      	move.l 108(a0),d0
-}
-      94:	4e75           	rts
-
-00000096 <WaitVbl>:
-
-//vblank begins at vpos 312 hpos 1 and ends at vpos 25 hpos 1
-//vsync begins at line 2 hpos 132 and ends at vpos 5 hpos 18 
-void WaitVbl() {
-      96:	518f           	subq.l #8,sp
-	while (1) {
-		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
-      98:	207c 00df f004 	movea.l #14675972,a0
-      9e:	2010           	move.l (a0),d0
-      a0:	2e80           	move.l d0,(sp)
-		vpos&=0x1ff00;
-      a2:	2017           	move.l (sp),d0
-      a4:	0280 0001 ff00 	andi.l #130816,d0
-      aa:	2e80           	move.l d0,(sp)
-		if (vpos!=(311<<8))
-      ac:	2017           	move.l (sp),d0
-      ae:	0c80 0001 3700 	cmpi.l #79616,d0
-      b4:	67e2           	beq.s 98 <WaitVbl+0x2>
-			break;
-	}
-	while (1) {
-		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
-      b6:	207c 00df f004 	movea.l #14675972,a0
-      bc:	2010           	move.l (a0),d0
-      be:	2f40 0004      	move.l d0,4(sp)
-		vpos&=0x1ff00;
-      c2:	202f 0004      	move.l 4(sp),d0
-      c6:	0280 0001 ff00 	andi.l #130816,d0
-      cc:	2f40 0004      	move.l d0,4(sp)
+000000b4 <WaitBlt>:
 		if (vpos==(311<<8))
-      d0:	202f 0004      	move.l 4(sp),d0
-      d4:	0c80 0001 3700 	cmpi.l #79616,d0
-      da:	66da           	bne.s b6 <WaitVbl+0x20>
 			break;
 	}
-}
-      dc:	508f           	addq.l #8,sp
-      de:	4e75           	rts
-
-000000e0 <WaitBlt>:
+}*/
 
 inline void WaitBlt() {
-      e0:	598f           	subq.l #4,sp
+      b4:	598f           	subq.l #4,sp
 	UWORD tst=*(volatile UWORD*)&hw->dmaconr; //for compatiblity a1000
-      e2:	2079 0001 baba 	movea.l 1baba <hw>,a0
-      e8:	3f68 0002 0002 	move.w 2(a0),2(sp)
+      b6:	2079 0002 8520 	movea.l 28520 <hw>,a0
+      bc:	3f68 0002 0002 	move.w 2(a0),2(sp)
 	(void)tst;
 	while (*(volatile UWORD*)&hw->dmaconr&(1<<14)) {} //blitter busy wait
-      ee:	2079 0001 baba 	movea.l 1baba <hw>,a0
-      f4:	3028 0002      	move.w 2(a0),d0
-      f8:	3000           	move.w d0,d0
-      fa:	0280 0000 ffff 	andi.l #65535,d0
-     100:	0280 0000 4000 	andi.l #16384,d0
-     106:	4a80           	tst.l d0
-     108:	66e4           	bne.s ee <WaitBlt+0xe>
+      c2:	2079 0002 8520 	movea.l 28520 <hw>,a0
+      c8:	3028 0002      	move.w 2(a0),d0
+      cc:	3000           	move.w d0,d0
+      ce:	0280 0000 ffff 	andi.l #65535,d0
+      d4:	0280 0000 4000 	andi.l #16384,d0
+      da:	66e6           	bne.s c2 <WaitBlt+0xe>
 }
-     10a:	588f           	addq.l #4,sp
-     10c:	4e75           	rts
+      dc:	588f           	addq.l #4,sp
+      de:	4e75           	rts
 
-0000010e <FreeDisplay>:
+000000e0 <FreeDisplay>:
    0x018A0D97,0x018C0AAA,0x018E0E99,0x01900CB6,0x01920EA9,0x01940DB8,0x01960CCC,
    0x01980FBB,0x019A0ECA,0x019C0BE7,0x019E0EDC,0x01A00DDD,0x01A20FDD,0x01A40DE8,
    0x01A60EEA,0x01A80DE9,0x01AA0DFB,0x01AC0FEE,0x01AE0EFC,0x01B00EFF,0x01B20EFC,
            0x01B40EFD,0x01B60FFE,0x01B80FFF,0x01BA0FFF,0x01BC0FFF, 0x01BE0FFF };
 
 void FreeDisplay( int clsize, int bplsize) {
-     10e:	4fef ffe0      	lea -32(sp),sp
-     112:	2f0e           	move.l a6,-(sp)
+      e0:	4fef ffe0      	lea -32(sp),sp
+      e4:	2f0e           	move.l a6,-(sp)
   if( Copperlist1 != 0) FreeMem( Copperlist1, clsize);
-     114:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-     11a:	4a80           	tst.l d0
-     11c:	6722           	beq.s 140 <FreeDisplay+0x32>
-     11e:	2f79 0001 ba90 	move.l 1ba90 <Copperlist1>,32(sp)
-     124:	0020 
-     126:	2f6f 0028 001c 	move.l 40(sp),28(sp)
-     12c:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     132:	2c40           	movea.l d0,a6
-     134:	226f 0020      	movea.l 32(sp),a1
-     138:	202f 001c      	move.l 28(sp),d0
-     13c:	4eae ff2e      	jsr -210(a6)
+      e6:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+      ec:	6722           	beq.s 110 <FreeDisplay+0x30>
+      ee:	2f79 0002 8508 	move.l 28508 <Copperlist1>,32(sp)
+      f4:	0020 
+      f6:	2f6f 0028 001c 	move.l 40(sp),28(sp)
+      fc:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     102:	2c40           	movea.l d0,a6
+     104:	226f 0020      	movea.l 32(sp),a1
+     108:	202f 001c      	move.l 28(sp),d0
+     10c:	4eae ff2e      	jsr -210(a6)
   if( Copperlist2 != 0) FreeMem( Copperlist2, clsize);
-     140:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-     146:	4a80           	tst.l d0
-     148:	6722           	beq.s 16c <FreeDisplay+0x5e>
-     14a:	2f79 0001 ba94 	move.l 1ba94 <Copperlist2>,24(sp)
-     150:	0018 
-     152:	2f6f 0028 0014 	move.l 40(sp),20(sp)
-     158:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     15e:	2c40           	movea.l d0,a6
-     160:	226f 0018      	movea.l 24(sp),a1
-     164:	202f 0014      	move.l 20(sp),d0
-     168:	4eae ff2e      	jsr -210(a6)
+     110:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+     116:	6722           	beq.s 13a <FreeDisplay+0x5a>
+     118:	2f79 0002 850c 	move.l 2850c <Copperlist2>,24(sp)
+     11e:	0018 
+     120:	2f6f 0028 0014 	move.l 40(sp),20(sp)
+     126:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     12c:	2c40           	movea.l d0,a6
+     12e:	226f 0018      	movea.l 24(sp),a1
+     132:	202f 0014      	move.l 20(sp),d0
+     136:	4eae ff2e      	jsr -210(a6)
   if( Bitplane1 != 0) FreeMem( Bitplane1, bplsize);
-     16c:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-     172:	4a80           	tst.l d0
-     174:	6722           	beq.s 198 <FreeDisplay+0x8a>
-     176:	2f79 0001 ba88 	move.l 1ba88 <Bitplane1>,16(sp)
-     17c:	0010 
-     17e:	2f6f 002c 000c 	move.l 44(sp),12(sp)
-     184:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     18a:	2c40           	movea.l d0,a6
-     18c:	226f 0010      	movea.l 16(sp),a1
-     190:	202f 000c      	move.l 12(sp),d0
-     194:	4eae ff2e      	jsr -210(a6)
+     13a:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+     140:	6722           	beq.s 164 <FreeDisplay+0x84>
+     142:	2f79 0002 8500 	move.l 28500 <Bitplane1>,16(sp)
+     148:	0010 
+     14a:	2f6f 002c 000c 	move.l 44(sp),12(sp)
+     150:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     156:	2c40           	movea.l d0,a6
+     158:	226f 0010      	movea.l 16(sp),a1
+     15c:	202f 000c      	move.l 12(sp),d0
+     160:	4eae ff2e      	jsr -210(a6)
   if( Bitplane2 != 0) FreeMem( Bitplane2, bplsize);
-     198:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-     19e:	4a80           	tst.l d0
-     1a0:	6722           	beq.s 1c4 <FreeDisplay+0xb6>
-     1a2:	2f79 0001 ba8c 	move.l 1ba8c <Bitplane2>,8(sp)
-     1a8:	0008 
-     1aa:	2f6f 002c 0004 	move.l 44(sp),4(sp)
-     1b0:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     1b6:	2c40           	movea.l d0,a6
-     1b8:	226f 0008      	movea.l 8(sp),a1
-     1bc:	202f 0004      	move.l 4(sp),d0
-     1c0:	4eae ff2e      	jsr -210(a6)
+     164:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+     16a:	6722           	beq.s 18e <FreeDisplay+0xae>
+     16c:	2f79 0002 8504 	move.l 28504 <Bitplane2>,8(sp)
+     172:	0008 
+     174:	2f6f 002c 0004 	move.l 44(sp),4(sp)
+     17a:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     180:	2c40           	movea.l d0,a6
+     182:	226f 0008      	movea.l 8(sp),a1
+     186:	202f 0004      	move.l 4(sp),d0
+     18a:	4eae ff2e      	jsr -210(a6)
 }
-     1c4:	2c5f           	movea.l (sp)+,a6
-     1c6:	4fef 0020      	lea 32(sp),sp
-     1ca:	4e75           	rts
+     18e:	2c5f           	movea.l (sp)+,a6
+     190:	4fef 0020      	lea 32(sp),sp
+     194:	4e75           	rts
 
-000001cc <SetBplPointers>:
+00000196 <SetBplPointers>:
 
 void SetBplPointers() {
-     1cc:	4fef fff4      	lea -12(sp),sp
+     196:	4fef fff4      	lea -12(sp),sp
   UWORD highword = (ULONG)DrawBuffer >> 16;
-     1d0:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-     1d6:	4240           	clr.w d0
-     1d8:	4840           	swap d0
-     1da:	3f40 000a      	move.w d0,10(sp)
+     19a:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+     1a0:	4240           	clr.w d0
+     1a2:	4840           	swap d0
+     1a4:	3f40 000a      	move.w d0,10(sp)
   UWORD lowword = (ULONG)DrawBuffer & 0xffff;
-     1de:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-     1e4:	3f40 0008      	move.w d0,8(sp)
+     1a8:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+     1ae:	3f40 0008      	move.w d0,8(sp)
   
   UWORD *copword = (UWORD *) DrawCopper;
-     1e8:	2f79 0001 baa0 	move.l 1baa0 <DrawCopper>,4(sp)
-     1ee:	0004 
+     1b2:	2f79 0002 8518 	move.l 28518 <DrawCopper>,4(sp)
+     1b8:	0004 
   copword[COPBPL1LOW] = lowword;
-     1f0:	307c 0076      	movea.w #118,a0
-     1f4:	d1ef 0004      	adda.l 4(sp),a0
-     1f8:	30af 0008      	move.w 8(sp),(a0)
+     1ba:	307c 0076      	movea.w #118,a0
+     1be:	d1ef 0004      	adda.l 4(sp),a0
+     1c2:	30af 0008      	move.w 8(sp),(a0)
   copword[COPBPL1HIGH] = highword;
-     1fc:	307c 0072      	movea.w #114,a0
-     200:	d1ef 0004      	adda.l 4(sp),a0
-     204:	30af 000a      	move.w 10(sp),(a0)
+     1c6:	307c 0072      	movea.w #114,a0
+     1ca:	d1ef 0004      	adda.l 4(sp),a0
+     1ce:	30af 000a      	move.w 10(sp),(a0)
   
   ULONG tmp = (ULONG) DrawBuffer;
-     208:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-     20e:	2e80           	move.l d0,(sp)
+     1d2:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+     1d8:	2e80           	move.l d0,(sp)
   DrawBuffer = ViewBuffer;
-     210:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-     216:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
+     1da:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+     1e0:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
   ViewBuffer = (ULONG *) tmp;
-     21c:	2017           	move.l (sp),d0
-     21e:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
+     1e6:	2017           	move.l (sp),d0
+     1e8:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
 }
-     224:	4fef 000c      	lea 12(sp),sp
-     228:	4e75           	rts
+     1ee:	4fef 000c      	lea 12(sp),sp
+     1f2:	4e75           	rts
 
-0000022a <SwapCl>:
+000001f4 <SwapCl>:
 
 void SwapCl() {
-     22a:	598f           	subq.l #4,sp
+     1f4:	598f           	subq.l #4,sp
   ULONG tmp = (ULONG) DrawCopper;
-     22c:	2039 0001 baa0 	move.l 1baa0 <DrawCopper>,d0
-     232:	2e80           	move.l d0,(sp)
+     1f6:	2039 0002 8518 	move.l 28518 <DrawCopper>,d0
+     1fc:	2e80           	move.l d0,(sp)
   DrawCopper = ViewCopper;
-     234:	2039 0001 baa4 	move.l 1baa4 <ViewCopper>,d0
-     23a:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
+     1fe:	2039 0002 851c 	move.l 2851c <ViewCopper>,d0
+     204:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
   ViewCopper = (ULONG *)tmp;
-     240:	2017           	move.l (sp),d0
-     242:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
+     20a:	2017           	move.l (sp),d0
+     20c:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
   hw->cop1lc = (ULONG) ViewCopper;
-     248:	2039 0001 baa4 	move.l 1baa4 <ViewCopper>,d0
-     24e:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     254:	2140 0080      	move.l d0,128(a0)
+     212:	2039 0002 851c 	move.l 2851c <ViewCopper>,d0
+     218:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     21e:	2140 0080      	move.l d0,128(a0)
   hw->copjmp1 = tmp;
-     258:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     25e:	2017           	move.l (sp),d0
-     260:	3140 0088      	move.w d0,136(a0)
+     222:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     228:	2017           	move.l (sp),d0
+     22a:	3140 0088      	move.w d0,136(a0)
 }
-     264:	588f           	addq.l #4,sp
-     266:	4e75           	rts
+     22e:	588f           	addq.l #4,sp
+     230:	4e75           	rts
 
-00000268 <TakeSystem>:
-
-void TakeSystem() {
-     268:	598f           	subq.l #4,sp
-     26a:	2f0e           	move.l a6,-(sp)
-	ActiView=GfxBase->ActiView; //store current view
-     26c:	2079 0001 ba84 	movea.l 1ba84 <GfxBase>,a0
-     272:	2028 0022      	move.l 34(a0),d0
-     276:	23c0 0001 bab6 	move.l d0,1bab6 <ActiView>
-	OwnBlitter();
-     27c:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     282:	2c40           	movea.l d0,a6
-     284:	4eae fe38      	jsr -456(a6)
-	WaitBlit();	
-     288:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     28e:	2c40           	movea.l d0,a6
-     290:	4eae ff1c      	jsr -228(a6)
-	//Disable();
-  Forbid();
-     294:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     29a:	2c40           	movea.l d0,a6
-     29c:	4eae ff7c      	jsr -132(a6)
-	
-	//Save current interrupts and DMA settings so we can restore them upon exit. 
-	SystemADKCON=hw->adkconr;
-     2a0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2a6:	3028 0010      	move.w 16(a0),d0
-     2aa:	33c0 0001 baac 	move.w d0,1baac <SystemADKCON>
-	SystemInts=hw->intenar;
-     2b0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2b6:	3028 001c      	move.w 28(a0),d0
-     2ba:	33c0 0001 baa8 	move.w d0,1baa8 <SystemInts>
-	SystemDMA=hw->dmaconr;
-     2c0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2c6:	3028 0002      	move.w 2(a0),d0
-     2ca:	33c0 0001 baaa 	move.w d0,1baaa <SystemDMA>
-	hw->intena=0x7fff;//disable all interrupts
-     2d0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2d6:	317c 7fff 009a 	move.w #32767,154(a0)
-	hw->intreq=0x7fff;//Clear any interrupts that were pending
-     2dc:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2e2:	317c 7fff 009c 	move.w #32767,156(a0)
-	
-	WaitVbl();
-     2e8:	4eba fdac      	jsr 96 <WaitVbl>(pc)
-	WaitVbl();
-     2ec:	4eba fda8      	jsr 96 <WaitVbl>(pc)
-	hw->dmacon=0x7fff;//Clear all DMA channels
-     2f0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     2f6:	317c 7fff 0096 	move.w #32767,150(a0)
-
-	//set all colors black
-	/*for(int a=0;a<32;a++)
-		hw->color[a]=0;*/
-
-	LoadView(0);
-     2fc:	42af 0004      	clr.l 4(sp)
-     300:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     306:	2c40           	movea.l d0,a6
-     308:	226f 0004      	movea.l 4(sp),a1
-     30c:	4eae ff22      	jsr -222(a6)
-	WaitTOF();
-     310:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     316:	2c40           	movea.l d0,a6
-     318:	4eae fef2      	jsr -270(a6)
-	WaitTOF();
-     31c:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     322:	2c40           	movea.l d0,a6
-     324:	4eae fef2      	jsr -270(a6)
-
-	WaitVbl();
-     328:	4eba fd6c      	jsr 96 <WaitVbl>(pc)
-	WaitVbl();
-     32c:	4eba fd68      	jsr 96 <WaitVbl>(pc)
-
-	VBR=GetVBR();
-     330:	4eba fcd6      	jsr 8 <GetVBR>(pc)
-     334:	23c0 0001 baae 	move.l d0,1baae <VBR.lto_priv.0>
-	SystemIrq=GetInterruptHandler(); //store interrupt register
-     33a:	4eba fd4e      	jsr 8a <GetInterruptHandler>(pc)
-     33e:	23c0 0001 bab2 	move.l d0,1bab2 <SystemIrq>
-}
-     344:	2c5f           	movea.l (sp)+,a6
-     346:	588f           	addq.l #4,sp
-     348:	4e75           	rts
-
-0000034a <FreeSystem>:
-
-void FreeSystem() { 
-     34a:	598f           	subq.l #4,sp
-     34c:	2f0e           	move.l a6,-(sp)
-	WaitVbl();
-     34e:	4eba fd46      	jsr 96 <WaitVbl>(pc)
-	WaitBlt();
-     352:	4eba fd8c      	jsr e0 <WaitBlt>(pc)
-	hw->intena=0x7fff;//disable all interrupts
-     356:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     35c:	317c 7fff 009a 	move.w #32767,154(a0)
-	hw->intreq=0x7fff;//Clear any interrupts that were pending
-     362:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     368:	317c 7fff 009c 	move.w #32767,156(a0)
-	hw->dmacon=0x7fff;//Clear all DMA channels
-     36e:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     374:	317c 7fff 0096 	move.w #32767,150(a0)
-
-	//restore interrupts
-	SetInterruptHandler(SystemIrq);
-     37a:	2039 0001 bab2 	move.l 1bab2 <SystemIrq>,d0
-     380:	2f00           	move.l d0,-(sp)
-     382:	4eba fcf6      	jsr 7a <SetInterruptHandler>(pc)
-     386:	588f           	addq.l #4,sp
-
-	/*Restore system copper list(s). */
-	hw->cop1lc=(ULONG)GfxBase->copinit;
-     388:	2079 0001 ba84 	movea.l 1ba84 <GfxBase>,a0
-     38e:	2028 0026      	move.l 38(a0),d0
-     392:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     398:	2140 0080      	move.l d0,128(a0)
-	hw->cop2lc=(ULONG)GfxBase->LOFlist;
-     39c:	2079 0001 ba84 	movea.l 1ba84 <GfxBase>,a0
-     3a2:	2028 0032      	move.l 50(a0),d0
-     3a6:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     3ac:	2140 0084      	move.l d0,132(a0)
-	hw->copjmp1=0x7fff; //start coppper
-     3b0:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     3b6:	317c 7fff 0088 	move.w #32767,136(a0)
-
-	/*Restore all interrupts and DMA settings. */
-	hw->intena=SystemInts|0x8000;
-     3bc:	3039 0001 baa8 	move.w 1baa8 <SystemInts>,d0
-     3c2:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     3c8:	0040 8000      	ori.w #-32768,d0
-     3cc:	3140 009a      	move.w d0,154(a0)
-	hw->dmacon=SystemDMA|0x8000;
-     3d0:	3039 0001 baaa 	move.w 1baaa <SystemDMA>,d0
-     3d6:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     3dc:	0040 8000      	ori.w #-32768,d0
-     3e0:	3140 0096      	move.w d0,150(a0)
-	hw->adkcon=SystemADKCON|0x8000;
-     3e4:	3039 0001 baac 	move.w 1baac <SystemADKCON>,d0
-     3ea:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     3f0:	0040 8000      	ori.w #-32768,d0
-     3f4:	3140 009e      	move.w d0,158(a0)
-
-	LoadView(ActiView);
-     3f8:	2f79 0001 bab6 	move.l 1bab6 <ActiView>,4(sp)
-     3fe:	0004 
-     400:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     406:	2c40           	movea.l d0,a6
-     408:	226f 0004      	movea.l 4(sp),a1
-     40c:	4eae ff22      	jsr -222(a6)
-	WaitTOF();
-     410:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     416:	2c40           	movea.l d0,a6
-     418:	4eae fef2      	jsr -270(a6)
-	WaitTOF();
-     41c:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     422:	2c40           	movea.l d0,a6
-     424:	4eae fef2      	jsr -270(a6)
-	WaitBlit();	
-     428:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     42e:	2c40           	movea.l d0,a6
-     430:	4eae ff1c      	jsr -228(a6)
+00000232 <Utils_CopyMem>:
 	DisownBlitter();
-     434:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     43a:	2c40           	movea.l d0,a6
-     43c:	4eae fe32      	jsr -462(a6)
   Permit();
-     440:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     446:	2c40           	movea.l d0,a6
-     448:	4eae ff76      	jsr -138(a6)
 	//Enable();
-}
-     44c:	2c5f           	movea.l (sp)+,a6
-     44e:	588f           	addq.l #4,sp
-     450:	4e75           	rts
-
-00000452 <Utils_CopyMem>:
+}*/
 
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
-     452:	598f           	subq.l #4,sp
-     454:	2f02           	move.l d2,-(sp)
+     232:	598f           	subq.l #4,sp
+     234:	2f02           	move.l d2,-(sp)
   for( int i=0;i<size;i++) 
-     456:	42af 0004      	clr.l 4(sp)
-     45a:	6024           	bra.s 480 <Utils_CopyMem+0x2e>
+     236:	42af 0004      	clr.l 4(sp)
+     23a:	6024           	bra.s 260 <Utils_CopyMem+0x2e>
     *destination++ = *source++;  
-     45c:	222f 000c      	move.l 12(sp),d1
-     460:	2001           	move.l d1,d0
-     462:	5880           	addq.l #4,d0
-     464:	2f40 000c      	move.l d0,12(sp)
-     468:	202f 0010      	move.l 16(sp),d0
-     46c:	2400           	move.l d0,d2
-     46e:	5882           	addq.l #4,d2
-     470:	2f42 0010      	move.l d2,16(sp)
-     474:	2041           	movea.l d1,a0
-     476:	2210           	move.l (a0),d1
-     478:	2040           	movea.l d0,a0
-     47a:	2081           	move.l d1,(a0)
+     23c:	222f 000c      	move.l 12(sp),d1
+     240:	2001           	move.l d1,d0
+     242:	5880           	addq.l #4,d0
+     244:	2f40 000c      	move.l d0,12(sp)
+     248:	202f 0010      	move.l 16(sp),d0
+     24c:	2400           	move.l d0,d2
+     24e:	5882           	addq.l #4,d2
+     250:	2f42 0010      	move.l d2,16(sp)
+     254:	2041           	movea.l d1,a0
+     256:	2210           	move.l (a0),d1
+     258:	2040           	movea.l d0,a0
+     25a:	2081           	move.l d1,(a0)
   for( int i=0;i<size;i++) 
-     47c:	52af 0004      	addq.l #1,4(sp)
-     480:	202f 0004      	move.l 4(sp),d0
-     484:	b0af 0014      	cmp.l 20(sp),d0
-     488:	65d2           	bcs.s 45c <Utils_CopyMem+0xa>
+     25c:	52af 0004      	addq.l #1,4(sp)
+     260:	202f 0004      	move.l 4(sp),d0
+     264:	b0af 0014      	cmp.l 20(sp),d0
+     268:	65d2           	bcs.s 23c <Utils_CopyMem+0xa>
 }
-     48a:	241f           	move.l (sp)+,d2
-     48c:	588f           	addq.l #4,sp
-     48e:	4e75           	rts
+     26a:	241f           	move.l (sp)+,d2
+     26c:	588f           	addq.l #4,sp
+     26e:	4e75           	rts
 
-00000490 <Utils_FillLong>:
+00000270 <Utils_FillLong>:
 
 void Utils_FillLong( ULONG *target, ULONG pattern, ULONG lines, 
                                             ULONG linelength, ULONG mod ) {
-     490:	518f           	subq.l #8,sp
+     270:	518f           	subq.l #8,sp
   for( int i=0;i<lines; i++) {
-     492:	42af 0004      	clr.l 4(sp)
-     496:	6030           	bra.s 4c8 <Utils_FillLong+0x38>
+     272:	42af 0004      	clr.l 4(sp)
+     276:	6030           	bra.s 2a8 <Utils_FillLong+0x38>
     for( int i2=0;i2<linelength;i2++) 
-     498:	4297           	clr.l (sp)
-     49a:	6014           	bra.s 4b0 <Utils_FillLong+0x20>
+     278:	4297           	clr.l (sp)
+     27a:	6014           	bra.s 290 <Utils_FillLong+0x20>
       *target++ = pattern;
-     49c:	202f 000c      	move.l 12(sp),d0
-     4a0:	2200           	move.l d0,d1
-     4a2:	5881           	addq.l #4,d1
-     4a4:	2f41 000c      	move.l d1,12(sp)
-     4a8:	2040           	movea.l d0,a0
-     4aa:	20af 0010      	move.l 16(sp),(a0)
+     27c:	202f 000c      	move.l 12(sp),d0
+     280:	2200           	move.l d0,d1
+     282:	5881           	addq.l #4,d1
+     284:	2f41 000c      	move.l d1,12(sp)
+     288:	2040           	movea.l d0,a0
+     28a:	20af 0010      	move.l 16(sp),(a0)
     for( int i2=0;i2<linelength;i2++) 
-     4ae:	5297           	addq.l #1,(sp)
-     4b0:	2017           	move.l (sp),d0
-     4b2:	b0af 0018      	cmp.l 24(sp),d0
-     4b6:	65e4           	bcs.s 49c <Utils_FillLong+0xc>
+     28e:	5297           	addq.l #1,(sp)
+     290:	2017           	move.l (sp),d0
+     292:	b0af 0018      	cmp.l 24(sp),d0
+     296:	65e4           	bcs.s 27c <Utils_FillLong+0xc>
     target += mod;
-     4b8:	202f 001c      	move.l 28(sp),d0
-     4bc:	d080           	add.l d0,d0
-     4be:	d080           	add.l d0,d0
-     4c0:	d1af 000c      	add.l d0,12(sp)
+     298:	202f 001c      	move.l 28(sp),d0
+     29c:	d080           	add.l d0,d0
+     29e:	d080           	add.l d0,d0
+     2a0:	d1af 000c      	add.l d0,12(sp)
   for( int i=0;i<lines; i++) {
-     4c4:	52af 0004      	addq.l #1,4(sp)
-     4c8:	202f 0004      	move.l 4(sp),d0
-     4cc:	b0af 0014      	cmp.l 20(sp),d0
-     4d0:	65c6           	bcs.s 498 <Utils_FillLong+0x8>
+     2a4:	52af 0004      	addq.l #1,4(sp)
+     2a8:	202f 0004      	move.l 4(sp),d0
+     2ac:	b0af 0014      	cmp.l 20(sp),d0
+     2b0:	65c6           	bcs.s 278 <Utils_FillLong+0x8>
   }
 }
-     4d2:	508f           	addq.l #8,sp
-     4d4:	4e75           	rts
+     2b2:	508f           	addq.l #8,sp
+     2b4:	4e75           	rts
 
-000004d6 <MouseLeft>:
+000002b6 <MouseLeft>:
 
 short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
-     4d6:	207c 00bf e001 	movea.l #12574721,a0
-     4dc:	1010           	move.b (a0),d0
-     4de:	1000           	move.b d0,d0
-     4e0:	0280 0000 00ff 	andi.l #255,d0
-     4e6:	7240           	moveq #64,d1
-     4e8:	c081           	and.l d1,d0
-     4ea:	4a80           	tst.l d0
-     4ec:	57c0           	seq d0
-     4ee:	4400           	neg.b d0
-     4f0:	1000           	move.b d0,d0
-     4f2:	0240 00ff      	andi.w #255,d0
-     4f6:	4e75           	rts
+     2b6:	207c 00bf e001 	movea.l #12574721,a0
+     2bc:	1010           	move.b (a0),d0
+     2be:	1000           	move.b d0,d0
+     2c0:	0280 0000 00ff 	andi.l #255,d0
+     2c6:	7240           	moveq #64,d1
+     2c8:	c081           	and.l d1,d0
+     2ca:	57c0           	seq d0
+     2cc:	4400           	neg.b d0
+     2ce:	1000           	move.b d0,d0
+     2d0:	0240 00ff      	andi.w #255,d0
+     2d4:	4e75           	rts
 
-000004f8 <MouseRight>:
-     4f8:	207c 00df f016 	movea.l #14675990,a0
-     4fe:	3010           	move.w (a0),d0
-     500:	3000           	move.w d0,d0
-     502:	0280 0000 ffff 	andi.l #65535,d0
-     508:	0280 0000 0400 	andi.l #1024,d0
-     50e:	4a80           	tst.l d0
-     510:	57c0           	seq d0
-     512:	4400           	neg.b d0
-     514:	1000           	move.b d0,d0
-     516:	0240 00ff      	andi.w #255,d0
-     51a:	4e75           	rts
+000002d6 <MouseRight>:
+     2d6:	207c 00df f016 	movea.l #14675990,a0
+     2dc:	3010           	move.w (a0),d0
+     2de:	3000           	move.w d0,d0
+     2e0:	0280 0000 ffff 	andi.l #65535,d0
+     2e6:	0280 0000 0400 	andi.l #1024,d0
+     2ec:	57c0           	seq d0
+     2ee:	4400           	neg.b d0
+     2f0:	1000           	move.b d0,d0
+     2f2:	0240 00ff      	andi.w #255,d0
+     2f6:	4e75           	rts
 
-0000051c <interruptHandler>:
+000002f8 <interruptHandler.lto_priv.0>:
 #include "zoom.h"
 #include "zoom102.h"
 
-volatile int frameCounter = 0;
+//volatile int frameCounter = 0;
 
 static __attribute__((interrupt)) void interruptHandler() {
-     51c:	598f           	subq.l #4,sp
-     51e:	2f08           	move.l a0,-(sp)
-     520:	2f00           	move.l d0,-(sp)
+     2f8:	2f08           	move.l a0,-(sp)
 	hw->intreq=(1<<INTB_VERTB); hw->intreq=(1<<INTB_VERTB); //reset vbl req. twice for a4000 bug.
-     522:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     528:	317c 0020 009c 	move.w #32,156(a0)
-     52e:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     534:	317c 0020 009c 	move.w #32,156(a0)
+     2fa:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     300:	317c 0020 009c 	move.w #32,156(a0)
+     306:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     30c:	317c 0020 009c 	move.w #32,156(a0)
 	// DEMO - increment frameCounter
-	frameCounter++;
-     53a:	2039 0001 bae4 	move.l 1bae4 <frameCounter>,d0
-     540:	5280           	addq.l #1,d0
-     542:	23c0 0001 bae4 	move.l d0,1bae4 <frameCounter>
-  UWORD *bp = 0x200;
-     548:	2f7c 0000 0200 	move.l #512,8(sp)
-     54e:	0008 
-  *bp = 0;
-     550:	206f 0008      	movea.l 8(sp),a0
-     554:	4250           	clr.w (a0)
+	//frameCounter++;
   //Zoom_VblankHandler();
 }
-     556:	201f           	move.l (sp)+,d0
-     558:	205f           	movea.l (sp)+,a0
-     55a:	588f           	addq.l #4,sp
-     55c:	4e73           	rte
+     312:	205f           	movea.l (sp)+,a0
+     314:	4e73           	rte
 
-0000055e <RunDemo>:
+00000316 <RunDemo>:
 
 void RunDemo() {
+     316:	4fef fff4      	lea -12(sp),sp
+     31a:	2f0e           	move.l a6,-(sp)
 //               5432109876543210
   hw->dmacon = 0b1000011111111111;
-     55e:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     564:	317c 87ff 0096 	move.w #-30721,150(a0)
+     31c:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     322:	317c 87ff 0096 	move.w #-30721,150(a0)
   //             1001001111100000	; copper,bitplane,blitter DMA
 
   /*hw->dmacon =   
   0x87e0;*/
 	//SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
-     56a:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     570:	317c c020 009a 	move.w #-16352,154(a0)
+     328:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     32e:	317c c020 009a 	move.w #-16352,154(a0)
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
-     576:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     57c:	317c 0020 009c 	move.w #32,156(a0)
-     582:	6008           	bra.s 58c <RunDemo+0x2e>
+     334:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     33a:	317c 0020 009c 	move.w #32,156(a0)
   //PrepareDisplay();
 
+  CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
+     340:	2f79 0002 8560 	move.l 28560 <Zoom_StartImage>,12(sp)
+     346:	000c 
+     348:	2f79 0002 8510 	move.l 28510 <DrawBuffer>,8(sp)
+     34e:	0008 
+     350:	2f7c 0000 ff00 	move.l #65280,4(sp)
+     356:	0004 
+     358:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     35e:	2c40           	movea.l d0,a6
+     360:	206f 000c      	movea.l 12(sp),a0
+     364:	226f 0008      	movea.l 8(sp),a1
+     368:	202f 0004      	move.l 4(sp),d0
+     36c:	4eae fd8a      	jsr -630(a6)
+     370:	6008           	bra.s 37a <RunDemo+0x64>
+  
 	while(Zoom_Counter < 1000) {
 		WaitVbl();
-     584:	4eba fb10      	jsr 96 <WaitVbl>(pc)
+     372:	4eba 030a      	jsr 67e <WaitVbl>(pc)
     RunFrame();
-     588:	4eba 0038      	jsr 5c2 <RunFrame>(pc)
+     376:	4eba 003e      	jsr 3b6 <RunFrame>(pc)
 	while(Zoom_Counter < 1000) {
-     58c:	3039 0001 bae2 	move.w 1bae2 <Zoom_Counter>,d0
-     592:	0c40 03e7      	cmpi.w #999,d0
-     596:	63ec           	bls.s 584 <RunDemo+0x26>
+     37a:	3039 0002 855e 	move.w 2855e <Zoom_Counter>,d0
+     380:	0c40 03e7      	cmpi.w #999,d0
+     384:	63ec           	bls.s 372 <RunDemo+0x5c>
 	}
   Zoom_Dealloc();
-     598:	4eba 0c8e      	jsr 1228 <Zoom_Dealloc>(pc)
+     386:	4eba 1128      	jsr 14b0 <Zoom_Dealloc>(pc)
 
 	//SetInterruptHandler((APTR)interruptHandler);
 }
-     59c:	4e75           	rts
+     38a:	2c5f           	movea.l (sp)+,a6
+     38c:	4fef 000c      	lea 12(sp),sp
+     390:	4e75           	rts
 
-0000059e <SetInterrupt>:
+00000392 <SetInterrupt>:
 
 void SetInterrupt() {
   SetInterruptHandler((APTR)interruptHandler);
-     59e:	487a ff7c      	pea 51c <interruptHandler>(pc)
-     5a2:	4eba fad6      	jsr 7a <SetInterruptHandler>(pc)
-     5a6:	588f           	addq.l #4,sp
+     392:	487a ff64      	pea 2f8 <interruptHandler.lto_priv.0>(pc)
+     396:	4eba 02ca      	jsr 662 <SetInterruptHandler>(pc)
+     39a:	588f           	addq.l #4,sp
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
-     5a8:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     5ae:	317c c020 009a 	move.w #-16352,154(a0)
+     39c:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     3a2:	317c c020 009a 	move.w #-16352,154(a0)
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
-     5b4:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     5ba:	317c 0020 009c 	move.w #32,156(a0)
+     3a8:	2079 0002 8520 	movea.l 28520 <hw>,a0
+     3ae:	317c 0020 009c 	move.w #32,156(a0)
 }
-     5c0:	4e75           	rts
+     3b4:	4e75           	rts
 
-000005c2 <RunFrame>:
+000003b6 <RunFrame>:
 
 void RunFrame() {
-     5c2:	4fef fff0      	lea -16(sp),sp
-     5c6:	2f0e           	move.l a6,-(sp)
+     3b6:	4fef fff0      	lea -16(sp),sp
+     3ba:	2f0e           	move.l a6,-(sp)
   Zoom_Blit4ZoomFinished = 0;
-     5c8:	4279 0001 baca 	clr.w 1baca <Zoom_Blit4ZoomFinished>
-  UWORD tmp = Zoom_LevelOfZoom;
-     5ce:	3f79 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,18(sp)
-     5d4:	0012 
+     3bc:	4279 0002 8568 	clr.w 28568 <Zoom_Blit4ZoomFinished>
+  UWORD tmp = Zoom_LevelOfZoom;  
+     3c2:	3f79 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,18(sp)
+     3c8:	0012 
   if(Zoom_LevelOfZoom == 0)
-     5d6:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     5dc:	4a40           	tst.w d0
-     5de:	6632           	bne.s 612 <RunFrame+0x50>
+     3ca:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+     3d0:	6632           	bne.s 404 <RunFrame+0x4e>
     CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
-     5e0:	2f79 0001 bac2 	move.l 1bac2 <Zoom_StartImage>,14(sp)
-     5e6:	000e 
-     5e8:	2f79 0001 ba98 	move.l 1ba98 <DrawBuffer>,10(sp)
-     5ee:	000a 
-     5f0:	2f7c 0000 ff00 	move.l #65280,6(sp)
-     5f6:	0006 
-     5f8:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     5fe:	2c40           	movea.l d0,a6
-     600:	206f 000e      	movea.l 14(sp),a0
-     604:	226f 000a      	movea.l 10(sp),a1
-     608:	202f 0006      	move.l 6(sp),d0
-     60c:	4eae fd8a      	jsr -630(a6)
-     610:	602c           	bra.s 63e <RunFrame+0x7c>
+     3d2:	2f79 0002 8560 	move.l 28560 <Zoom_StartImage>,14(sp)
+     3d8:	000e 
+     3da:	2f79 0002 8510 	move.l 28510 <DrawBuffer>,10(sp)
+     3e0:	000a 
+     3e2:	2f7c 0000 ff00 	move.l #65280,6(sp)
+     3e8:	0006 
+     3ea:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     3f0:	2c40           	movea.l d0,a6
+     3f2:	206f 000e      	movea.l 14(sp),a0
+     3f6:	226f 000a      	movea.l 10(sp),a1
+     3fa:	202f 0006      	move.l 6(sp),d0
+     3fe:	4eae fd8a      	jsr -630(a6)
+     402:	602c           	bra.s 430 <RunFrame+0x7a>
   else
     Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer, (UWORD *)DrawBuffer, Zoom_LevelOfZoom, 5 );
-     612:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     618:	3000           	move.w d0,d0
-     61a:	0280 0000 ffff 	andi.l #65535,d0
-     620:	2079 0001 ba98 	movea.l 1ba98 <DrawBuffer>,a0
-     626:	2239 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d1
-     62c:	4878 0005      	pea 5 <_start+0x5>
-     630:	2f00           	move.l d0,-(sp)
-     632:	2f08           	move.l a0,-(sp)
-     634:	2f01           	move.l d1,-(sp)
-     636:	4eba 1424      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-     63a:	4fef 0010      	lea 16(sp),sp
+     404:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+     40a:	3000           	move.w d0,d0
+     40c:	0280 0000 ffff 	andi.l #65535,d0
+     412:	2079 0002 8510 	movea.l 28510 <DrawBuffer>,a0
+     418:	2239 0002 8514 	move.l 28514 <ViewBuffer>,d1
+     41e:	4878 0005      	pea 5 <_start+0x5>
+     422:	2f00           	move.l d0,-(sp)
+     424:	2f08           	move.l a0,-(sp)
+     426:	2f01           	move.l d1,-(sp)
+     428:	4eba 18ae      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+     42c:	4fef 0010      	lea 16(sp),sp
 
   Zoom_Blit4ZoomFinished = 1;
-     63e:	33fc 0001 0001 	move.w #1,1baca <Zoom_Blit4ZoomFinished>
-     644:	baca 
-  /*UWORD *bp = 0x200;
-  *bp = 0;*/
+     430:	33fc 0001 0002 	move.w #1,28568 <Zoom_Blit4ZoomFinished>
+     436:	8568 
   while( tmp == Zoom_LevelOfZoom) { }
-     646:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     64c:	b06f 0012      	cmp.w 18(sp),d0
-     650:	67f4           	beq.s 646 <RunFrame+0x84>
-     652:	2c5f           	movea.l (sp)+,a6
-     654:	4fef 0010      	lea 16(sp),sp
-     658:	4e75           	rts
+     438:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+     43e:	b06f 0012      	cmp.w 18(sp),d0
+     442:	67f4           	beq.s 438 <RunFrame+0x82>
+     444:	2c5f           	movea.l (sp)+,a6
+     446:	4fef 0010      	lea 16(sp),sp
+     44a:	4e75           	rts
 
-0000065a <Zoom_InsertShift>:
+0000044c <Zoom_InsertShift>:
            0x01800f00, 0x01800000, 0x1800f00, 0x1800000, 0x01800f00, 0x01800000,
            0x1800f00, 0x1800000, 0x01800f00, 0x01800000, 0x01800f00, 0x01800000,
            0x01800f00, 0x01800000, 0x01800f00, 0x01800000, 0x01800f00, 0x01800000, 
            0x01800f00, 0x01800000 };*/
 
 void Zoom_InsertShift( UWORD *copperlist, UWORD *values4shift) {
-     65a:	4fef fff4      	lea -12(sp),sp
-     65e:	2f02           	move.l d2,-(sp)
+     44c:	4fef fff4      	lea -12(sp),sp
+     450:	2f02           	move.l d2,-(sp)
   for(int i = 0; i<6;i++) {
-     660:	42af 000c      	clr.l 12(sp)
-     664:	601e           	bra.s 684 <Zoom_InsertShift+0x2a>
+     452:	42af 000c      	clr.l 12(sp)
+     456:	601e           	bra.s 476 <Zoom_InsertShift+0x2a>
     *copperlist = *values4shift++;
-     666:	202f 0018      	move.l 24(sp),d0
-     66a:	2200           	move.l d0,d1
-     66c:	5481           	addq.l #2,d1
-     66e:	2f41 0018      	move.l d1,24(sp)
-     672:	2040           	movea.l d0,a0
-     674:	3010           	move.w (a0),d0
-     676:	206f 0014      	movea.l 20(sp),a0
-     67a:	3080           	move.w d0,(a0)
+     458:	202f 0018      	move.l 24(sp),d0
+     45c:	2200           	move.l d0,d1
+     45e:	5481           	addq.l #2,d1
+     460:	2f41 0018      	move.l d1,24(sp)
+     464:	2040           	movea.l d0,a0
+     466:	3010           	move.w (a0),d0
+     468:	206f 0014      	movea.l 20(sp),a0
+     46c:	3080           	move.w d0,(a0)
     copperlist += 2;
-     67c:	58af 0014      	addq.l #4,20(sp)
+     46e:	58af 0014      	addq.l #4,20(sp)
   for(int i = 0; i<6;i++) {
-     680:	52af 000c      	addq.l #1,12(sp)
-     684:	7005           	moveq #5,d0
-     686:	b0af 000c      	cmp.l 12(sp),d0
-     68a:	6cda           	bge.s 666 <Zoom_InsertShift+0xc>
+     472:	52af 000c      	addq.l #1,12(sp)
+     476:	7005           	moveq #5,d0
+     478:	b0af 000c      	cmp.l 12(sp),d0
+     47c:	6cda           	bge.s 458 <Zoom_InsertShift+0xc>
   }
   copperlist--;
-     68c:	55af 0014      	subq.l #2,20(sp)
+     47e:	55af 0014      	subq.l #2,20(sp)
   *copperlist++ = *values4shift++;
-     690:	222f 0018      	move.l 24(sp),d1
-     694:	2401           	move.l d1,d2
-     696:	5482           	addq.l #2,d2
-     698:	2f42 0018      	move.l d2,24(sp)
-     69c:	202f 0014      	move.l 20(sp),d0
-     6a0:	2400           	move.l d0,d2
-     6a2:	5482           	addq.l #2,d2
-     6a4:	2f42 0014      	move.l d2,20(sp)
-     6a8:	2041           	movea.l d1,a0
-     6aa:	3210           	move.w (a0),d1
-     6ac:	2040           	movea.l d0,a0
-     6ae:	3081           	move.w d1,(a0)
+     482:	222f 0018      	move.l 24(sp),d1
+     486:	2401           	move.l d1,d2
+     488:	5482           	addq.l #2,d2
+     48a:	2f42 0018      	move.l d2,24(sp)
+     48e:	202f 0014      	move.l 20(sp),d0
+     492:	2400           	move.l d0,d2
+     494:	5482           	addq.l #2,d2
+     496:	2f42 0014      	move.l d2,20(sp)
+     49a:	2041           	movea.l d1,a0
+     49c:	3210           	move.w (a0),d1
+     49e:	2040           	movea.l d0,a0
+     4a0:	3081           	move.w d1,(a0)
   *copperlist = *values4shift++;
-     6b0:	202f 0018      	move.l 24(sp),d0
-     6b4:	2200           	move.l d0,d1
-     6b6:	5481           	addq.l #2,d1
-     6b8:	2f41 0018      	move.l d1,24(sp)
-     6bc:	2040           	movea.l d0,a0
-     6be:	3010           	move.w (a0),d0
-     6c0:	206f 0014      	movea.l 20(sp),a0
-     6c4:	3080           	move.w d0,(a0)
+     4a2:	202f 0018      	move.l 24(sp),d0
+     4a6:	2200           	move.l d0,d1
+     4a8:	5481           	addq.l #2,d1
+     4aa:	2f41 0018      	move.l d1,24(sp)
+     4ae:	2040           	movea.l d0,a0
+     4b0:	3010           	move.w (a0),d0
+     4b2:	206f 0014      	movea.l 20(sp),a0
+     4b6:	3080           	move.w d0,(a0)
   copperlist += 2;
-     6c6:	58af 0014      	addq.l #4,20(sp)
+     4b8:	58af 0014      	addq.l #4,20(sp)
   for(int i = 0; i<10;i++) {
-     6ca:	42af 0008      	clr.l 8(sp)
-     6ce:	601e           	bra.s 6ee <Zoom_InsertShift+0x94>
+     4bc:	42af 0008      	clr.l 8(sp)
+     4c0:	601e           	bra.s 4e0 <Zoom_InsertShift+0x94>
     *copperlist = *values4shift++;
-     6d0:	202f 0018      	move.l 24(sp),d0
-     6d4:	2200           	move.l d0,d1
-     6d6:	5481           	addq.l #2,d1
-     6d8:	2f41 0018      	move.l d1,24(sp)
-     6dc:	2040           	movea.l d0,a0
-     6de:	3010           	move.w (a0),d0
-     6e0:	206f 0014      	movea.l 20(sp),a0
-     6e4:	3080           	move.w d0,(a0)
+     4c2:	202f 0018      	move.l 24(sp),d0
+     4c6:	2200           	move.l d0,d1
+     4c8:	5481           	addq.l #2,d1
+     4ca:	2f41 0018      	move.l d1,24(sp)
+     4ce:	2040           	movea.l d0,a0
+     4d0:	3010           	move.w (a0),d0
+     4d2:	206f 0014      	movea.l 20(sp),a0
+     4d6:	3080           	move.w d0,(a0)
     copperlist += 2;
-     6e6:	58af 0014      	addq.l #4,20(sp)
+     4d8:	58af 0014      	addq.l #4,20(sp)
   for(int i = 0; i<10;i++) {
-     6ea:	52af 0008      	addq.l #1,8(sp)
-     6ee:	7009           	moveq #9,d0
-     6f0:	b0af 0008      	cmp.l 8(sp),d0
-     6f4:	6cda           	bge.s 6d0 <Zoom_InsertShift+0x76>
+     4dc:	52af 0008      	addq.l #1,8(sp)
+     4e0:	7009           	moveq #9,d0
+     4e2:	b0af 0008      	cmp.l 8(sp),d0
+     4e6:	6cda           	bge.s 4c2 <Zoom_InsertShift+0x76>
   }
   copperlist--;
-     6f6:	55af 0014      	subq.l #2,20(sp)
+     4e8:	55af 0014      	subq.l #2,20(sp)
   *copperlist++ = *values4shift++;
-     6fa:	222f 0018      	move.l 24(sp),d1
-     6fe:	2401           	move.l d1,d2
-     700:	5482           	addq.l #2,d2
-     702:	2f42 0018      	move.l d2,24(sp)
-     706:	202f 0014      	move.l 20(sp),d0
-     70a:	2400           	move.l d0,d2
-     70c:	5482           	addq.l #2,d2
-     70e:	2f42 0014      	move.l d2,20(sp)
-     712:	2041           	movea.l d1,a0
-     714:	3210           	move.w (a0),d1
-     716:	2040           	movea.l d0,a0
-     718:	3081           	move.w d1,(a0)
+     4ec:	222f 0018      	move.l 24(sp),d1
+     4f0:	2401           	move.l d1,d2
+     4f2:	5482           	addq.l #2,d2
+     4f4:	2f42 0018      	move.l d2,24(sp)
+     4f8:	202f 0014      	move.l 20(sp),d0
+     4fc:	2400           	move.l d0,d2
+     4fe:	5482           	addq.l #2,d2
+     500:	2f42 0014      	move.l d2,20(sp)
+     504:	2041           	movea.l d1,a0
+     506:	3210           	move.w (a0),d1
+     508:	2040           	movea.l d0,a0
+     50a:	3081           	move.w d1,(a0)
   *copperlist = *values4shift++;
-     71a:	202f 0018      	move.l 24(sp),d0
-     71e:	2200           	move.l d0,d1
-     720:	5481           	addq.l #2,d1
-     722:	2f41 0018      	move.l d1,24(sp)
-     726:	2040           	movea.l d0,a0
-     728:	3010           	move.w (a0),d0
-     72a:	206f 0014      	movea.l 20(sp),a0
-     72e:	3080           	move.w d0,(a0)
+     50c:	202f 0018      	move.l 24(sp),d0
+     510:	2200           	move.l d0,d1
+     512:	5481           	addq.l #2,d1
+     514:	2f41 0018      	move.l d1,24(sp)
+     518:	2040           	movea.l d0,a0
+     51a:	3010           	move.w (a0),d0
+     51c:	206f 0014      	movea.l 20(sp),a0
+     520:	3080           	move.w d0,(a0)
   copperlist += 2;
-     730:	58af 0014      	addq.l #4,20(sp)
+     522:	58af 0014      	addq.l #4,20(sp)
   for(int i = 0; i<7;i++) {
-     734:	42af 0004      	clr.l 4(sp)
-     738:	601e           	bra.s 758 <Zoom_InsertShift+0xfe>
+     526:	42af 0004      	clr.l 4(sp)
+     52a:	601e           	bra.s 54a <Zoom_InsertShift+0xfe>
     *copperlist = *values4shift++;
-     73a:	202f 0018      	move.l 24(sp),d0
-     73e:	2200           	move.l d0,d1
-     740:	5481           	addq.l #2,d1
-     742:	2f41 0018      	move.l d1,24(sp)
-     746:	2040           	movea.l d0,a0
-     748:	3010           	move.w (a0),d0
-     74a:	206f 0014      	movea.l 20(sp),a0
-     74e:	3080           	move.w d0,(a0)
+     52c:	202f 0018      	move.l 24(sp),d0
+     530:	2200           	move.l d0,d1
+     532:	5481           	addq.l #2,d1
+     534:	2f41 0018      	move.l d1,24(sp)
+     538:	2040           	movea.l d0,a0
+     53a:	3010           	move.w (a0),d0
+     53c:	206f 0014      	movea.l 20(sp),a0
+     540:	3080           	move.w d0,(a0)
     copperlist += 2;
-     750:	58af 0014      	addq.l #4,20(sp)
+     542:	58af 0014      	addq.l #4,20(sp)
   for(int i = 0; i<7;i++) {
-     754:	52af 0004      	addq.l #1,4(sp)
-     758:	7006           	moveq #6,d0
-     75a:	b0af 0004      	cmp.l 4(sp),d0
-     75e:	6cda           	bge.s 73a <Zoom_InsertShift+0xe0>
+     546:	52af 0004      	addq.l #1,4(sp)
+     54a:	7006           	moveq #6,d0
+     54c:	b0af 0004      	cmp.l 4(sp),d0
+     550:	6cda           	bge.s 52c <Zoom_InsertShift+0xe0>
   }
 }
-     760:	241f           	move.l (sp)+,d2
-     762:	4fef 000c      	lea 12(sp),sp
-     766:	4e75           	rts
+     552:	241f           	move.l (sp)+,d2
+     554:	4fef 000c      	lea 12(sp),sp
+     558:	4e75           	rts
 
-00000768 <Zoom_Shrink102>:
+0000055a <Zoom_Shrink102>:
 
 void Zoom_Shrink102( UWORD levelofshrink, UWORD *copperlist )  {
-     768:	518f           	subq.l #8,sp
-     76a:	202f 000c      	move.l 12(sp),d0
-     76e:	3000           	move.w d0,d0
-     770:	3f40 0002      	move.w d0,2(sp)
+     55a:	518f           	subq.l #8,sp
+     55c:	202f 000c      	move.l 12(sp),d0
+     560:	3000           	move.w d0,d0
+     562:	3f40 0002      	move.w d0,2(sp)
 
   
   UWORD *values4shift = Values4Shift+levelofshrink*108;
-     774:	7200           	moveq #0,d1
-     776:	322f 0002      	move.w 2(sp),d1
-     77a:	2001           	move.l d1,d0
-     77c:	d080           	add.l d0,d0
-     77e:	d081           	add.l d1,d0
-     780:	2200           	move.l d0,d1
-     782:	e789           	lsl.l #3,d1
-     784:	d081           	add.l d1,d0
-     786:	e788           	lsl.l #3,d0
-     788:	2200           	move.l d0,d1
-     78a:	0681 0001 a5c0 	addi.l #107968,d1
-     790:	2f41 0004      	move.l d1,4(sp)
+     566:	7200           	moveq #0,d1
+     568:	322f 0002      	move.w 2(sp),d1
+     56c:	2001           	move.l d1,d0
+     56e:	d080           	add.l d0,d0
+     570:	d081           	add.l d1,d0
+     572:	2200           	move.l d0,d1
+     574:	e789           	lsl.l #3,d1
+     576:	d081           	add.l d1,d0
+     578:	e788           	lsl.l #3,d0
+     57a:	2200           	move.l d0,d1
+     57c:	0681 0001 a838 	addi.l #108600,d1
+     582:	2f41 0004      	move.l d1,4(sp)
   //copperlist+=3+73*2;
   Zoom_InsertShift( copperlist+3+73*2, values4shift);
-     794:	202f 0010      	move.l 16(sp),d0
-     798:	0680 0000 012a 	addi.l #298,d0
-     79e:	2f2f 0004      	move.l 4(sp),-(sp)
-     7a2:	2f00           	move.l d0,-(sp)
-     7a4:	4eba feb4      	jsr 65a <Zoom_InsertShift>(pc)
-     7a8:	508f           	addq.l #8,sp
+     586:	202f 0010      	move.l 16(sp),d0
+     58a:	0680 0000 012a 	addi.l #298,d0
+     590:	2f2f 0004      	move.l 4(sp),-(sp)
+     594:	2f00           	move.l d0,-(sp)
+     596:	4eba feb4      	jsr 44c <Zoom_InsertShift>(pc)
+     59a:	508f           	addq.l #8,sp
   Zoom_InsertShift( copperlist+63+73*2, values4shift+27);
-     7aa:	7236           	moveq #54,d1
-     7ac:	d2af 0004      	add.l 4(sp),d1
-     7b0:	202f 0010      	move.l 16(sp),d0
-     7b4:	0680 0000 01a2 	addi.l #418,d0
-     7ba:	2f01           	move.l d1,-(sp)
-     7bc:	2f00           	move.l d0,-(sp)
-     7be:	4eba fe9a      	jsr 65a <Zoom_InsertShift>(pc)
-     7c2:	508f           	addq.l #8,sp
+     59c:	7236           	moveq #54,d1
+     59e:	d2af 0004      	add.l 4(sp),d1
+     5a2:	202f 0010      	move.l 16(sp),d0
+     5a6:	0680 0000 01a2 	addi.l #418,d0
+     5ac:	2f01           	move.l d1,-(sp)
+     5ae:	2f00           	move.l d0,-(sp)
+     5b0:	4eba fe9a      	jsr 44c <Zoom_InsertShift>(pc)
+     5b4:	508f           	addq.l #8,sp
   Zoom_InsertShift( copperlist+119+73*2, values4shift+54);
-     7c4:	726c           	moveq #108,d1
-     7c6:	d2af 0004      	add.l 4(sp),d1
-     7ca:	202f 0010      	move.l 16(sp),d0
-     7ce:	0680 0000 0212 	addi.l #530,d0
-     7d4:	2f01           	move.l d1,-(sp)
-     7d6:	2f00           	move.l d0,-(sp)
-     7d8:	4eba fe80      	jsr 65a <Zoom_InsertShift>(pc)
-     7dc:	508f           	addq.l #8,sp
+     5b6:	726c           	moveq #108,d1
+     5b8:	d2af 0004      	add.l 4(sp),d1
+     5bc:	202f 0010      	move.l 16(sp),d0
+     5c0:	0680 0000 0212 	addi.l #530,d0
+     5c6:	2f01           	move.l d1,-(sp)
+     5c8:	2f00           	move.l d0,-(sp)
+     5ca:	4eba fe80      	jsr 44c <Zoom_InsertShift>(pc)
+     5ce:	508f           	addq.l #8,sp
   Zoom_InsertShift( copperlist+175+73*2, values4shift+81);
-     7de:	222f 0004      	move.l 4(sp),d1
-     7e2:	0681 0000 00a2 	addi.l #162,d1
-     7e8:	202f 0010      	move.l 16(sp),d0
-     7ec:	0680 0000 0282 	addi.l #642,d0
-     7f2:	2f01           	move.l d1,-(sp)
-     7f4:	2f00           	move.l d0,-(sp)
-     7f6:	4eba fe62      	jsr 65a <Zoom_InsertShift>(pc)
-     7fa:	508f           	addq.l #8,sp
+     5d0:	222f 0004      	move.l 4(sp),d1
+     5d4:	0681 0000 00a2 	addi.l #162,d1
+     5da:	202f 0010      	move.l 16(sp),d0
+     5de:	0680 0000 0282 	addi.l #642,d0
+     5e4:	2f01           	move.l d1,-(sp)
+     5e6:	2f00           	move.l d0,-(sp)
+     5e8:	4eba fe62      	jsr 44c <Zoom_InsertShift>(pc)
+     5ec:	508f           	addq.l #8,sp
   for(int i = 0; i<30;i++) {
     *copperlist = *values4shift++;
     copperlist += 2;
   }*/
   
 }
-     7fc:	508f           	addq.l #8,sp
-     7fe:	4e75           	rts
+     5ee:	508f           	addq.l #8,sp
+     5f0:	4e75           	rts
 
-00000800 <Test_Zoom2>:
-#include "zoomtest2.h"
-#include "zoom.h"
-#include "utils.h"
-#include <string.h>
+000005f2 <GetVBR>:
+volatile static APTR VBR=0;
+static APTR SystemIrq;
+ 
+struct View *ActiView;
 
-void Test_Zoom2() {
-     800:	4fef fe9c      	lea -356(sp),sp
-     804:	48e7 3032      	movem.l d2-d3/a2-a3/a6,-(sp)
-  UWORD size4buffer = 40*544*ZMBPLDEPTH;
-     808:	3f7c a900 015a 	move.w #-22272,346(sp)
-  UWORD size4target = 44*272*ZMBPLDEPTH;
-     80e:	3f7c e9c0 0158 	move.w #-5696,344(sp)
-  ULONG *pic1 = AllocMem( size4buffer, MEMF_CHIP);
-     814:	7000           	moveq #0,d0
-     816:	302f 015a      	move.w 346(sp),d0
-     81a:	2f40 0154      	move.l d0,340(sp)
-     81e:	7002           	moveq #2,d0
-     820:	2f40 0150      	move.l d0,336(sp)
-     824:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     82a:	2c40           	movea.l d0,a6
-     82c:	202f 0154      	move.l 340(sp),d0
-     830:	222f 0150      	move.l 336(sp),d1
-     834:	4eae ff3a      	jsr -198(a6)
-     838:	2f40 014c      	move.l d0,332(sp)
-     83c:	202f 014c      	move.l 332(sp),d0
-     840:	2f40 0148      	move.l d0,328(sp)
-  if( pic1 == 0) {
-     844:	4aaf 0148      	tst.l 328(sp)
-     848:	6646           	bne.s 890 <Test_Zoom2+0x90>
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic1\n", 38);
-     84a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     850:	2c40           	movea.l d0,a6
-     852:	4eae ffc4      	jsr -60(a6)
-     856:	2f40 0144      	move.l d0,324(sp)
-     85a:	202f 0144      	move.l 324(sp),d0
-     85e:	2f40 0140      	move.l d0,320(sp)
-     862:	2f7c 0000 74b2 	move.l #29874,316(sp)
-     868:	013c 
-     86a:	7226           	moveq #38,d1
-     86c:	2f41 0138      	move.l d1,312(sp)
-     870:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     876:	2c40           	movea.l d0,a6
-     878:	222f 0140      	move.l 320(sp),d1
-     87c:	242f 013c      	move.l 316(sp),d2
-     880:	262f 0138      	move.l 312(sp),d3
-     884:	4eae ffd0      	jsr -48(a6)
-     888:	2f40 0134      	move.l d0,308(sp)
-     88c:	6000 046c      	bra.w cfa <Test_Zoom2+0x4fa>
-    return;
-  }
-  ULONG *pic2 = AllocMem( size4buffer*2,MEMF_CHIP);
-     890:	7000           	moveq #0,d0
-     892:	302f 015a      	move.w 346(sp),d0
-     896:	d080           	add.l d0,d0
-     898:	2f40 0130      	move.l d0,304(sp)
-     89c:	7002           	moveq #2,d0
-     89e:	2f40 012c      	move.l d0,300(sp)
-     8a2:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     8a8:	2c40           	movea.l d0,a6
-     8aa:	202f 0130      	move.l 304(sp),d0
-     8ae:	222f 012c      	move.l 300(sp),d1
-     8b2:	4eae ff3a      	jsr -198(a6)
-     8b6:	2f40 0128      	move.l d0,296(sp)
-     8ba:	202f 0128      	move.l 296(sp),d0
-     8be:	2f40 0124      	move.l d0,292(sp)
-  if( pic2 == 0) {
-     8c2:	4aaf 0124      	tst.l 292(sp)
-     8c6:	6646           	bne.s 90e <Test_Zoom2+0x10e>
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic2\n", 38);
-     8c8:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     8ce:	2c40           	movea.l d0,a6
-     8d0:	4eae ffc4      	jsr -60(a6)
-     8d4:	2f40 0120      	move.l d0,288(sp)
-     8d8:	202f 0120      	move.l 288(sp),d0
-     8dc:	2f40 011c      	move.l d0,284(sp)
-     8e0:	2f7c 0000 74d9 	move.l #29913,280(sp)
-     8e6:	0118 
-     8e8:	7226           	moveq #38,d1
-     8ea:	2f41 0114      	move.l d1,276(sp)
-     8ee:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     8f4:	2c40           	movea.l d0,a6
-     8f6:	222f 011c      	move.l 284(sp),d1
-     8fa:	242f 0118      	move.l 280(sp),d2
-     8fe:	262f 0114      	move.l 276(sp),d3
-     902:	4eae ffd0      	jsr -48(a6)
-     906:	2f40 0110      	move.l d0,272(sp)
-     90a:	6000 03ee      	bra.w cfa <Test_Zoom2+0x4fa>
-    return;
-  }
-  ULONG *target = AllocMem( size4target, MEMF_CHIP);
-     90e:	7000           	moveq #0,d0
-     910:	302f 0158      	move.w 344(sp),d0
-     914:	2f40 010c      	move.l d0,268(sp)
-     918:	7002           	moveq #2,d0
-     91a:	2f40 0108      	move.l d0,264(sp)
-     91e:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     924:	2c40           	movea.l d0,a6
-     926:	202f 010c      	move.l 268(sp),d0
-     92a:	222f 0108      	move.l 264(sp),d1
-     92e:	4eae ff3a      	jsr -198(a6)
-     932:	2f40 0104      	move.l d0,260(sp)
-     936:	202f 0104      	move.l 260(sp),d0
-     93a:	2f40 0100      	move.l d0,256(sp)
-  UWORD *bp = 0x200;
-     93e:	2f7c 0000 0200 	move.l #512,252(sp)
-     944:	00fc 
-  *bp = 0;
-     946:	206f 00fc      	movea.l 252(sp),a0
-     94a:	4250           	clr.w (a0)
-  if( target == 0) {
-     94c:	4aaf 0100      	tst.l 256(sp)
-     950:	6646           	bne.s 998 <Test_Zoom2+0x198>
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for target\n", 40);
-     952:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     958:	2c40           	movea.l d0,a6
-     95a:	4eae ffc4      	jsr -60(a6)
-     95e:	2f40 00f8      	move.l d0,248(sp)
-     962:	202f 00f8      	move.l 248(sp),d0
-     966:	2f40 00f4      	move.l d0,244(sp)
-     96a:	2f7c 0000 7500 	move.l #29952,240(sp)
-     970:	00f0 
-     972:	7228           	moveq #40,d1
-     974:	2f41 00ec      	move.l d1,236(sp)
-     978:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     97e:	2c40           	movea.l d0,a6
-     980:	222f 00f4      	move.l 244(sp),d1
-     984:	242f 00f0      	move.l 240(sp),d2
-     988:	262f 00ec      	move.l 236(sp),d3
-     98c:	4eae ffd0      	jsr -48(a6)
-     990:	2f40 00e8      	move.l d0,232(sp)
-     994:	6000 0364      	bra.w cfa <Test_Zoom2+0x4fa>
-    return;
-  }
-  Zoom_Zl4Words = AllocMem( 21*8, MEMF_ANY);
-     998:	2f7c 0000 00a8 	move.l #168,228(sp)
-     99e:	00e4 
-     9a0:	42af 00e0      	clr.l 224(sp)
-     9a4:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     9aa:	2c40           	movea.l d0,a6
-     9ac:	202f 00e4      	move.l 228(sp),d0
-     9b0:	222f 00e0      	move.l 224(sp),d1
-     9b4:	4eae ff3a      	jsr -198(a6)
-     9b8:	2f40 00dc      	move.l d0,220(sp)
-     9bc:	202f 00dc      	move.l 220(sp),d0
-     9c0:	23c0 0001 baf8 	move.l d0,1baf8 <Zoom_Zl4Words>
-  if( Zoom_Zl4Words == 0) {
-     9c6:	2039 0001 baf8 	move.l 1baf8 <Zoom_Zl4Words>,d0
-     9cc:	4a80           	tst.l d0
-     9ce:	6646           	bne.s a16 <Test_Zoom2+0x216>
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for Zoom_Zl4Words\n", 40);
-     9d0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     9d6:	2c40           	movea.l d0,a6
-     9d8:	4eae ffc4      	jsr -60(a6)
-     9dc:	2f40 00d8      	move.l d0,216(sp)
-     9e0:	202f 00d8      	move.l 216(sp),d0
-     9e4:	2f40 00d4      	move.l d0,212(sp)
-     9e8:	2f7c 0000 7529 	move.l #29993,208(sp)
-     9ee:	00d0 
-     9f0:	7028           	moveq #40,d0
-     9f2:	2f40 00cc      	move.l d0,204(sp)
-     9f6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     9fc:	2c40           	movea.l d0,a6
-     9fe:	222f 00d4      	move.l 212(sp),d1
-     a02:	242f 00d0      	move.l 208(sp),d2
-     a06:	262f 00cc      	move.l 204(sp),d3
-     a0a:	4eae ffd0      	jsr -48(a6)
-     a0e:	2f40 00c8      	move.l d0,200(sp)
-     a12:	6000 02e6      	bra.w cfa <Test_Zoom2+0x4fa>
-    return;
-  }
-  
-  UWORD *pos2write = Zoom_Zl4Words;
-     a16:	2f79 0001 baf8 	move.l 1baf8 <Zoom_Zl4Words>,372(sp)
-     a1c:	0174 
-  for( int i=0;i<14;i++) {
-     a1e:	42af 0170      	clr.l 368(sp)
-     a22:	603a           	bra.s a5e <Test_Zoom2+0x25e>
-    *pos2write++ = 4;
-     a24:	202f 0174      	move.l 372(sp),d0
-     a28:	2200           	move.l d0,d1
-     a2a:	5481           	addq.l #2,d1
-     a2c:	2f41 0174      	move.l d1,372(sp)
-     a30:	2040           	movea.l d0,a0
-     a32:	30bc 0004      	move.w #4,(a0)
-    *pos2write++ = 4;
-     a36:	202f 0174      	move.l 372(sp),d0
-     a3a:	2200           	move.l d0,d1
-     a3c:	5481           	addq.l #2,d1
-     a3e:	2f41 0174      	move.l d1,372(sp)
-     a42:	2040           	movea.l d0,a0
-     a44:	30bc 0004      	move.w #4,(a0)
-    *pos2write++ = 8;
-     a48:	202f 0174      	move.l 372(sp),d0
-     a4c:	2200           	move.l d0,d1
-     a4e:	5481           	addq.l #2,d1
-     a50:	2f41 0174      	move.l d1,372(sp)
-     a54:	2040           	movea.l d0,a0
-     a56:	30bc 0008      	move.w #8,(a0)
-  for( int i=0;i<14;i++) {
-     a5a:	52af 0170      	addq.l #1,368(sp)
-     a5e:	700d           	moveq #13,d0
-     a60:	b0af 0170      	cmp.l 368(sp),d0
-     a64:	6cbe           	bge.s a24 <Test_Zoom2+0x224>
-  }
-  //16   16 ffff
-  //8+16 40 ff00
-  //8+16 64 0000
-  Utils_FillLong( pic1, 0xfff00f00, 272, 10, 0 );
-     a66:	42a7           	clr.l -(sp)
-     a68:	4878 000a      	pea a <GetVBR+0x2>
-     a6c:	4878 0110      	pea 110 <FreeDisplay+0x2>
-     a70:	2f3c fff0 0f00 	move.l #-1044736,-(sp)
-     a76:	2f2f 0158      	move.l 344(sp),-(sp)
-     a7a:	4eba fa14      	jsr 490 <Utils_FillLong>(pc)
-     a7e:	4fef 0014      	lea 20(sp),sp
-  Utils_FillLong( pic1+10*272, 0xfff00f00, 272, 10, 0 );
-     a82:	202f 0148      	move.l 328(sp),d0
-     a86:	0680 0000 2a80 	addi.l #10880,d0
-     a8c:	42a7           	clr.l -(sp)
-     a8e:	4878 000a      	pea a <GetVBR+0x2>
-     a92:	4878 0110      	pea 110 <FreeDisplay+0x2>
-     a96:	2f3c fff0 0f00 	move.l #-1044736,-(sp)
-     a9c:	2f00           	move.l d0,-(sp)
-     a9e:	4eba f9f0      	jsr 490 <Utils_FillLong>(pc)
-     aa2:	4fef 0014      	lea 20(sp),sp
-  Utils_FillLong( pic2, 0x0000ffff, 272, 20, 0);
-     aa6:	42a7           	clr.l -(sp)
-     aa8:	4878 0014      	pea 14 <GetVBR+0xc>
-     aac:	4878 0110      	pea 110 <FreeDisplay+0x2>
-     ab0:	2f3c 0000 ffff 	move.l #65535,-(sp)
-     ab6:	2f2f 0134      	move.l 308(sp),-(sp)
-     aba:	4eba f9d4      	jsr 490 <Utils_FillLong>(pc)
-     abe:	4fef 0014      	lea 20(sp),sp
-  Utils_FillLong( pic2+20*272, 0x0000ffff, 272, 20, 0);
-     ac2:	202f 0124      	move.l 292(sp),d0
-     ac6:	0680 0000 5500 	addi.l #21760,d0
-     acc:	42a7           	clr.l -(sp)
-     ace:	4878 0014      	pea 14 <GetVBR+0xc>
-     ad2:	4878 0110      	pea 110 <FreeDisplay+0x2>
-     ad6:	2f3c 0000 ffff 	move.l #65535,-(sp)
-     adc:	2f00           	move.l d0,-(sp)
-     ade:	4eba f9b0      	jsr 490 <Utils_FillLong>(pc)
-     ae2:	4fef 0014      	lea 20(sp),sp
-  //Utils_FillLong( pic2, 0x0000ffff, size4buffer*2);
+static APTR GetVBR(void) {
+     5f2:	4fef ffec      	lea -20(sp),sp
+     5f6:	2f0e           	move.l a6,-(sp)
+     5f8:	2f07           	move.l d7,-(sp)
+	APTR vbr = 0;
+     5fa:	42af 0018      	clr.l 24(sp)
+	UWORD getvbr[] = { 0x4e7a, 0x0801, 0x4e73 }; // MOVEC.L VBR,D0 RTE
+     5fe:	3f7c 4e7a 000a 	move.w #20090,10(sp)
+     604:	3f7c 0801 000c 	move.w #2049,12(sp)
+     60a:	3f7c 4e73 000e 	move.w #20083,14(sp)
 
-  
-  for( int i=1;i<=1;i++) {
-     ae6:	7201           	moveq #1,d1
-     ae8:	2f41 016c      	move.l d1,364(sp)
-     aec:	6000 0194      	bra.w c82 <Test_Zoom2+0x482>
-    Zoom_ZoomIntoPicture2( (UWORD *)pic1, (UWORD *) pic2,(UWORD *) target, i, 
-     af0:	202f 016c      	move.l 364(sp),d0
-     af4:	3000           	move.w d0,d0
-     af6:	0280 0000 ffff 	andi.l #65535,d0
-     afc:	4878 0005      	pea 5 <_start+0x5>
-     b00:	2f00           	move.l d0,-(sp)
-     b02:	2f2f 0108      	move.l 264(sp),-(sp)
-     b06:	2f2f 0130      	move.l 304(sp),-(sp)
-     b0a:	2f2f 0158      	move.l 344(sp),-(sp)
-     b0e:	4eba 1384      	jsr 1e94 <Zoom_ZoomIntoPicture2>(pc)
-     b12:	4fef 0014      	lea 20(sp),sp
-                                                                             5);
-    UWORD *bp = 0x200;
-     b16:	2f7c 0000 0200 	move.l #512,196(sp)
-     b1c:	00c4 
-    *bp = 0;
-     b1e:	206f 00c4      	movea.l 196(sp),a0
-     b22:	4250           	clr.w (a0)
-    UWORD *pos = (UWORD *) target + 1;
-     b24:	202f 0100      	move.l 256(sp),d0
-     b28:	5480           	addq.l #2,d0
-     b2a:	2f40 0168      	move.l d0,360(sp)
-    //ULONG pattern = 0xffff << (16 - i*2);
-    UWORD pattern[3] = { 0x00ff, 0xff0f, 0xffff };
-     b2e:	3f7c 00ff 007e 	move.w #255,126(sp)
-     b34:	3f7c ff0f 0080 	move.w #-241,128(sp)
-     b3a:	3f7c ffff 0082 	move.w #-1,130(sp)
-    for( int i2=0;i2<2;i2++) {
-     b40:	42af 0164      	clr.l 356(sp)
-     b44:	6000 012e      	bra.w c74 <Test_Zoom2+0x474>
-      for( int i3=0;i3<7;i3++) {
-     b48:	42af 0160      	clr.l 352(sp)
-     b4c:	6000 0114      	bra.w c62 <Test_Zoom2+0x462>
-        for( int i4=0; i4<3;i4++) {
-     b50:	42af 015c      	clr.l 348(sp)
-     b54:	6000 00fe      	bra.w c54 <Test_Zoom2+0x454>
-          if(*pos++ != pattern[i4])  {
-     b58:	202f 0168      	move.l 360(sp),d0
-     b5c:	2200           	move.l d0,d1
-     b5e:	5481           	addq.l #2,d1
-     b60:	2f41 0168      	move.l d1,360(sp)
-     b64:	2040           	movea.l d0,a0
-     b66:	3210           	move.w (a0),d1
-     b68:	202f 015c      	move.l 348(sp),d0
-     b6c:	d080           	add.l d0,d0
-     b6e:	41ef 0178      	lea 376(sp),a0
-     b72:	d088           	add.l a0,d0
-     b74:	2040           	movea.l d0,a0
-     b76:	41e8 ff06      	lea -250(a0),a0
-     b7a:	3010           	move.w (a0),d0
-     b7c:	b041           	cmp.w d1,d0
-     b7e:	6700 00d0      	beq.w c50 <Test_Zoom2+0x450>
-            pos--;
-     b82:	55af 0168      	subq.l #2,360(sp)
-            UWORD data[3];
-            char str[100];
-            data[0] = i;
-     b86:	202f 016c      	move.l 364(sp),d0
-     b8a:	3f40 0078      	move.w d0,120(sp)
-            data[1] = i3*3+i4;
-     b8e:	222f 0160      	move.l 352(sp),d1
-     b92:	3001           	move.w d1,d0
-     b94:	d040           	add.w d0,d0
-     b96:	d240           	add.w d0,d1
-     b98:	202f 015c      	move.l 348(sp),d0
-     b9c:	d041           	add.w d1,d0
-     b9e:	3f40 007a      	move.w d0,122(sp)
-            data[2] = *pos;
-     ba2:	206f 0168      	movea.l 360(sp),a0
-     ba6:	3010           	move.w (a0),d0
-     ba8:	3f40 007c      	move.w d0,124(sp)
-            pos++;
-     bac:	54af 0168      	addq.l #2,360(sp)
-            
-            RawDoFmt( "Test_Zoom2: Pattern for zoomlevel %d, byte %d messed up."
-     bb0:	2f7c 0000 7559 	move.l #30041,192(sp)
-     bb6:	00c0 
-     bb8:	203c 0000 0178 	move.l #376,d0
-     bbe:	d08f           	add.l sp,d0
-     bc0:	0680 ffff ff00 	addi.l #-256,d0
-     bc6:	2f40 00bc      	move.l d0,188(sp)
-     bca:	2f7c 0000 729c 	move.l #29340,184(sp)
-     bd0:	00b8 
-     bd2:	223c 0000 0178 	move.l #376,d1
-     bd8:	d28f           	add.l sp,d1
-     bda:	0681 ffff fe9c 	addi.l #-356,d1
-     be0:	2f41 00b4      	move.l d1,180(sp)
-     be4:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     bea:	2c40           	movea.l d0,a6
-     bec:	206f 00c0      	movea.l 192(sp),a0
-     bf0:	226f 00bc      	movea.l 188(sp),a1
-     bf4:	246f 00b8      	movea.l 184(sp),a2
-     bf8:	266f 00b4      	movea.l 180(sp),a3
-     bfc:	4eae fdf6      	jsr -522(a6)
-     c00:	2f40 00b0      	move.l d0,176(sp)
-                                        "Result was %x.\n", data, PutChar, str);
-            Write( Output(), str, 66);
-     c04:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     c0a:	2c40           	movea.l d0,a6
-     c0c:	4eae ffc4      	jsr -60(a6)
-     c10:	2f40 00ac      	move.l d0,172(sp)
-     c14:	202f 00ac      	move.l 172(sp),d0
-     c18:	2f40 00a8      	move.l d0,168(sp)
-     c1c:	203c 0000 0178 	move.l #376,d0
-     c22:	d08f           	add.l sp,d0
-     c24:	0680 ffff fe9c 	addi.l #-356,d0
-     c2a:	2f40 00a4      	move.l d0,164(sp)
-     c2e:	7242           	moveq #66,d1
-     c30:	2f41 00a0      	move.l d1,160(sp)
-     c34:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     c3a:	2c40           	movea.l d0,a6
-     c3c:	222f 00a8      	move.l 168(sp),d1
-     c40:	242f 00a4      	move.l 164(sp),d2
-     c44:	262f 00a0      	move.l 160(sp),d3
-     c48:	4eae ffd0      	jsr -48(a6)
-     c4c:	2f40 009c      	move.l d0,156(sp)
-        for( int i4=0; i4<3;i4++) {
-     c50:	52af 015c      	addq.l #1,348(sp)
-     c54:	7002           	moveq #2,d0
-     c56:	b0af 015c      	cmp.l 348(sp),d0
-     c5a:	6c00 fefc      	bge.w b58 <Test_Zoom2+0x358>
-      for( int i3=0;i3<7;i3++) {
-     c5e:	52af 0160      	addq.l #1,352(sp)
-     c62:	7206           	moveq #6,d1
-     c64:	b2af 0160      	cmp.l 352(sp),d1
-     c68:	6c00 fee6      	bge.w b50 <Test_Zoom2+0x350>
-          }
-        }
-      } 
-      pos+=2;
-     c6c:	58af 0168      	addq.l #4,360(sp)
-    for( int i2=0;i2<2;i2++) {
-     c70:	52af 0164      	addq.l #1,356(sp)
-     c74:	7001           	moveq #1,d0
-     c76:	b0af 0164      	cmp.l 356(sp),d0
-     c7a:	6c00 fecc      	bge.w b48 <Test_Zoom2+0x348>
-  for( int i=1;i<=1;i++) {
-     c7e:	52af 016c      	addq.l #1,364(sp)
-     c82:	7201           	moveq #1,d1
-     c84:	b2af 016c      	cmp.l 364(sp),d1
-     c88:	6c00 fe66      	bge.w af0 <Test_Zoom2+0x2f0>
-    }
-  }
-  FreeMem( pic1, size4buffer);
-     c8c:	2f6f 0148 0098 	move.l 328(sp),152(sp)
-     c92:	7000           	moveq #0,d0
-     c94:	302f 015a      	move.w 346(sp),d0
-     c98:	2f40 0094      	move.l d0,148(sp)
-     c9c:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     ca2:	2c40           	movea.l d0,a6
-     ca4:	226f 0098      	movea.l 152(sp),a1
-     ca8:	202f 0094      	move.l 148(sp),d0
-     cac:	4eae ff2e      	jsr -210(a6)
-  FreeMem( pic2, size4buffer*2);
-     cb0:	2f6f 0124 0090 	move.l 292(sp),144(sp)
-     cb6:	7000           	moveq #0,d0
-     cb8:	302f 015a      	move.w 346(sp),d0
-     cbc:	d080           	add.l d0,d0
-     cbe:	2f40 008c      	move.l d0,140(sp)
-     cc2:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     cc8:	2c40           	movea.l d0,a6
-     cca:	226f 0090      	movea.l 144(sp),a1
-     cce:	202f 008c      	move.l 140(sp),d0
-     cd2:	4eae ff2e      	jsr -210(a6)
-  FreeMem( target, size4target);
-     cd6:	2f6f 0100 0088 	move.l 256(sp),136(sp)
-     cdc:	7000           	moveq #0,d0
-     cde:	302f 0158      	move.w 344(sp),d0
-     ce2:	2f40 0084      	move.l d0,132(sp)
-     ce6:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     cec:	2c40           	movea.l d0,a6
-     cee:	226f 0088      	movea.l 136(sp),a1
-     cf2:	202f 0084      	move.l 132(sp),d0
-     cf6:	4eae ff2e      	jsr -210(a6)
-     cfa:	4cdf 4c0c      	movem.l (sp)+,d2-d3/a2-a3/a6
-     cfe:	4fef 0164      	lea 356(sp),sp
-     d02:	4e75           	rts
+	if (SysBase->AttnFlags & AFF_68010) 
+     610:	2079 0002 8524 	movea.l 28524 <SysBase>,a0
+     616:	3028 0128      	move.w 296(a0),d0
+     61a:	3000           	move.w d0,d0
+     61c:	0280 0000 ffff 	andi.l #65535,d0
+     622:	7201           	moveq #1,d1
+     624:	c081           	and.l d1,d0
+     626:	672c           	beq.s 654 <GetVBR+0x62>
+		vbr = (APTR)Supervisor((ULONG (*)())getvbr);
+     628:	41ef 001c      	lea 28(sp),a0
+     62c:	41e8 ffee      	lea -18(a0),a0
+     630:	2f48 0014      	move.l a0,20(sp)
+     634:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     63a:	2c40           	movea.l d0,a6
+     63c:	2e2f 0014      	move.l 20(sp),d7
+     640:	cf8d           	exg d7,a5
+     642:	4eae ffe2      	jsr -30(a6)
+     646:	cf8d           	exg d7,a5
+     648:	2f40 0010      	move.l d0,16(sp)
+     64c:	202f 0010      	move.l 16(sp),d0
+     650:	2f40 0018      	move.l d0,24(sp)
 
-00000d04 <main>:
-#include "utils.h"
-#include "runtests.h"
-#include "rundemo.h"
+	return vbr;
+     654:	202f 0018      	move.l 24(sp),d0
+}
+     658:	2e1f           	move.l (sp)+,d7
+     65a:	2c5f           	movea.l (sp)+,a6
+     65c:	4fef 0014      	lea 20(sp),sp
+     660:	4e75           	rts
+
+00000662 <SetInterruptHandler>:
+
+void SetInterruptHandler(APTR interrupt) {
+	*(volatile APTR*)(((UBYTE*)VBR)+0x6c) = interrupt;
+     662:	2079 0002 853a 	movea.l 2853a <VBR>,a0
+     668:	41e8 006c      	lea 108(a0),a0
+     66c:	20af 0004      	move.l 4(sp),(a0)
+}
+     670:	4e75           	rts
+
+00000672 <GetInterruptHandler>:
+
+APTR GetInterruptHandler() {
+	return *(volatile APTR*)(((UBYTE*)VBR)+0x6c);
+     672:	2079 0002 853a 	movea.l 2853a <VBR>,a0
+     678:	2028 006c      	move.l 108(a0),d0
+}
+     67c:	4e75           	rts
+
+0000067e <WaitVbl>:
+
+//vblank begins at vpos 312 hpos 1 and ends at vpos 25 hpos 1
+//vsync begins at line 2 hpos 132 and ends at vpos 5 hpos 18 
+void WaitVbl() {
+     67e:	518f           	subq.l #8,sp
+	while (1) {
+		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
+     680:	207c 00df f004 	movea.l #14675972,a0
+     686:	2010           	move.l (a0),d0
+     688:	2e80           	move.l d0,(sp)
+		vpos&=0x1ff00;
+     68a:	2017           	move.l (sp),d0
+     68c:	0280 0001 ff00 	andi.l #130816,d0
+     692:	2e80           	move.l d0,(sp)
+		if (vpos!=(311<<8))
+     694:	2017           	move.l (sp),d0
+     696:	0c80 0001 3700 	cmpi.l #79616,d0
+     69c:	67e2           	beq.s 680 <WaitVbl+0x2>
+			break;
+	}
+	while (1) {
+		volatile ULONG vpos=*(volatile ULONG*)0xDFF004;
+     69e:	207c 00df f004 	movea.l #14675972,a0
+     6a4:	2010           	move.l (a0),d0
+     6a6:	2f40 0004      	move.l d0,4(sp)
+		vpos&=0x1ff00;
+     6aa:	202f 0004      	move.l 4(sp),d0
+     6ae:	0280 0001 ff00 	andi.l #130816,d0
+     6b4:	2f40 0004      	move.l d0,4(sp)
+		if (vpos==(311<<8))
+     6b8:	202f 0004      	move.l 4(sp),d0
+     6bc:	0c80 0001 3700 	cmpi.l #79616,d0
+     6c2:	66da           	bne.s 69e <WaitVbl+0x20>
+			break;
+	}
+}
+     6c4:	508f           	addq.l #8,sp
+     6c6:	4e75           	rts
+
+000006c8 <TakeSystem>:
+	UWORD tst=*(volatile UWORD*)&custom->dmaconr; //for compatiblity a1000
+	(void)tst;
+	while (*(volatile UWORD*)&custom->dmaconr&(1<<14)) {} //blitter busy wait
+}*/
+
+void TakeSystem() {
+     6c8:	518f           	subq.l #8,sp
+     6ca:	2f0e           	move.l a6,-(sp)
+	ActiView=GfxBase->ActiView; //store current view
+     6cc:	2079 0002 8530 	movea.l 28530 <GfxBase>,a0
+     6d2:	2028 0022      	move.l 34(a0),d0
+     6d6:	23c0 0002 8542 	move.l d0,28542 <ActiView>
+	OwnBlitter();
+     6dc:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     6e2:	2c40           	movea.l d0,a6
+     6e4:	4eae fe38      	jsr -456(a6)
+	WaitBlit();	
+     6e8:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     6ee:	2c40           	movea.l d0,a6
+     6f0:	4eae ff1c      	jsr -228(a6)
+	//Disable();
+	Forbid();
+     6f4:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     6fa:	2c40           	movea.l d0,a6
+     6fc:	4eae ff7c      	jsr -132(a6)
+	
+	//Save current interrupts and DMA settings so we can restore them upon exit. 
+	SystemADKCON=custom->adkconr;
+     700:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     706:	3028 0010      	move.w 16(a0),d0
+     70a:	33c0 0002 8538 	move.w d0,28538 <SystemADKCON>
+	SystemInts=custom->intenar;
+     710:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     716:	3028 001c      	move.w 28(a0),d0
+     71a:	33c0 0002 8534 	move.w d0,28534 <SystemInts>
+	SystemDMA=custom->dmaconr;
+     720:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     726:	3028 0002      	move.w 2(a0),d0
+     72a:	33c0 0002 8536 	move.w d0,28536 <SystemDMA>
+	custom->intena=0x7fff;//disable all interrupts
+     730:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     736:	317c 7fff 009a 	move.w #32767,154(a0)
+	custom->intreq=0x7fff;//Clear any interrupts that were pending
+     73c:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     742:	317c 7fff 009c 	move.w #32767,156(a0)
+	
+	WaitVbl();
+     748:	4eba ff34      	jsr 67e <WaitVbl>(pc)
+	WaitVbl();
+     74c:	4eba ff30      	jsr 67e <WaitVbl>(pc)
+	custom->dmacon=0x7fff;//Clear all DMA channels
+     750:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     756:	317c 7fff 0096 	move.w #32767,150(a0)
+
+	//set all colors black
+	for(int a=0;a<32;a++)
+     75c:	42af 0008      	clr.l 8(sp)
+     760:	601c           	bra.s 77e <TakeSystem+0xb6>
+		custom->color[a]=0;
+     762:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     768:	202f 0008      	move.l 8(sp),d0
+     76c:	0680 0000 00c0 	addi.l #192,d0
+     772:	d080           	add.l d0,d0
+     774:	31bc 0000 0800 	move.w #0,(0,a0,d0.l)
+	for(int a=0;a<32;a++)
+     77a:	52af 0008      	addq.l #1,8(sp)
+     77e:	701f           	moveq #31,d0
+     780:	b0af 0008      	cmp.l 8(sp),d0
+     784:	6cdc           	bge.s 762 <TakeSystem+0x9a>
+
+	LoadView(0);
+     786:	42af 0004      	clr.l 4(sp)
+     78a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     790:	2c40           	movea.l d0,a6
+     792:	226f 0004      	movea.l 4(sp),a1
+     796:	4eae ff22      	jsr -222(a6)
+	WaitTOF();
+     79a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     7a0:	2c40           	movea.l d0,a6
+     7a2:	4eae fef2      	jsr -270(a6)
+	WaitTOF();
+     7a6:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     7ac:	2c40           	movea.l d0,a6
+     7ae:	4eae fef2      	jsr -270(a6)
+
+	WaitVbl();
+     7b2:	4eba feca      	jsr 67e <WaitVbl>(pc)
+	WaitVbl();
+     7b6:	4eba fec6      	jsr 67e <WaitVbl>(pc)
+
+	VBR=GetVBR();
+     7ba:	4eba fe36      	jsr 5f2 <GetVBR>(pc)
+     7be:	23c0 0002 853a 	move.l d0,2853a <VBR>
+	SystemIrq=GetInterruptHandler(); //store interrupt register
+     7c4:	4eba feac      	jsr 672 <GetInterruptHandler>(pc)
+     7c8:	23c0 0002 853e 	move.l d0,2853e <SystemIrq>
+}
+     7ce:	2c5f           	movea.l (sp)+,a6
+     7d0:	508f           	addq.l #8,sp
+     7d2:	4e75           	rts
+
+000007d4 <FreeSystem>:
+
+void FreeSystem() { 
+     7d4:	598f           	subq.l #4,sp
+     7d6:	2f0e           	move.l a6,-(sp)
+	WaitVbl();
+     7d8:	4eba fea4      	jsr 67e <WaitVbl>(pc)
+	WaitBlt();
+     7dc:	4eba f8d6      	jsr b4 <WaitBlt>(pc)
+	custom->intena=0x7fff;//disable all interrupts
+     7e0:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     7e6:	317c 7fff 009a 	move.w #32767,154(a0)
+	custom->intreq=0x7fff;//Clear any interrupts that were pending
+     7ec:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     7f2:	317c 7fff 009c 	move.w #32767,156(a0)
+	custom->dmacon=0x7fff;//Clear all DMA channels
+     7f8:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     7fe:	317c 7fff 0096 	move.w #32767,150(a0)
+
+	//restore interrupts
+	SetInterruptHandler(SystemIrq);
+     804:	2039 0002 853e 	move.l 2853e <SystemIrq>,d0
+     80a:	2f00           	move.l d0,-(sp)
+     80c:	4eba fe54      	jsr 662 <SetInterruptHandler>(pc)
+     810:	588f           	addq.l #4,sp
+
+	/*Restore system copper list(s). */
+	custom->cop1lc=(ULONG)GfxBase->copinit;
+     812:	2079 0002 8530 	movea.l 28530 <GfxBase>,a0
+     818:	2028 0026      	move.l 38(a0),d0
+     81c:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     822:	2140 0080      	move.l d0,128(a0)
+	custom->cop2lc=(ULONG)GfxBase->LOFlist;
+     826:	2079 0002 8530 	movea.l 28530 <GfxBase>,a0
+     82c:	2028 0032      	move.l 50(a0),d0
+     830:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     836:	2140 0084      	move.l d0,132(a0)
+	custom->copjmp1=0x7fff; //start coppper
+     83a:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     840:	317c 7fff 0088 	move.w #32767,136(a0)
+
+	/*Restore all interrupts and DMA settings. */
+	custom->intena=SystemInts|0x8000;
+     846:	3039 0002 8534 	move.w 28534 <SystemInts>,d0
+     84c:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     852:	0040 8000      	ori.w #-32768,d0
+     856:	3140 009a      	move.w d0,154(a0)
+	custom->dmacon=SystemDMA|0x8000;
+     85a:	3039 0002 8536 	move.w 28536 <SystemDMA>,d0
+     860:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     866:	0040 8000      	ori.w #-32768,d0
+     86a:	3140 0096      	move.w d0,150(a0)
+	custom->adkcon=SystemADKCON|0x8000;
+     86e:	3039 0002 8538 	move.w 28538 <SystemADKCON>,d0
+     874:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     87a:	0040 8000      	ori.w #-32768,d0
+     87e:	3140 009e      	move.w d0,158(a0)
+
+	LoadView(ActiView);
+     882:	2f79 0002 8542 	move.l 28542 <ActiView>,4(sp)
+     888:	0004 
+     88a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     890:	2c40           	movea.l d0,a6
+     892:	226f 0004      	movea.l 4(sp),a1
+     896:	4eae ff22      	jsr -222(a6)
+	WaitTOF();
+     89a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     8a0:	2c40           	movea.l d0,a6
+     8a2:	4eae fef2      	jsr -270(a6)
+	WaitTOF();
+     8a6:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     8ac:	2c40           	movea.l d0,a6
+     8ae:	4eae fef2      	jsr -270(a6)
+	WaitBlit();	
+     8b2:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     8b8:	2c40           	movea.l d0,a6
+     8ba:	4eae ff1c      	jsr -228(a6)
+	DisownBlitter();
+     8be:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     8c4:	2c40           	movea.l d0,a6
+     8c6:	4eae fe32      	jsr -462(a6)
+	//Enable();
+	Permit();
+     8ca:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     8d0:	2c40           	movea.l d0,a6
+     8d2:	4eae ff76      	jsr -138(a6)
+}
+     8d6:	2c5f           	movea.l (sp)+,a6
+     8d8:	588f           	addq.l #4,sp
+     8da:	4e75           	rts
+
+000008dc <interruptHandler.lto_priv.1>:
+	*copListCurrent++=offsetof(struct Custom, color[index]);
+	*copListCurrent++=color;
+	return copListCurrent;
+}
+
+static __attribute__((interrupt)) void interruptHandler() {
+     8dc:	2f08           	move.l a0,-(sp)
+     8de:	2f00           	move.l d0,-(sp)
+	custom->intreq=(1<<INTB_VERTB); custom->intreq=(1<<INTB_VERTB); //reset vbl req. twice for a4000 bug.
+     8e0:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     8e6:	317c 0020 009c 	move.w #32,156(a0)
+     8ec:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     8f2:	317c 0020 009c 	move.w #32,156(a0)
+	// DEMO - increment frameCounter
+	frameCounter++;
+     8f8:	3039 0002 8546 	move.w 28546 <frameCounter>,d0
+     8fe:	5240           	addq.w #1,d0
+     900:	33c0 0002 8546 	move.w d0,28546 <frameCounter>
+}
+     906:	201f           	move.l (sp)+,d0
+     908:	205f           	movea.l (sp)+,a0
+     90a:	4e73           	rte
+
+0000090c <main>:
+	*copListEnd++ = offsetof(struct Custom, diwstop);
+	*copListEnd++ = (xstop-256)+((ystop-256)<<8);
+	return copListEnd;
+}
 
 int main() {
-     d04:	4fef ffd8      	lea -40(sp),sp
-     d08:	2f0e           	move.l a6,-(sp)
-
-  UWORD test = 99;
-     d0a:	3f7c 0063 002a 	move.w #99,42(sp)
-  /*UWORD *bp = 0x200;
-  *bp = test;*/
-  ULONG tmp = 4;
-     d10:	7004           	moveq #4,d0
-     d12:	2f40 0026      	move.l d0,38(sp)
-  SysBase = *((struct ExecBase**)tmp);
-     d16:	206f 0026      	movea.l 38(sp),a0
-     d1a:	2010           	move.l (a0),d0
-     d1c:	23c0 0001 ba7c 	move.l d0,1ba7c <_edata>
+     90c:	4fef ffbc      	lea -68(sp),sp
+     910:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+	ULONG tmp = 4;
+     914:	7004           	moveq #4,d0
+     916:	2f40 004c      	move.l d0,76(sp)
+    SysBase = *((struct ExecBase**)tmp);
+     91a:	206f 004c      	movea.l 76(sp),a0
+     91e:	2010           	move.l (a0),d0
+     920:	23c0 0002 8524 	move.l d0,28524 <SysBase>
 	hw = (struct Custom*)0xdff000;
-     d22:	23fc 00df f000 	move.l #14675968,1baba <hw>
-     d28:	0001 baba 
+     926:	23fc 00df f000 	move.l #14675968,28520 <hw>
+     92c:	0002 8520 
+
+	SysBase = *((struct ExecBase**)4UL);
+     930:	307c 0004      	movea.w #4,a0
+     934:	2010           	move.l (a0),d0
+     936:	23c0 0002 8524 	move.l d0,28524 <SysBase>
+	custom = (struct Custom*)0xdff000;
+     93c:	23fc 00df f000 	move.l #14675968,28528 <custom>
+     942:	0002 8528 
 
 	// We will use the graphics library only to locate and restore the system copper list once we are through.
-	GfxBase = (struct GfxBase *)OpenLibrary("graphics.library",0);
-     d2c:	2f7c 0000 75a1 	move.l #30113,34(sp)
-     d32:	0022 
-     d34:	42af 001e      	clr.l 30(sp)
-     d38:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     d3e:	2c40           	movea.l d0,a6
-     d40:	226f 0022      	movea.l 34(sp),a1
-     d44:	202f 001e      	move.l 30(sp),d0
-     d48:	4eae fdd8      	jsr -552(a6)
-     d4c:	2f40 001a      	move.l d0,26(sp)
-     d50:	202f 001a      	move.l 26(sp),d0
-     d54:	23c0 0001 ba84 	move.l d0,1ba84 <GfxBase>
+	GfxBase = (struct GfxBase *)OpenLibrary((CONST_STRPTR)"graphics.library",0);
+     946:	2f7c 0000 7639 	move.l #30265,72(sp)
+     94c:	0048 
+     94e:	42af 0044      	clr.l 68(sp)
+     952:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     958:	2c40           	movea.l d0,a6
+     95a:	226f 0048      	movea.l 72(sp),a1
+     95e:	202f 0044      	move.l 68(sp),d0
+     962:	4eae fdd8      	jsr -552(a6)
+     966:	2f40 0040      	move.l d0,64(sp)
+     96a:	202f 0040      	move.l 64(sp),d0
+     96e:	23c0 0002 8530 	move.l d0,28530 <GfxBase>
 	if (!GfxBase)
-     d5a:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-     d60:	4a80           	tst.l d0
-     d62:	6614           	bne.s d78 <main+0x74>
+     974:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+     97a:	6614           	bne.s 990 <main+0x84>
 		Exit(0);
-     d64:	42af 0016      	clr.l 22(sp)
-     d68:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     d6e:	2c40           	movea.l d0,a6
-     d70:	222f 0016      	move.l 22(sp),d1
-     d74:	4eae ff70      	jsr -144(a6)
+     97c:	42af 003c      	clr.l 60(sp)
+     980:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     986:	2c40           	movea.l d0,a6
+     988:	222f 003c      	move.l 60(sp),d1
+     98c:	4eae ff70      	jsr -144(a6)
 
 	// used for printing
-	DOSBase = (struct DosLibrary*)OpenLibrary("dos.library", 0);
-     d78:	2f7c 0000 75b2 	move.l #30130,18(sp)
-     d7e:	0012 
-     d80:	42af 000e      	clr.l 14(sp)
-     d84:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     d8a:	2c40           	movea.l d0,a6
-     d8c:	226f 0012      	movea.l 18(sp),a1
-     d90:	202f 000e      	move.l 14(sp),d0
-     d94:	4eae fdd8      	jsr -552(a6)
-     d98:	2f40 000a      	move.l d0,10(sp)
-     d9c:	202f 000a      	move.l 10(sp),d0
-     da0:	23c0 0001 ba80 	move.l d0,1ba80 <DOSBase>
+	DOSBase = (struct DosLibrary*)OpenLibrary((CONST_STRPTR)"dos.library", 0);
+     990:	2f7c 0000 764a 	move.l #30282,56(sp)
+     996:	0038 
+     998:	42af 0034      	clr.l 52(sp)
+     99c:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     9a2:	2c40           	movea.l d0,a6
+     9a4:	226f 0038      	movea.l 56(sp),a1
+     9a8:	202f 0034      	move.l 52(sp),d0
+     9ac:	4eae fdd8      	jsr -552(a6)
+     9b0:	2f40 0030      	move.l d0,48(sp)
+     9b4:	202f 0030      	move.l 48(sp),d0
+     9b8:	23c0 0002 852c 	move.l d0,2852c <DOSBase>
 	if (!DOSBase)
-     da6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     dac:	4a80           	tst.l d0
-     dae:	6614           	bne.s dc4 <main+0xc0>
+     9be:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     9c4:	6614           	bne.s 9da <main+0xce>
 		Exit(0);
-     db0:	42af 0006      	clr.l 6(sp)
-     db4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-     dba:	2c40           	movea.l d0,a6
-     dbc:	222f 0006      	move.l 6(sp),d1
-     dc0:	4eae ff70      	jsr -144(a6)
+     9c6:	42af 002c      	clr.l 44(sp)
+     9ca:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     9d0:	2c40           	movea.l d0,a6
+     9d2:	222f 002c      	move.l 44(sp),d1
+     9d6:	4eae ff70      	jsr -144(a6)
 
-	//KPrintF("Hello debugger from Amiga!\n");
-	//Write(Output(), "Hello console!\n", 15);
-	/*Delay(50);*/
-  //Zoom_InitRun();
-  RunTests();	//warpmode(1);
-     dc4:	4eba 6250      	jsr 7016 <RunTests>(pc)
-     dc8:	7000           	moveq #0,d0
+#ifdef __cplusplus
+	KPrintF("Hello debugger from Amiga: %ld!\n", staticClass.i);
+#else
+	KPrintF("Hello debugger from Amiga!\n");
+     9da:	4879 0000 7656 	pea 7656 <incbin_colors_end+0x1e>
+     9e0:	4eba 68a6      	jsr 7288 <KPrintF>(pc)
+     9e4:	588f           	addq.l #4,sp
+#endif
+	Write(Output(), (APTR)"Hello console!\n", 15);
+     9e6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     9ec:	2c40           	movea.l d0,a6
+     9ee:	4eae ffc4      	jsr -60(a6)
+     9f2:	2f40 0028      	move.l d0,40(sp)
+     9f6:	202f 0028      	move.l 40(sp),d0
+     9fa:	2f40 0024      	move.l d0,36(sp)
+     9fe:	2f7c 0000 7672 	move.l #30322,32(sp)
+     a04:	0020 
+     a06:	700f           	moveq #15,d0
+     a08:	2f40 001c      	move.l d0,28(sp)
+     a0c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     a12:	2c40           	movea.l d0,a6
+     a14:	222f 0024      	move.l 36(sp),d1
+     a18:	242f 0020      	move.l 32(sp),d2
+     a1c:	262f 001c      	move.l 28(sp),d3
+     a20:	4eae ffd0      	jsr -48(a6)
+     a24:	2f40 0018      	move.l d0,24(sp)
+	Delay(50);
+     a28:	7032           	moveq #50,d0
+     a2a:	2f40 0014      	move.l d0,20(sp)
+     a2e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     a34:	2c40           	movea.l d0,a6
+     a36:	222f 0014      	move.l 20(sp),d1
+     a3a:	4eae ff3a      	jsr -198(a6)
 
-	//FreeSystem();
+	warpmode(1);
+     a3e:	4878 0001      	pea 1 <_start+0x1>
+     a42:	4eba 68ae      	jsr 72f2 <warpmode>(pc)
+     a46:	588f           	addq.l #4,sp
+	// TODO: precalc stuff here
+	warpmode(0);
+     a48:	42a7           	clr.l -(sp)
+     a4a:	4eba 68a6      	jsr 72f2 <warpmode>(pc)
+     a4e:	588f           	addq.l #4,sp
 
-	/*CloseLibrary((struct Library*)DOSBase);
-	CloseLibrary((struct Library*)GfxBase);*/
-}
-     dca:	2c5f           	movea.l (sp)+,a6
-     dcc:	4fef 0028      	lea 40(sp),sp
-     dd0:	4e75           	rts
-
-00000dd2 <Zoom_VblankHandler>:
-UWORD *Zoom_Zl4Words;
-
-
-void Zoom_VblankHandler() {
+	/*TakeSystem();*/
+	WaitVbl();
+     a50:	4eba fc2c      	jsr 67e <WaitVbl>(pc)
   
-  Zoom_Counter++;
-     dd2:	3039 0001 bae2 	move.w 1bae2 <Zoom_Counter>,d0
-     dd8:	5240           	addq.w #1,d0
-     dda:	33c0 0001 bae2 	move.w d0,1bae2 <Zoom_Counter>
-  SwapCl();
-     de0:	4eba f448      	jsr 22a <SwapCl>(pc)
-  Zoom_MouseReleased = 1;
-     de4:	33fc 0001 0001 	move.w #1,1bac6 <Zoom_MouseReleased>
-     dea:	bac6 
-  if( MouseLeft())
-     dec:	4eba f6e8      	jsr 4d6 <MouseLeft>(pc)
-     df0:	4a40           	tst.w d0
-     df2:	6708           	beq.s dfc <Zoom_VblankHandler+0x2a>
-    Zoom_Mousepressed = 1;
-     df4:	33fc 0001 0001 	move.w #1,1bac8 <Zoom_Mousepressed>
-     dfa:	bac8 
-  if( Zoom_Mousepressed == 1 && !MouseLeft()) {
-     dfc:	3039 0001 bac8 	move.w 1bac8 <Zoom_Mousepressed>,d0
-     e02:	0c40 0001      	cmpi.w #1,d0
-     e06:	6616           	bne.s e1e <Zoom_VblankHandler+0x4c>
-     e08:	4eba f6cc      	jsr 4d6 <MouseLeft>(pc)
-     e0c:	4a40           	tst.w d0
-     e0e:	660e           	bne.s e1e <Zoom_VblankHandler+0x4c>
-    Zoom_MouseReleased = 1;
-     e10:	33fc 0001 0001 	move.w #1,1bac6 <Zoom_MouseReleased>
-     e16:	bac6 
-    Zoom_Mousepressed = 0;
-     e18:	4279 0001 bac8 	clr.w 1bac8 <Zoom_Mousepressed>
-  }
-    if( Zoom_MouseReleased == 1) {
-     e1e:	3039 0001 bac6 	move.w 1bac6 <Zoom_MouseReleased>,d0
-     e24:	0c40 0001      	cmpi.w #1,d0
-     e28:	666c           	bne.s e96 <Zoom_VblankHandler+0xc4>
-      Zoom_MouseReleased = 0;
-     e2a:	4279 0001 bac6 	clr.w 1bac6 <Zoom_MouseReleased>
-      if( Zoom_LevelOf102Zoom == 0) {
-     e30:	3039 0001 bace 	move.w 1bace <Zoom_LevelOf102Zoom>,d0
-     e36:	4a40           	tst.w d0
-     e38:	664e           	bne.s e88 <Zoom_VblankHandler+0xb6>
- 
-        if( Zoom_LevelOfZoom == 17)
-     e3a:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     e40:	0c40 0011      	cmpi.w #17,d0
-     e44:	660a           	bne.s e50 <Zoom_VblankHandler+0x7e>
-          Zoom_LevelOfZoom = 0;
-     e46:	33fc 0000 0001 	move.w #0,1bacc <Zoom_LevelOfZoom>
-     e4c:	bacc 
-     e4e:	600e           	bra.s e5e <Zoom_VblankHandler+0x8c>
-        else
-          Zoom_LevelOfZoom++;
-     e50:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     e56:	5240           	addq.w #1,d0
-     e58:	33c0 0001 bacc 	move.w d0,1bacc <Zoom_LevelOfZoom>
-        Zoom_LevelOf102Zoom = MaxZoom102[Zoom_LevelOfZoom] - 2;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
-     e5e:	3039 0001 bacc 	move.w 1bacc <Zoom_LevelOfZoom>,d0
-     e64:	3000           	move.w d0,d0
-     e66:	0280 0000 ffff 	andi.l #65535,d0
-     e6c:	2240           	movea.l d0,a1
-     e6e:	d3c0           	adda.l d0,a1
-     e70:	41f9 0001 b4c0 	lea 1b4c0 <MaxZoom102>,a0
-     e76:	3031 8800      	move.w (0,a1,a0.l),d0
-     e7a:	5540           	subq.w #2,d0
-     e7c:	33c0 0001 bace 	move.w d0,1bace <Zoom_LevelOf102Zoom>
-        Zoom_SwapBuffers();
-     e82:	4eba 0fee      	jsr 1e72 <Zoom_SwapBuffers>(pc)
-     e86:	600e           	bra.s e96 <Zoom_VblankHandler+0xc4>
-      } else 
-        Zoom_LevelOf102Zoom--;
-     e88:	3039 0001 bace 	move.w 1bace <Zoom_LevelOf102Zoom>,d0
-     e8e:	5340           	subq.w #1,d0
-     e90:	33c0 0001 bace 	move.w d0,1bace <Zoom_LevelOf102Zoom>
-    }
-  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
-     e96:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-     e9c:	3039 0001 bace 	move.w 1bace <Zoom_LevelOf102Zoom>,d0
-     ea2:	3000           	move.w d0,d0
-     ea4:	0280 0000 ffff 	andi.l #65535,d0
-     eaa:	2f01           	move.l d1,-(sp)
-     eac:	2f00           	move.l d0,-(sp)
-     eae:	4eba f8b8      	jsr 768 <Zoom_Shrink102>(pc)
-     eb2:	508f           	addq.l #8,sp
-  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
-     eb4:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-     eba:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-     ec0:	2f01           	move.l d1,-(sp)
-     ec2:	2f00           	move.l d0,-(sp)
-     ec4:	4eba 0f30      	jsr 1df6 <Zoom_SetBplPointers>(pc)
-     ec8:	508f           	addq.l #8,sp
- 
+  	//Zoom_InitRun();
+  	RunTests();	//warpmode(1);
+     a54:	4eba 286e      	jsr 32c4 <RunTests>(pc)
+	// DEMO
+
+	//RunDemo();
+
+	// DEMO
+	SetInterruptHandler((APTR)interruptHandler);
+     a58:	487a fe82      	pea 8dc <interruptHandler.lto_priv.1>(pc)
+     a5c:	4eba fc04      	jsr 662 <SetInterruptHandler>(pc)
+     a60:	588f           	addq.l #4,sp
+	custom->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
+     a62:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     a68:	317c c020 009a 	move.w #-16352,154(a0)
+	custom->intreq=1<<INTB_VERTB;//reset vbl req
+     a6e:	2079 0002 8528 	movea.l 28528 <custom>,a0
+     a74:	317c 0020 009c 	move.w #32,156(a0)
+
+	// END
+	FreeSystem();
+     a7a:	4eba fd58      	jsr 7d4 <FreeSystem>(pc)
+
+	CloseLibrary((struct Library*)DOSBase);
+     a7e:	2f79 0002 852c 	move.l 2852c <DOSBase>,16(sp)
+     a84:	0010 
+     a86:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     a8c:	2c40           	movea.l d0,a6
+     a8e:	226f 0010      	movea.l 16(sp),a1
+     a92:	4eae fe62      	jsr -414(a6)
+	CloseLibrary((struct Library*)GfxBase);
+     a96:	2f79 0002 8530 	move.l 28530 <GfxBase>,12(sp)
+     a9c:	000c 
+     a9e:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     aa4:	2c40           	movea.l d0,a6
+     aa6:	226f 000c      	movea.l 12(sp),a1
+     aaa:	4eae fe62      	jsr -414(a6)
+     aae:	7000           	moveq #0,d0
 }
-     eca:	4e75           	rts
+     ab0:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+     ab4:	4fef 0044      	lea 68(sp),sp
+     ab8:	4e75           	rts
 
-00000ecc <Zoom_LoadImage>:
-
-void Zoom_LoadImage( ULONG *destination) {  
-     ecc:	4fef fff4      	lea -12(sp),sp
-     ed0:	2f0e           	move.l a6,-(sp)
-  CopyMem( startimage, destination, ZMBPLSIZE);
-     ed2:	2f79 0001 b514 	move.l 1b514 <startimage>,12(sp)
-     ed8:	000c 
-     eda:	2f6f 0014 0008 	move.l 20(sp),8(sp)
-     ee0:	2f7c 0000 ff00 	move.l #65280,4(sp)
-     ee6:	0004 
-     ee8:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-     eee:	2c40           	movea.l d0,a6
-     ef0:	206f 000c      	movea.l 12(sp),a0
-     ef4:	226f 0008      	movea.l 8(sp),a1
-     ef8:	202f 0004      	move.l 4(sp),d0
-     efc:	4eae fd90      	jsr -624(a6)
-}
-     f00:	2c5f           	movea.l (sp)+,a6
-     f02:	4fef 000c      	lea 12(sp),sp
-     f06:	4e75           	rts
-
-00000f08 <Zoom_CopyWord>:
-
-ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
-         0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
-                                                       0x010a0000, 0x01001200 };
-
-void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {  
-     f08:	598f           	subq.l #4,sp
-     f0a:	202f 0010      	move.l 16(sp),d0
-     f0e:	3000           	move.w d0,d0
-     f10:	3f40 0002      	move.w d0,2(sp)
-
-  WaitBlt();
-     f14:	4eba f1ca      	jsr e0 <WaitBlt>(pc)
-
-  hw->bltapt = (UWORD *) source;
-     f18:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f1e:	216f 0008 0050 	move.l 8(sp),80(a0)
-  hw->bltdpt = (UWORD *) destination;
-     f24:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f2a:	216f 000c 0054 	move.l 12(sp),84(a0)
-  hw->bltsize = (height<<6)+2;
-     f30:	302f 0002      	move.w 2(sp),d0
-     f34:	ed48           	lsl.w #6,d0
-     f36:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f3c:	5440           	addq.w #2,d0
-     f3e:	3140 0058      	move.w d0,88(a0)
-
-}
-     f42:	588f           	addq.l #4,sp
-     f44:	4e75           	rts
-
-00000f46 <Zoom_ZoomBlit>:
-
-void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
-     f46:	518f           	subq.l #8,sp
-     f48:	202f 0014      	move.l 20(sp),d0
-     f4c:	3000           	move.w d0,d0
-     f4e:	3f40 0002      	move.w d0,2(sp)
-
-                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
-              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
-
-  UWORD *blta = source + ZoomBlit_Increment4SrcA;
-     f52:	3039 0001 badc 	move.w 1badc <ZoomBlit_Increment4SrcA>,d0
-     f58:	3000           	move.w d0,d0
-     f5a:	0280 0000 ffff 	andi.l #65535,d0
-     f60:	d080           	add.l d0,d0
-     f62:	222f 000c      	move.l 12(sp),d1
-     f66:	d280           	add.l d0,d1
-     f68:	2f41 0004      	move.l d1,4(sp)
-  /*UWORD *bp = 0x200;
-  *bp = 0;*/
-  WaitBlt();
-     f6c:	4eba f172      	jsr e0 <WaitBlt>(pc)
-  1111*/
-  //0000 0000 1010 1010 1010 1010
-  //0000 0001 0101 0101 0101 0101
-  //                     4    a
-  
-  hw->bltapt = blta;
-     f70:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f76:	216f 0004 0050 	move.l 4(sp),80(a0)
-  hw->bltbpt = source;
-     f7c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f82:	216f 000c 004c 	move.l 12(sp),76(a0)
-  hw->bltdpt = destination;
-     f88:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     f8e:	216f 0010 0054 	move.l 16(sp),84(a0)
-  hw->bltsize = (height<<6)+2;
-     f94:	302f 0002      	move.w 2(sp),d0
-     f98:	ed48           	lsl.w #6,d0
-     f9a:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     fa0:	5440           	addq.w #2,d0
-     fa2:	3140 0058      	move.w d0,88(a0)
-
-}
-     fa6:	508f           	addq.l #8,sp
-     fa8:	4e75           	rts
-
-00000faa <Zoom_ZoomBlit2>:
-
-void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
-                                                 UWORD bltamod, UWORD bltbmod) {
-     faa:	4fef fff4      	lea -12(sp),sp
-     fae:	206f 001c      	movea.l 28(sp),a0
-     fb2:	222f 0020      	move.l 32(sp),d1
-     fb6:	202f 0024      	move.l 36(sp),d0
-     fba:	3048           	movea.w a0,a0
-     fbc:	3f48 0004      	move.w a0,4(sp)
-     fc0:	3201           	move.w d1,d1
-     fc2:	3f41 0002      	move.w d1,2(sp)
-     fc6:	3000           	move.w d0,d0
-     fc8:	3e80           	move.w d0,(sp)
-
-                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
-              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
-  UWORD *bp = 0x200;
-     fca:	2f7c 0000 0200 	move.l #512,8(sp)
-     fd0:	0008 
-  *bp = 0;
-     fd2:	206f 0008      	movea.l 8(sp),a0
-     fd6:	4250           	clr.w (a0)
-  UWORD bltsize = (height << 6) + 2;
-     fd8:	302f 0004      	move.w 4(sp),d0
-     fdc:	ed48           	lsl.w #6,d0
-     fde:	3200           	move.w d0,d1
-     fe0:	5441           	addq.w #2,d1
-     fe2:	3f41 0006      	move.w d1,6(sp)
-  
-  /*UWORD *bp = 0x200;
-  *bp = 0;*/
-  WaitBlt();
-     fe6:	4eba f0f8      	jsr e0 <WaitBlt>(pc)
-  1101
-  1111*/
-  //0000 0000 1010 1010 1010 1010
-  //0000 0001 0101 0101 0101 0101
-  //                     4    a
-  hw->bltamod = bltamod;
-     fea:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     ff0:	316f 0002 0064 	move.w 2(sp),100(a0)
-  hw->bltbmod = bltbmod;  
-     ff6:	2079 0001 baba 	movea.l 1baba <hw>,a0
-     ffc:	3157 0062      	move.w (sp),98(a0)
-  hw->bltapt = src4a;
-    1000:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1006:	216f 0010 0050 	move.l 16(sp),80(a0)
-  hw->bltbpt = src4b;
-    100c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1012:	216f 0014 004c 	move.l 20(sp),76(a0)
-  hw->bltdpt = dst;
-    1018:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    101e:	216f 0018 0054 	move.l 24(sp),84(a0)
-  hw->bltsize = (height<<6)+2;
-    1024:	302f 0004      	move.w 4(sp),d0
-    1028:	ed48           	lsl.w #6,d0
-    102a:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1030:	5440           	addq.w #2,d0
-    1032:	3140 0058      	move.w d0,88(a0)
-
-}
-    1036:	4fef 000c      	lea 12(sp),sp
-    103a:	4e75           	rts
-
-0000103c <Zoom_InitRun>:
-
-
-void Zoom_InitRun() {
-    103c:	4fef ffc8      	lea -56(sp),sp
-    1040:	2f0e           	move.l a6,-(sp)
-    
-  Zoom_Counter = 0;
-    1042:	4279 0001 bae2 	clr.w 1bae2 <Zoom_Counter>
-  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
-    1048:	7004           	moveq #4,d0
-    104a:	2f40 0038      	move.l d0,56(sp)
-    104e:	7002           	moveq #2,d0
-    1050:	2f40 0034      	move.l d0,52(sp)
-    1054:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    105a:	2c40           	movea.l d0,a6
-    105c:	202f 0038      	move.l 56(sp),d0
-    1060:	222f 0034      	move.l 52(sp),d1
-    1064:	4eae ff3a      	jsr -198(a6)
-    1068:	2f40 0030      	move.l d0,48(sp)
-    106c:	202f 0030      	move.l 48(sp),d0
-    1070:	23c0 0001 bad4 	move.l d0,1bad4 <Zoom_ZoomBlitMask>
-  Zoom_LevelOf102Zoom = 15;
-    1076:	33fc 000f 0001 	move.w #15,1bace <Zoom_LevelOf102Zoom>
-    107c:	bace 
-  ZoomHorizontal = 16;
-    107e:	33fc 0010 0001 	move.w #16,1bad2 <ZoomHorizontal>
-    1084:	bad2 
-  Zoom_PrepareDisplay();
-    1086:	4eba 01dc      	jsr 1264 <Zoom_PrepareDisplay>(pc)
-  Zoom_StartImage = startimage;
-    108a:	2039 0001 b514 	move.l 1b514 <startimage>,d0
-    1090:	23c0 0001 bac2 	move.l d0,1bac2 <Zoom_StartImage>
-  Zoom_LoadImage( Bitplane1);
-    1096:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    109c:	2f00           	move.l d0,-(sp)
-    109e:	4eba fe2c      	jsr ecc <Zoom_LoadImage>(pc)
-    10a2:	588f           	addq.l #4,sp
-  Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
-    10a4:	2239 0001 ba8c 	move.l 1ba8c <Bitplane2>,d1
-    10aa:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    10b0:	4878 0005      	pea 5 <_start+0x5>
-    10b4:	42a7           	clr.l -(sp)
-    10b6:	2f01           	move.l d1,-(sp)
-    10b8:	2f00           	move.l d0,-(sp)
-    10ba:	4eba 09a0      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    10be:	4fef 0010      	lea 16(sp),sp
-  CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
-    10c2:	2f79 0001 ba8c 	move.l 1ba8c <Bitplane2>,44(sp)
-    10c8:	002c 
-    10ca:	2f79 0001 ba88 	move.l 1ba88 <Bitplane1>,40(sp)
-    10d0:	0028 
-    10d2:	2f7c 0000 ff00 	move.l #65280,36(sp)
-    10d8:	0024 
-    10da:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    10e0:	2c40           	movea.l d0,a6
-    10e2:	206f 002c      	movea.l 44(sp),a0
-    10e6:	226f 0028      	movea.l 40(sp),a1
-    10ea:	202f 0024      	move.l 36(sp),d0
-    10ee:	4eae fd90      	jsr -624(a6)
-  CopyMem( Bitplane2, startimage, ZMBPLSIZE);
-    10f2:	2f79 0001 ba8c 	move.l 1ba8c <Bitplane2>,32(sp)
-    10f8:	0020 
-    10fa:	2f79 0001 b514 	move.l 1b514 <startimage>,28(sp)
-    1100:	001c 
-    1102:	2f7c 0000 ff00 	move.l #65280,24(sp)
-    1108:	0018 
-    110a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    1110:	2c40           	movea.l d0,a6
-    1112:	206f 0020      	movea.l 32(sp),a0
-    1116:	226f 001c      	movea.l 28(sp),a1
-    111a:	202f 0018      	move.l 24(sp),d0
-    111e:	4eae fd90      	jsr -624(a6)
-  
-  Zoom_Shrink102( 15, Copperlist1);
-    1122:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    1128:	2f00           	move.l d0,-(sp)
-    112a:	4878 000f      	pea f <GetVBR+0x7>
-    112e:	4eba f638      	jsr 768 <Zoom_Shrink102>(pc)
-    1132:	508f           	addq.l #8,sp
-  Zoom_Shrink102( 15, Copperlist2);
-    1134:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    113a:	2f00           	move.l d0,-(sp)
-    113c:	4878 000f      	pea f <GetVBR+0x7>
-    1140:	4eba f626      	jsr 768 <Zoom_Shrink102>(pc)
-    1144:	508f           	addq.l #8,sp
-  Zoom_LevelOfZoom = 1;
-    1146:	33fc 0001 0001 	move.w #1,1bacc <Zoom_LevelOfZoom>
-    114c:	bacc 
-  Zoom_Direction = 1;                                                  
-    114e:	33fc 0001 0001 	move.w #1,1bad0 <Zoom_Direction>
-    1154:	bad0 
-  if ((Zoom_vbint = AllocMem(sizeof(struct Interrupt),    
-    1156:	7016           	moveq #22,d0
-    1158:	2f40 0014      	move.l d0,20(sp)
-    115c:	2f7c 0001 0001 	move.l #65537,16(sp)
-    1162:	0010 
-    1164:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    116a:	2c40           	movea.l d0,a6
-    116c:	202f 0014      	move.l 20(sp),d0
-    1170:	222f 0010      	move.l 16(sp),d1
-    1174:	4eae ff3a      	jsr -198(a6)
-    1178:	2f40 000c      	move.l d0,12(sp)
-    117c:	202f 000c      	move.l 12(sp),d0
-    1180:	23c0 0001 bade 	move.l d0,1bade <Zoom_vbint>
-    1186:	2039 0001 bade 	move.l 1bade <Zoom_vbint>,d0
-    118c:	4a80           	tst.l d0
-    118e:	673e           	beq.s 11ce <Zoom_InitRun+0x192>
-                         MEMF_PUBLIC|MEMF_CLEAR))) {
-    Zoom_vbint->is_Node.ln_Type = NT_INTERRUPT;       
-    1190:	2079 0001 bade 	movea.l 1bade <Zoom_vbint>,a0
-    1196:	117c 0002 0008 	move.b #2,8(a0)
-    Zoom_vbint->is_Node.ln_Pri = -60;
-    119c:	2079 0001 bade 	movea.l 1bade <Zoom_vbint>,a0
-    11a2:	117c ffc4 0009 	move.b #-60,9(a0)
-    Zoom_vbint->is_Node.ln_Name = "VertB-Example";
-    11a8:	2079 0001 bade 	movea.l 1bade <Zoom_vbint>,a0
-    11ae:	217c 0001 74bf 	move.l #95423,10(a0)
-    11b4:	000a 
-    Zoom_vbint->is_Data = NULL;
-    11b6:	2079 0001 bade 	movea.l 1bade <Zoom_vbint>,a0
-    11bc:	42a8 000e      	clr.l 14(a0)
-    Zoom_vbint->is_Code = Zoom_VblankHandler;
-    11c0:	2079 0001 bade 	movea.l 1bade <Zoom_vbint>,a0
-    11c6:	217c 0000 0dd2 	move.l #3538,18(a0)
-    11cc:	0012 
-  }
-
-  AddIntServer( INTB_VERTB, Zoom_vbint);
-    11ce:	7005           	moveq #5,d0
-    11d0:	2f40 0008      	move.l d0,8(sp)
-    11d4:	2f79 0001 bade 	move.l 1bade <Zoom_vbint>,4(sp)
-    11da:	0004 
-    11dc:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    11e2:	2c40           	movea.l d0,a6
-    11e4:	202f 0008      	move.l 8(sp),d0
-    11e8:	226f 0004      	movea.l 4(sp),a1
-    11ec:	4eae ff58      	jsr -168(a6)
-  Zoom_SetBplPointers( ViewBuffer, ViewCopper);
-    11f0:	2239 0001 baa4 	move.l 1baa4 <ViewCopper>,d1
-    11f6:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-    11fc:	2f01           	move.l d1,-(sp)
-    11fe:	2f00           	move.l d0,-(sp)
-    1200:	4eba 0bf4      	jsr 1df6 <Zoom_SetBplPointers>(pc)
-    1204:	508f           	addq.l #8,sp
-  Zoom_SetBplPointers( ViewBuffer, DrawCopper);
-    1206:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-    120c:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-    1212:	2f01           	move.l d1,-(sp)
-    1214:	2f00           	move.l d0,-(sp)
-    1216:	4eba 0bde      	jsr 1df6 <Zoom_SetBplPointers>(pc)
-    121a:	508f           	addq.l #8,sp
-  SwapCl();
-    121c:	4eba f00c      	jsr 22a <SwapCl>(pc)
-  
-}
-    1220:	2c5f           	movea.l (sp)+,a6
-    1222:	4fef 0038      	lea 56(sp),sp
-    1226:	4e75           	rts
-
-00001228 <Zoom_Dealloc>:
-
-void Zoom_Dealloc() {
-    1228:	518f           	subq.l #8,sp
-    122a:	2f0e           	move.l a6,-(sp)
-  RemIntServer(INTB_VERTB, Zoom_vbint);
-    122c:	7005           	moveq #5,d0
-    122e:	2f40 0008      	move.l d0,8(sp)
-    1232:	2f79 0001 bade 	move.l 1bade <Zoom_vbint>,4(sp)
-    1238:	0004 
-    123a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    1240:	2c40           	movea.l d0,a6
-    1242:	202f 0008      	move.l 8(sp),d0
-    1246:	226f 0004      	movea.l 4(sp),a1
-    124a:	4eae ff52      	jsr -174(a6)
-  FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
-    124e:	2f3c 0000 ff00 	move.l #65280,-(sp)
-    1254:	4878 031c      	pea 31c <TakeSystem+0xb4>
-    1258:	4eba eeb4      	jsr 10e <FreeDisplay>(pc)
-    125c:	508f           	addq.l #8,sp
-}
-    125e:	2c5f           	movea.l (sp)+,a6
-    1260:	508f           	addq.l #8,sp
-    1262:	4e75           	rts
-
-00001264 <Zoom_PrepareDisplay>:
-  
-int Zoom_PrepareDisplay() {
-    1264:	4fef ffb8      	lea -72(sp),sp
-    1268:	48e7 3002      	movem.l d2-d3/a6,-(sp)
-  Copperlist1 = ClbuildZoom( );
-    126c:	4eba 01be      	jsr 142c <ClbuildZoom>(pc)
-    1270:	23c0 0001 ba90 	move.l d0,1ba90 <Copperlist1>
-  Copperlist2 = ClbuildZoom( );
-    1276:	4eba 01b4      	jsr 142c <ClbuildZoom>(pc)
-    127a:	23c0 0001 ba94 	move.l d0,1ba94 <Copperlist2>
-  Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
-    1280:	2f7c 0000 ff00 	move.l #65280,80(sp)
-    1286:	0050 
-    1288:	7002           	moveq #2,d0
-    128a:	2f40 004c      	move.l d0,76(sp)
-    128e:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    1294:	2c40           	movea.l d0,a6
-    1296:	202f 0050      	move.l 80(sp),d0
-    129a:	222f 004c      	move.l 76(sp),d1
-    129e:	4eae ff3a      	jsr -198(a6)
-    12a2:	2f40 0048      	move.l d0,72(sp)
-    12a6:	202f 0048      	move.l 72(sp),d0
-    12aa:	23c0 0001 ba88 	move.l d0,1ba88 <Bitplane1>
-  if(Bitplane1 == 0) {
-    12b0:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    12b6:	4a80           	tst.l d0
-    12b8:	6658           	bne.s 1312 <Zoom_PrepareDisplay+0xae>
-    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    12ba:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    12c0:	2c40           	movea.l d0,a6
-    12c2:	4eae ffc4      	jsr -60(a6)
-    12c6:	2f40 0044      	move.l d0,68(sp)
-    12ca:	202f 0044      	move.l 68(sp),d0
-    12ce:	2f40 0040      	move.l d0,64(sp)
-    12d2:	2f7c 0001 74cd 	move.l #95437,60(sp)
-    12d8:	003c 
-    12da:	7026           	moveq #38,d0
-    12dc:	2f40 0038      	move.l d0,56(sp)
-    12e0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    12e6:	2c40           	movea.l d0,a6
-    12e8:	222f 0040      	move.l 64(sp),d1
-    12ec:	242f 003c      	move.l 60(sp),d2
-    12f0:	262f 0038      	move.l 56(sp),d3
-    12f4:	4eae ffd0      	jsr -48(a6)
-    12f8:	2f40 0034      	move.l d0,52(sp)
-    Exit(1);
-    12fc:	7001           	moveq #1,d0
-    12fe:	2f40 0030      	move.l d0,48(sp)
-    1302:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    1308:	2c40           	movea.l d0,a6
-    130a:	222f 0030      	move.l 48(sp),d1
-    130e:	4eae ff70      	jsr -144(a6)
-  }
-  DrawBuffer = Bitplane1;
-    1312:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    1318:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
-  DrawCopper = Copperlist1;
-    131e:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    1324:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
-  Bitplane2 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
-    132a:	2f7c 0000 ff00 	move.l #65280,44(sp)
-    1330:	002c 
-    1332:	7002           	moveq #2,d0
-    1334:	2f40 0028      	move.l d0,40(sp)
-    1338:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    133e:	2c40           	movea.l d0,a6
-    1340:	202f 002c      	move.l 44(sp),d0
-    1344:	222f 0028      	move.l 40(sp),d1
-    1348:	4eae ff3a      	jsr -198(a6)
-    134c:	2f40 0024      	move.l d0,36(sp)
-    1350:	202f 0024      	move.l 36(sp),d0
-    1354:	23c0 0001 ba8c 	move.l d0,1ba8c <Bitplane2>
-  if(Bitplane2 == 0) {
-    135a:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    1360:	4a80           	tst.l d0
-    1362:	6658           	bne.s 13bc <Zoom_PrepareDisplay+0x158>
-    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    1364:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    136a:	2c40           	movea.l d0,a6
-    136c:	4eae ffc4      	jsr -60(a6)
-    1370:	2f40 0020      	move.l d0,32(sp)
-    1374:	202f 0020      	move.l 32(sp),d0
-    1378:	2f40 001c      	move.l d0,28(sp)
-    137c:	2f7c 0001 74f4 	move.l #95476,24(sp)
-    1382:	0018 
-    1384:	7026           	moveq #38,d0
-    1386:	2f40 0014      	move.l d0,20(sp)
-    138a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    1390:	2c40           	movea.l d0,a6
-    1392:	222f 001c      	move.l 28(sp),d1
-    1396:	242f 0018      	move.l 24(sp),d2
-    139a:	262f 0014      	move.l 20(sp),d3
-    139e:	4eae ffd0      	jsr -48(a6)
-    13a2:	2f40 0010      	move.l d0,16(sp)
-    Exit(1);
-    13a6:	7001           	moveq #1,d0
-    13a8:	2f40 000c      	move.l d0,12(sp)
-    13ac:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    13b2:	2c40           	movea.l d0,a6
-    13b4:	222f 000c      	move.l 12(sp),d1
-    13b8:	4eae ff70      	jsr -144(a6)
-  }
-  ViewBuffer = Bitplane2;
-    13bc:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    13c2:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
-  ViewCopper = Copperlist2;
-    13c8:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    13ce:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
-  return 0;
-    13d4:	7000           	moveq #0,d0
-}
-    13d6:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    13da:	4fef 0048      	lea 72(sp),sp
-    13de:	4e75           	rts
-
-000013e0 <Zoom_Init>:
-
-void Zoom_Init() {
-    13e0:	4fef fff4      	lea -12(sp),sp
-    13e4:	2f0e           	move.l a6,-(sp)
-  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
-    13e6:	7004           	moveq #4,d0
-    13e8:	2f40 000c      	move.l d0,12(sp)
-    13ec:	7002           	moveq #2,d0
-    13ee:	2f40 0008      	move.l d0,8(sp)
-    13f2:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    13f8:	2c40           	movea.l d0,a6
-    13fa:	202f 000c      	move.l 12(sp),d0
-    13fe:	222f 0008      	move.l 8(sp),d1
-    1402:	4eae ff3a      	jsr -198(a6)
-    1406:	2f40 0004      	move.l d0,4(sp)
-    140a:	202f 0004      	move.l 4(sp),d0
-    140e:	23c0 0001 bad4 	move.l d0,1bad4 <Zoom_ZoomBlitMask>
-  ZoomHorizontal = 16;
-    1414:	33fc 0010 0001 	move.w #16,1bad2 <ZoomHorizontal>
-    141a:	bad2 
-  Zoom_LevelOf102Zoom = 15;
-    141c:	33fc 000f 0001 	move.w #15,1bace <Zoom_LevelOf102Zoom>
-    1422:	bace 
-}
-    1424:	2c5f           	movea.l (sp)+,a6
-    1426:	4fef 000c      	lea 12(sp),sp
-    142a:	4e75           	rts
-
-0000142c <ClbuildZoom>:
-
-
-ULONG * ClbuildZoom() {
-    142c:	4fef ffac      	lea -84(sp),sp
-    1430:	48e7 3002      	movem.l d2-d3/a6,-(sp)
-  
-  ULONG *retval = AllocMem(  ZMCPSIZE, MEMF_CHIP);
-    1434:	2f7c 0000 031c 	move.l #796,68(sp)
-    143a:	0044 
-    143c:	7002           	moveq #2,d0
-    143e:	2f40 0040      	move.l d0,64(sp)
-    1442:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    1448:	2c40           	movea.l d0,a6
-    144a:	202f 0044      	move.l 68(sp),d0
-    144e:	222f 0040      	move.l 64(sp),d1
-    1452:	4eae ff3a      	jsr -198(a6)
-    1456:	2f40 003c      	move.l d0,60(sp)
-    145a:	202f 003c      	move.l 60(sp),d0
-    145e:	2f40 0038      	move.l d0,56(sp)
-  
-  if( retval == 0) {
-    1462:	4aaf 0038      	tst.l 56(sp)
-    1466:	6658           	bne.s 14c0 <ClbuildZoom+0x94>
-    Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
-    1468:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    146e:	2c40           	movea.l d0,a6
-    1470:	4eae ffc4      	jsr -60(a6)
-    1474:	2f40 0034      	move.l d0,52(sp)
-    1478:	202f 0034      	move.l 52(sp),d0
-    147c:	2f40 0030      	move.l d0,48(sp)
-    1480:	2f7c 0001 751b 	move.l #95515,44(sp)
-    1486:	002c 
-    1488:	7228           	moveq #40,d1
-    148a:	2f41 0028      	move.l d1,40(sp)
-    148e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    1494:	2c40           	movea.l d0,a6
-    1496:	222f 0030      	move.l 48(sp),d1
-    149a:	242f 002c      	move.l 44(sp),d2
-    149e:	262f 0028      	move.l 40(sp),d3
-    14a2:	4eae ffd0      	jsr -48(a6)
-    14a6:	2f40 0024      	move.l d0,36(sp)
-    Exit(1);
-    14aa:	7401           	moveq #1,d2
-    14ac:	2f42 0020      	move.l d2,32(sp)
-    14b0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    14b6:	2c40           	movea.l d0,a6
-    14b8:	222f 0020      	move.l 32(sp),d1
-    14bc:	4eae ff70      	jsr -144(a6)
-  }
-  ULONG *cl = retval;
-    14c0:	2f6f 0038 005c 	move.l 56(sp),92(sp)
-  //clinstruction = DrawCopper;
-  ULONG *clpartinstruction;
-  clpartinstruction = ClsSprites;
-    14c6:	2f7c 0001 a328 	move.l #107304,88(sp)
-    14cc:	0058 
-  for(int i=0; i<16;i++)
-    14ce:	42af 0054      	clr.l 84(sp)
-    14d2:	6024           	bra.s 14f8 <ClbuildZoom+0xcc>
-    *cl++ = *clpartinstruction++;
-    14d4:	222f 0058      	move.l 88(sp),d1
-    14d8:	2001           	move.l d1,d0
-    14da:	5880           	addq.l #4,d0
-    14dc:	2f40 0058      	move.l d0,88(sp)
-    14e0:	202f 005c      	move.l 92(sp),d0
-    14e4:	2400           	move.l d0,d2
-    14e6:	5882           	addq.l #4,d2
-    14e8:	2f42 005c      	move.l d2,92(sp)
-    14ec:	2041           	movea.l d1,a0
-    14ee:	2210           	move.l (a0),d1
-    14f0:	2040           	movea.l d0,a0
-    14f2:	2081           	move.l d1,(a0)
-  for(int i=0; i<16;i++)
-    14f4:	52af 0054      	addq.l #1,84(sp)
-    14f8:	700f           	moveq #15,d0
-    14fa:	b0af 0054      	cmp.l 84(sp),d0
-    14fe:	6cd4           	bge.s 14d4 <ClbuildZoom+0xa8>
-  //clpartinstruction = ClScreenZoom;
-  clpartinstruction = ClScreen;
-    1500:	2f7c 0001 a368 	move.l #107368,88(sp)
-    1506:	0058 
-  for(int i=0; i<12;i++)
-    1508:	42af 0050      	clr.l 80(sp)
-    150c:	6024           	bra.s 1532 <ClbuildZoom+0x106>
-    *cl++ = *clpartinstruction++;
-    150e:	222f 0058      	move.l 88(sp),d1
-    1512:	2401           	move.l d1,d2
-    1514:	5882           	addq.l #4,d2
-    1516:	2f42 0058      	move.l d2,88(sp)
-    151a:	202f 005c      	move.l 92(sp),d0
-    151e:	2400           	move.l d0,d2
-    1520:	5882           	addq.l #4,d2
-    1522:	2f42 005c      	move.l d2,92(sp)
-    1526:	2041           	movea.l d1,a0
-    1528:	2210           	move.l (a0),d1
-    152a:	2040           	movea.l d0,a0
-    152c:	2081           	move.l d1,(a0)
-  for(int i=0; i<12;i++)
-    152e:	52af 0050      	addq.l #1,80(sp)
-    1532:	700b           	moveq #11,d0
-    1534:	b0af 0050      	cmp.l 80(sp),d0
-    1538:	6cd4           	bge.s 150e <ClbuildZoom+0xe2>
-  //cl[CopBpl1High] = (long) cl + 2;
-  *cl++ = 0x00e00000;
-    153a:	202f 005c      	move.l 92(sp),d0
-    153e:	2200           	move.l d0,d1
-    1540:	5881           	addq.l #4,d1
-    1542:	2f41 005c      	move.l d1,92(sp)
-    1546:	2040           	movea.l d0,a0
-    1548:	20bc 00e0 0000 	move.l #14680064,(a0)
-  //cl[CopBpl1Low] = (long) cl + 2;
-  *cl++ = 0x00e20000;
-    154e:	202f 005c      	move.l 92(sp),d0
-    1552:	2200           	move.l d0,d1
-    1554:	5881           	addq.l #4,d1
-    1556:	2f41 005c      	move.l d1,92(sp)
-    155a:	2040           	movea.l d0,a0
-    155c:	20bc 00e2 0000 	move.l #14811136,(a0)
-  *cl++ = 0x00e40000;
-    1562:	202f 005c      	move.l 92(sp),d0
-    1566:	2200           	move.l d0,d1
-    1568:	5881           	addq.l #4,d1
-    156a:	2f41 005c      	move.l d1,92(sp)
-    156e:	2040           	movea.l d0,a0
-    1570:	20bc 00e4 0000 	move.l #14942208,(a0)
-  *cl++ = 0x00e60000;
-    1576:	202f 005c      	move.l 92(sp),d0
-    157a:	2200           	move.l d0,d1
-    157c:	5881           	addq.l #4,d1
-    157e:	2f41 005c      	move.l d1,92(sp)
-    1582:	2040           	movea.l d0,a0
-    1584:	20bc 00e6 0000 	move.l #15073280,(a0)
-  *cl++ = 0x00e80000;
-    158a:	202f 005c      	move.l 92(sp),d0
-    158e:	2200           	move.l d0,d1
-    1590:	5881           	addq.l #4,d1
-    1592:	2f41 005c      	move.l d1,92(sp)
-    1596:	2040           	movea.l d0,a0
-    1598:	20bc 00e8 0000 	move.l #15204352,(a0)
-  *cl++ = 0x00ea0000;
-    159e:	202f 005c      	move.l 92(sp),d0
-    15a2:	2200           	move.l d0,d1
-    15a4:	5881           	addq.l #4,d1
-    15a6:	2f41 005c      	move.l d1,92(sp)
-    15aa:	2040           	movea.l d0,a0
-    15ac:	20bc 00ea 0000 	move.l #15335424,(a0)
-  *cl++ = 0x00ec0000;
-    15b2:	202f 005c      	move.l 92(sp),d0
-    15b6:	2200           	move.l d0,d1
-    15b8:	5881           	addq.l #4,d1
-    15ba:	2f41 005c      	move.l d1,92(sp)
-    15be:	2040           	movea.l d0,a0
-    15c0:	20bc 00ec 0000 	move.l #15466496,(a0)
-  *cl++ = 0x00ee0000;
-    15c6:	202f 005c      	move.l 92(sp),d0
-    15ca:	2200           	move.l d0,d1
-    15cc:	5881           	addq.l #4,d1
-    15ce:	2f41 005c      	move.l d1,92(sp)
-    15d2:	2040           	movea.l d0,a0
-    15d4:	20bc 00ee 0000 	move.l #15597568,(a0)
-  *cl++ = 0x00f00000;
-    15da:	202f 005c      	move.l 92(sp),d0
-    15de:	2200           	move.l d0,d1
-    15e0:	5881           	addq.l #4,d1
-    15e2:	2f41 005c      	move.l d1,92(sp)
-    15e6:	2040           	movea.l d0,a0
-    15e8:	20bc 00f0 0000 	move.l #15728640,(a0)
-  *cl++ = 0x00f20000;
-    15ee:	202f 005c      	move.l 92(sp),d0
-    15f2:	2200           	move.l d0,d1
-    15f4:	5881           	addq.l #4,d1
-    15f6:	2f41 005c      	move.l d1,92(sp)
-    15fa:	2040           	movea.l d0,a0
-    15fc:	20bc 00f2 0000 	move.l #15859712,(a0)
-
-  clpartinstruction = ClColor;
-    1602:	2f7c 0001 a2a8 	move.l #107176,88(sp)
-    1608:	0058 
-  for(int i=0; i<32;i++)
-    160a:	42af 004c      	clr.l 76(sp)
-    160e:	6024           	bra.s 1634 <ClbuildZoom+0x208>
-    *cl++ = *clpartinstruction++;
-    1610:	222f 0058      	move.l 88(sp),d1
-    1614:	2001           	move.l d1,d0
-    1616:	5880           	addq.l #4,d0
-    1618:	2f40 0058      	move.l d0,88(sp)
-    161c:	202f 005c      	move.l 92(sp),d0
-    1620:	2400           	move.l d0,d2
-    1622:	5882           	addq.l #4,d2
-    1624:	2f42 005c      	move.l d2,92(sp)
-    1628:	2041           	movea.l d1,a0
-    162a:	2210           	move.l (a0),d1
-    162c:	2040           	movea.l d0,a0
-    162e:	2081           	move.l d1,(a0)
-  for(int i=0; i<32;i++)
-    1630:	52af 004c      	addq.l #1,76(sp)
-    1634:	701f           	moveq #31,d0
-    1636:	b0af 004c      	cmp.l 76(sp),d0
-    163a:	6cd4           	bge.s 1610 <ClbuildZoom+0x1e4>
-  
-  ULONG cop2 = cl+3;
-    163c:	700c           	moveq #12,d0
-    163e:	d0af 005c      	add.l 92(sp),d0
-    1642:	2f40 001c      	move.l d0,28(sp)
-  ULONG cop2lch = 0x00840000 + ( cop2 >> 16);
-    1646:	202f 001c      	move.l 28(sp),d0
-    164a:	4240           	clr.w d0
-    164c:	4840           	swap d0
-    164e:	2200           	move.l d0,d1
-    1650:	0681 0084 0000 	addi.l #8650752,d1
-    1656:	2f41 0018      	move.l d1,24(sp)
-  ULONG cop2lcl = 0x00860000 + (cop2 & 0xffff);
-    165a:	202f 001c      	move.l 28(sp),d0
-    165e:	0280 0000 ffff 	andi.l #65535,d0
-    1664:	2400           	move.l d0,d2
-    1666:	0682 0086 0000 	addi.l #8781824,d2
-    166c:	2f42 0014      	move.l d2,20(sp)
-  clpartinstruction = Cl102ZoomInit;
-    1670:	2f7c 0001 a398 	move.l #107416,88(sp)
-    1676:	0058 
-  *cl++ = cop2lch;
-    1678:	202f 005c      	move.l 92(sp),d0
-    167c:	2200           	move.l d0,d1
-    167e:	5881           	addq.l #4,d1
-    1680:	2f41 005c      	move.l d1,92(sp)
-    1684:	2040           	movea.l d0,a0
-    1686:	20af 0018      	move.l 24(sp),(a0)
-  *cl++ = cop2lcl;
-    168a:	202f 005c      	move.l 92(sp),d0
-    168e:	2200           	move.l d0,d1
-    1690:	5881           	addq.l #4,d1
-    1692:	2f41 005c      	move.l d1,92(sp)
-    1696:	2040           	movea.l d0,a0
-    1698:	20af 0014      	move.l 20(sp),(a0)
-  *cl++ = 0x2c01ff00;
-    169c:	202f 005c      	move.l 92(sp),d0
-    16a0:	2200           	move.l d0,d1
-    16a2:	5881           	addq.l #4,d1
-    16a4:	2f41 005c      	move.l d1,92(sp)
-    16a8:	2040           	movea.l d0,a0
-    16aa:	20bc 2c01 ff00 	move.l #738328320,(a0)
-
-  ULONG cop2br1 = cop2 + ( (30)<<2);
-    16b0:	7078           	moveq #120,d0
-    16b2:	d0af 001c      	add.l 28(sp),d0
-    16b6:	2f40 0010      	move.l d0,16(sp)
-  ULONG cop2br2 = cop2 + ( (86)<<2);
-    16ba:	222f 001c      	move.l 28(sp),d1
-    16be:	0681 0000 0158 	addi.l #344,d1
-    16c4:	2f41 000c      	move.l d1,12(sp)
-  clpartinstruction = Cl102ZoomRepeat;
-    16c8:	2f7c 0001 a3a4 	move.l #107428,88(sp)
-    16ce:	0058 
-  clpartinstruction[28] = 0x00840000 + ( cop2br1 >> 16);
-    16d0:	202f 0010      	move.l 16(sp),d0
-    16d4:	4240           	clr.w d0
-    16d6:	4840           	swap d0
-    16d8:	307c 0070      	movea.w #112,a0
-    16dc:	d1ef 0058      	adda.l 88(sp),a0
-    16e0:	0680 0084 0000 	addi.l #8650752,d0
-    16e6:	2080           	move.l d0,(a0)
-  clpartinstruction[29] = 0x00860000 + ( cop2br1 & 0xffff);
-    16e8:	202f 0010      	move.l 16(sp),d0
-    16ec:	0280 0000 ffff 	andi.l #65535,d0
-    16f2:	307c 0074      	movea.w #116,a0
-    16f6:	d1ef 0058      	adda.l 88(sp),a0
-    16fa:	0680 0086 0000 	addi.l #8781824,d0
-    1700:	2080           	move.l d0,(a0)
-  clpartinstruction[84] = 0x00840000 + ( cop2br2 >> 16);
-    1702:	202f 000c      	move.l 12(sp),d0
-    1706:	4240           	clr.w d0
-    1708:	4840           	swap d0
-    170a:	206f 0058      	movea.l 88(sp),a0
-    170e:	41e8 0150      	lea 336(a0),a0
-    1712:	0680 0084 0000 	addi.l #8650752,d0
-    1718:	2080           	move.l d0,(a0)
-  clpartinstruction[85] = 0x00860000 + ( cop2br2 & 0xffff);
-    171a:	202f 000c      	move.l 12(sp),d0
-    171e:	0280 0000 ffff 	andi.l #65535,d0
-    1724:	206f 0058      	movea.l 88(sp),a0
-    1728:	41e8 0154      	lea 340(a0),a0
-    172c:	0680 0086 0000 	addi.l #8781824,d0
-    1732:	2080           	move.l d0,(a0)
-  for(int i=0;i<26+27+27+26+27+1-8-12;i++)
-    1734:	42af 0048      	clr.l 72(sp)
-    1738:	6024           	bra.s 175e <ClbuildZoom+0x332>
-    *cl++ = *clpartinstruction++;
-    173a:	222f 0058      	move.l 88(sp),d1
-    173e:	2401           	move.l d1,d2
-    1740:	5882           	addq.l #4,d2
-    1742:	2f42 0058      	move.l d2,88(sp)
-    1746:	202f 005c      	move.l 92(sp),d0
-    174a:	2400           	move.l d0,d2
-    174c:	5882           	addq.l #4,d2
-    174e:	2f42 005c      	move.l d2,92(sp)
-    1752:	2041           	movea.l d1,a0
-    1754:	2210           	move.l (a0),d1
-    1756:	2040           	movea.l d0,a0
-    1758:	2081           	move.l d1,(a0)
-  for(int i=0;i<26+27+27+26+27+1-8-12;i++)
-    175a:	52af 0048      	addq.l #1,72(sp)
-    175e:	7071           	moveq #113,d0
-    1760:	b0af 0048      	cmp.l 72(sp),d0
-    1764:	6cd4           	bge.s 173a <ClbuildZoom+0x30e>
-
-   *cl++ = 0xfffffffe;
-    1766:	202f 005c      	move.l 92(sp),d0
-    176a:	2200           	move.l d0,d1
-    176c:	5881           	addq.l #4,d1
-    176e:	2f41 005c      	move.l d1,92(sp)
-    1772:	74fe           	moveq #-2,d2
-    1774:	2040           	movea.l d0,a0
-    1776:	2082           	move.l d2,(a0)
-
-  return retval;
-    1778:	202f 0038      	move.l 56(sp),d0
-}
-    177c:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    1780:	4fef 0054      	lea 84(sp),sp
-    1784:	4e75           	rts
-
-00001786 <PrepareDisplayZoom>:
-
- int PrepareDisplayZoom() {
-    1786:	4fef ffb8      	lea -72(sp),sp
-    178a:	48e7 3002      	movem.l d2-d3/a6,-(sp)
-
-  Copperlist1 = ClbuildZoom();
-    178e:	4eba fc9c      	jsr 142c <ClbuildZoom>(pc)
-    1792:	23c0 0001 ba90 	move.l d0,1ba90 <Copperlist1>
-  Copperlist2 = ClbuildZoom();
-    1798:	4eba fc92      	jsr 142c <ClbuildZoom>(pc)
-    179c:	23c0 0001 ba94 	move.l d0,1ba94 <Copperlist2>
-  Bitplane1 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
-    17a2:	2f7c 0000 ff00 	move.l #65280,80(sp)
-    17a8:	0050 
-    17aa:	7002           	moveq #2,d0
-    17ac:	2f40 004c      	move.l d0,76(sp)
-    17b0:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    17b6:	2c40           	movea.l d0,a6
-    17b8:	202f 0050      	move.l 80(sp),d0
-    17bc:	222f 004c      	move.l 76(sp),d1
-    17c0:	4eae ff3a      	jsr -198(a6)
-    17c4:	2f40 0048      	move.l d0,72(sp)
-    17c8:	202f 0048      	move.l 72(sp),d0
-    17cc:	23c0 0001 ba88 	move.l d0,1ba88 <Bitplane1>
-  if(Bitplane1 == 0) {
-    17d2:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    17d8:	4a80           	tst.l d0
-    17da:	6658           	bne.s 1834 <PrepareDisplayZoom+0xae>
-    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    17dc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    17e2:	2c40           	movea.l d0,a6
-    17e4:	4eae ffc4      	jsr -60(a6)
-    17e8:	2f40 0044      	move.l d0,68(sp)
-    17ec:	202f 0044      	move.l 68(sp),d0
-    17f0:	2f40 0040      	move.l d0,64(sp)
-    17f4:	2f7c 0001 74cd 	move.l #95437,60(sp)
-    17fa:	003c 
-    17fc:	7026           	moveq #38,d0
-    17fe:	2f40 0038      	move.l d0,56(sp)
-    1802:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    1808:	2c40           	movea.l d0,a6
-    180a:	222f 0040      	move.l 64(sp),d1
-    180e:	242f 003c      	move.l 60(sp),d2
-    1812:	262f 0038      	move.l 56(sp),d3
-    1816:	4eae ffd0      	jsr -48(a6)
-    181a:	2f40 0034      	move.l d0,52(sp)
-    Exit(1);
-    181e:	7001           	moveq #1,d0
-    1820:	2f40 0030      	move.l d0,48(sp)
-    1824:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    182a:	2c40           	movea.l d0,a6
-    182c:	222f 0030      	move.l 48(sp),d1
-    1830:	4eae ff70      	jsr -144(a6)
-  }
-  DrawBuffer = Bitplane1;
-    1834:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    183a:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
-  DrawCopper = Copperlist1;
-    1840:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    1846:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
-  Bitplane2 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
-    184c:	2f7c 0000 ff00 	move.l #65280,44(sp)
-    1852:	002c 
-    1854:	7002           	moveq #2,d0
-    1856:	2f40 0028      	move.l d0,40(sp)
-    185a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    1860:	2c40           	movea.l d0,a6
-    1862:	202f 002c      	move.l 44(sp),d0
-    1866:	222f 0028      	move.l 40(sp),d1
-    186a:	4eae ff3a      	jsr -198(a6)
-    186e:	2f40 0024      	move.l d0,36(sp)
-    1872:	202f 0024      	move.l 36(sp),d0
-    1876:	23c0 0001 ba8c 	move.l d0,1ba8c <Bitplane2>
-  if(Bitplane2 == 0) {
-    187c:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    1882:	4a80           	tst.l d0
-    1884:	6658           	bne.s 18de <PrepareDisplayZoom+0x158>
-    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    1886:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    188c:	2c40           	movea.l d0,a6
-    188e:	4eae ffc4      	jsr -60(a6)
-    1892:	2f40 0020      	move.l d0,32(sp)
-    1896:	202f 0020      	move.l 32(sp),d0
-    189a:	2f40 001c      	move.l d0,28(sp)
-    189e:	2f7c 0001 74f4 	move.l #95476,24(sp)
-    18a4:	0018 
-    18a6:	7026           	moveq #38,d0
-    18a8:	2f40 0014      	move.l d0,20(sp)
-    18ac:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    18b2:	2c40           	movea.l d0,a6
-    18b4:	222f 001c      	move.l 28(sp),d1
-    18b8:	242f 0018      	move.l 24(sp),d2
-    18bc:	262f 0014      	move.l 20(sp),d3
-    18c0:	4eae ffd0      	jsr -48(a6)
-    18c4:	2f40 0010      	move.l d0,16(sp)
-    Exit(1);
-    18c8:	7001           	moveq #1,d0
-    18ca:	2f40 000c      	move.l d0,12(sp)
-    18ce:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    18d4:	2c40           	movea.l d0,a6
-    18d6:	222f 000c      	move.l 12(sp),d1
-    18da:	4eae ff70      	jsr -144(a6)
-  }
-  ViewBuffer = Bitplane2;
-    18de:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    18e4:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
-  ViewCopper = Copperlist2;
-    18ea:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    18f0:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
-  /*SwapCl();
-  Zoom_SetBplPointers();
-  SwapCl();
-  Zoom_SetBplPointers();*/
-  return 0;
-    18f6:	7000           	moveq #0,d0
-}
-    18f8:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    18fc:	4fef 0048      	lea 72(sp),sp
-    1900:	4e75           	rts
-
-00001902 <Init_Blit>:
-
-void Init_Blit() {
-  hw->bltafwm = 0xffff;
-    1902:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1908:	317c ffff 0044 	move.w #-1,68(a0)
-  hw->bltalwm = 0xffff;
-    190e:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1914:	317c ffff 0046 	move.w #-1,70(a0)
-  hw->bltamod = ZMLINESIZE - 4;
-    191a:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1920:	317c 002c 0064 	move.w #44,100(a0)
-  hw->bltbmod = ZMLINESIZE - 4;
-    1926:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    192c:	317c 002c 0062 	move.w #44,98(a0)
-  hw->bltdmod = ZMLINESIZE - 4;
-    1932:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1938:	317c 002c 0066 	move.w #44,102(a0)
-}
-    193e:	4e75           	rts
-
-00001940 <Init_Blit2>:
-
-
-void Init_Blit2() {
-  hw->bltafwm = 0xffff;
-    1940:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1946:	317c ffff 0044 	move.w #-1,68(a0)
-  hw->bltalwm = 0xffff;
-    194c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1952:	317c ffff 0046 	move.w #-1,70(a0)
-  hw->bltamod = 36;
-    1958:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    195e:	317c 0024 0064 	move.w #36,100(a0)
-  hw->bltbmod = 76;
-    1964:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    196a:	317c 004c 0062 	move.w #76,98(a0)
-  hw->bltdmod = ZMLINESIZE2 - 4;
-    1970:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1976:	317c 0028 0066 	move.w #40,102(a0)
-}
-    197c:	4e75           	rts
-
-0000197e <Init_ZoomBlit>:
-
-void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
-    197e:	4fef fff4      	lea -12(sp),sp
-    1982:	206f 0010      	movea.l 16(sp),a0
-    1986:	222f 0014      	move.l 20(sp),d1
-    198a:	202f 0018      	move.l 24(sp),d0
-    198e:	3048           	movea.w a0,a0
-    1990:	3f48 0004      	move.w a0,4(sp)
-    1994:	3201           	move.w d1,d1
-    1996:	3f41 0002      	move.w d1,2(sp)
-    199a:	3000           	move.w d0,d0
-    199c:	3e80           	move.w d0,(sp)
-  ZoomBlit_Increment4SrcA = 0;
-    199e:	4279 0001 badc 	clr.w 1badc <ZoomBlit_Increment4SrcA>
-
-  UWORD colnr = nextzoom - startofword - 1;                                                                          
-    19a4:	302f 0002      	move.w 2(sp),d0
-    19a8:	906f 0004      	sub.w 4(sp),d0
-    19ac:	3200           	move.w d0,d1
-    19ae:	5341           	subq.w #1,d1
-    19b0:	3f41 0008      	move.w d1,8(sp)
-  UWORD shiftb = shiftright << 12;    //SEEEEE0|12.X..f E=Empty
-    19b4:	3017           	move.w (sp),d0
-    19b6:	720c           	moveq #12,d1
-    19b8:	e368           	lsl.w d1,d0
-    19ba:	3f40 0006      	move.w d0,6(sp)
-  UWORD shifta;
-  if( shiftright == 0) {
-    19be:	4a57           	tst.w (sp)
-    19c0:	6610           	bne.s 19d2 <Init_ZoomBlit+0x54>
-    ZoomBlit_Increment4SrcA = 1;
-    19c2:	33fc 0001 0001 	move.w #1,1badc <ZoomBlit_Increment4SrcA>
-    19c8:	badc 
-    shifta = 15 << 12;
-    19ca:	3f7c f000 000a 	move.w #-4096,10(sp)
-    19d0:	600c           	bra.s 19de <Init_ZoomBlit+0x60>
-  } else {
-    shifta = (shiftright - 1) << 12;
-    19d2:	3017           	move.w (sp),d0
-    19d4:	5340           	subq.w #1,d0
-    19d6:	720c           	moveq #12,d1
-    19d8:	e368           	lsl.w d1,d0
-    19da:	3f40 000a      	move.w d0,10(sp)
-  }
-  WaitBlt(); 
-    19de:	4eba e700      	jsr e0 <WaitBlt>(pc)
-  hw->bltcon1 = shiftb; 
-    19e2:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    19e8:	316f 0006 0042 	move.w 6(sp),66(a0)
-  hw->bltcon0 = 0xde4 + shifta;
-    19ee:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    19f4:	302f 000a      	move.w 10(sp),d0
-    19f8:	0640 0de4      	addi.w #3556,d0
-    19fc:	3140 0040      	move.w d0,64(a0)
-  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
-    1a00:	7000           	moveq #0,d0
-    1a02:	302f 0008      	move.w 8(sp),d0
-    1a06:	7210           	moveq #16,d1
-    1a08:	9280           	sub.l d0,d1
-    1a0a:	7000           	moveq #0,d0
-    1a0c:	4640           	not.w d0
-    1a0e:	e3a8           	lsl.l d1,d0
-    1a10:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1a16:	2000           	move.l d0,d0
-    1a18:	3140 0070      	move.w d0,112(a0)
-}
-    1a1c:	4fef 000c      	lea 12(sp),sp
-    1a20:	4e75           	rts
-
-00001a22 <Init_Copy>:
-
-void Init_Copy( WORD shift) {
-    1a22:	598f           	subq.l #4,sp
-    1a24:	202f 0008      	move.l 8(sp),d0
-    1a28:	3000           	move.w d0,d0
-    1a2a:	3e80           	move.w d0,(sp)
-  UWORD shiftright = shift << 12;
-    1a2c:	3017           	move.w (sp),d0
-    1a2e:	720c           	moveq #12,d1
-    1a30:	e368           	lsl.w d1,d0
-    1a32:	3f40 0002      	move.w d0,2(sp)
-  WaitBlt();
-    1a36:	4eba e6a8      	jsr e0 <WaitBlt>(pc)
-  hw->bltcon0 = 0x9f0 + shiftright;
-    1a3a:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1a40:	302f 0002      	move.w 2(sp),d0
-    1a44:	0640 09f0      	addi.w #2544,d0
-    1a48:	3140 0040      	move.w d0,64(a0)
-  hw->bltcon1 = 0;
-    1a4c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1a52:	317c 0000 0042 	move.w #0,66(a0)
-}
-    1a58:	588f           	addq.l #4,sp
-    1a5a:	4e75           	rts
-
-00001a5c <Zoom_ZoomIntoPicture>:
-
-void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
-                                                                 UWORD planes) {
-    1a5c:	4fef ffcc      	lea -52(sp),sp
-    1a60:	222f 0040      	move.l 64(sp),d1
-    1a64:	202f 0044      	move.l 68(sp),d0
-    1a68:	3201           	move.w d1,d1
-    1a6a:	3f41 0002      	move.w d1,2(sp)
-    1a6e:	3000           	move.w d0,d0
-    1a70:	3e80           	move.w d0,(sp)
-  
-  WaitBlt();  
-    1a72:	4eba e66c      	jsr e0 <WaitBlt>(pc)
-  Init_Blit();
-    1a76:	4eba fe8a      	jsr 1902 <Init_Blit>(pc)
-  WORD shiftright = 9;
-    1a7a:	3f7c 0009 0032 	move.w #9,50(sp)
-  UWORD shifthoriz = 7;
-    1a80:	3f7c 0007 0030 	move.w #7,48(sp)
-  UWORD startofword = 21*16;
-    1a86:	3f7c 0150 002e 	move.w #336,46(sp)
-  WORD nextzoom = 22*16 - 20 + zoomnr * 10;
-    1a8c:	322f 0002      	move.w 2(sp),d1
-    1a90:	3001           	move.w d1,d0
-    1a92:	d040           	add.w d0,d0
-    1a94:	d040           	add.w d0,d0
-    1a96:	d041           	add.w d1,d0
-    1a98:	d040           	add.w d0,d0
-    1a9a:	0640 014c      	addi.w #332,d0
-    1a9e:	3f40 002c      	move.w d0,44(sp)
-    1aa2:	601a           	bra.s 1abe <Zoom_ZoomIntoPicture+0x62>
-  while( nextzoom > 22 * 16) {
-    nextzoom -= (19 + zoomnr);
-    1aa4:	302f 002c      	move.w 44(sp),d0
-    1aa8:	906f 0002      	sub.w 2(sp),d0
-    1aac:	0640 ffed      	addi.w #-19,d0
-    1ab0:	3f40 002c      	move.w d0,44(sp)
-    shiftright--;
-    1ab4:	302f 0032      	move.w 50(sp),d0
-    1ab8:	5340           	subq.w #1,d0
-    1aba:	3f40 0032      	move.w d0,50(sp)
-  while( nextzoom > 22 * 16) {
-    1abe:	0c6f 0160 002c 	cmpi.w #352,44(sp)
-    1ac4:	6ede           	bgt.s 1aa4 <Zoom_ZoomIntoPicture+0x48>
-  } 
-  //UWORD nextzoom = 352-28 + (zoomnr << 3);
-  UWORD shifttoleft = 0;
-    1ac6:	426f 002a      	clr.w 42(sp)
-  //WORD linesforzoom = 16;
-
-  WORD ZoomHorizontalStart = 18 - zoomnr * 5;
-    1aca:	322f 0002      	move.w 2(sp),d1
-    1ace:	3001           	move.w d1,d0
-    1ad0:	d040           	add.w d0,d0
-    1ad2:	d040           	add.w d0,d0
-    1ad4:	d041           	add.w d1,d0
-    1ad6:	4440           	neg.w d0
-    1ad8:	0640 0012      	addi.w #18,d0
-    1adc:	3f40 0028      	move.w d0,40(sp)
-    1ae0:	601c           	bra.s 1afe <Zoom_ZoomIntoPicture+0xa2>
-  while( ZoomHorizontalStart < 0) {
-      ZoomHorizontalStart += 1 + 18 + zoomnr;
-    1ae2:	302f 0028      	move.w 40(sp),d0
-    1ae6:	d06f 0002      	add.w 2(sp),d0
-    1aea:	0640 0013      	addi.w #19,d0
-    1aee:	3f40 0028      	move.w d0,40(sp)
-      shifthoriz--;
-    1af2:	302f 0030      	move.w 48(sp),d0
-    1af6:	3200           	move.w d0,d1
-    1af8:	5341           	subq.w #1,d1
-    1afa:	3f41 0030      	move.w d1,48(sp)
-  while( ZoomHorizontalStart < 0) {
-    1afe:	4a6f 0028      	tst.w 40(sp)
-    1b02:	6dde           	blt.s 1ae2 <Zoom_ZoomIntoPicture+0x86>
-  } 
-
-  for(int i=0;i<22;i++) {
-    1b04:	42af 0024      	clr.l 36(sp)
-    1b08:	6000 02dc      	bra.w 1de6 <Zoom_ZoomIntoPicture+0x38a>
-
-    ZoomHorizontal = ZoomHorizontalStart;
-    1b0c:	33ef 0028 0001 	move.w 40(sp),1bad2 <ZoomHorizontal>
-    1b12:	bad2 
-
-    WORD linesleft = 272;
-    1b14:	3f7c 0110 0022 	move.w #272,34(sp)
-    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz*planes-2-i;
-    1b1a:	7000           	moveq #0,d0
-    1b1c:	302f 0030      	move.w 48(sp),d0
-    1b20:	7200           	moveq #0,d1
-    1b22:	3217           	move.w (sp),d1
-    1b24:	2f01           	move.l d1,-(sp)
-    1b26:	2f00           	move.l d0,-(sp)
-    1b28:	4eb9 0000 7194 	jsr 7194 <__mulsi3>
-    1b2e:	508f           	addq.l #8,sp
-    1b30:	2200           	move.l d0,d1
-    1b32:	2001           	move.l d1,d0
-    1b34:	d080           	add.l d0,d0
-    1b36:	d081           	add.l d1,d0
-    1b38:	e788           	lsl.l #3,d0
-    1b3a:	2200           	move.l d0,d1
-    1b3c:	202f 0024      	move.l 36(sp),d0
-    1b40:	2041           	movea.l d1,a0
-    1b42:	91c0           	suba.l d0,a0
-    1b44:	41e8 0016      	lea 22(a0),a0
-    1b48:	2008           	move.l a0,d0
-    1b4a:	d088           	add.l a0,d0
-    1b4c:	222f 0038      	move.l 56(sp),d1
-    1b50:	d280           	add.l d0,d1
-    1b52:	2f41 001e      	move.l d1,30(sp)
-    UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
-    1b56:	222f 0024      	move.l 36(sp),d1
-    1b5a:	7000           	moveq #0,d0
-    1b5c:	9081           	sub.l d1,d0
-    1b5e:	d080           	add.l d0,d0
-    1b60:	2040           	movea.l d0,a0
-    1b62:	41e8 002c      	lea 44(a0),a0
-    1b66:	202f 003c      	move.l 60(sp),d0
-    1b6a:	d088           	add.l a0,d0
-    1b6c:	2f40 001a      	move.l d0,26(sp)
-    
-    UWORD onestep = ZMLINESIZE/2*planes;
-    1b70:	3217           	move.w (sp),d1
-    1b72:	3001           	move.w d1,d0
-    1b74:	d040           	add.w d0,d0
-    1b76:	d041           	add.w d1,d0
-    1b78:	e748           	lsl.w #3,d0
-    1b7a:	3f40 0018      	move.w d0,24(sp)
-    if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
-    1b7e:	7000           	moveq #0,d0
-    1b80:	302f 002e      	move.w 46(sp),d0
-    1b84:	306f 002c      	movea.w 44(sp),a0
-    1b88:	b1c0           	cmpa.l d0,a0
-    1b8a:	6e00 010a      	bgt.w 1c96 <Zoom_ZoomIntoPicture+0x23a>
-      Init_Copy( shiftright);
-    1b8e:	306f 0032      	movea.w 50(sp),a0
-    1b92:	2f08           	move.l a0,-(sp)
-    1b94:	4eba fe8c      	jsr 1a22 <Init_Copy>(pc)
-    1b98:	588f           	addq.l #4,sp
-    1b9a:	6000 00ee      	bra.w 1c8a <Zoom_ZoomIntoPicture+0x22e>
-              
-      while(linesleft > 0) {
-        if( linesleft >= ZoomHorizontal+1) {
-    1b9e:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1ba4:	b06f 0022      	cmp.w 34(sp),d0
-    1ba8:	6c16           	bge.s 1bc0 <Zoom_ZoomIntoPicture+0x164>
-          linesleft -= ZoomHorizontal;
-    1baa:	322f 0022      	move.w 34(sp),d1
-    1bae:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1bb4:	3041           	movea.w d1,a0
-    1bb6:	90c0           	suba.w d0,a0
-    1bb8:	3008           	move.w a0,d0
-    1bba:	3f40 0022      	move.w d0,34(sp)
-    1bbe:	600c           	bra.s 1bcc <Zoom_ZoomIntoPicture+0x170>
-        } else {
-          ZoomHorizontal = linesleft;
-    1bc0:	33ef 0022 0001 	move.w 34(sp),1bad2 <ZoomHorizontal>
-    1bc6:	bad2 
-          linesleft = 0;
-    1bc8:	426f 0022      	clr.w 34(sp)
-        } 
-        UWORD size4blit = ZoomHorizontal*onestep; 
-    1bcc:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1bd2:	322f 0018      	move.w 24(sp),d1
-    1bd6:	c3c0           	muls.w d0,d1
-    1bd8:	3f41 0016      	move.w d1,22(sp)
-        //Add aditional line
-        if( linesleft>0) {
-    1bdc:	4a6f 0022      	tst.w 34(sp)
-    1be0:	6f4c           	ble.s 1c2e <Zoom_ZoomIntoPicture+0x1d2>
-          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
-    1be2:	7200           	moveq #0,d1
-    1be4:	322f 0016      	move.w 22(sp),d1
-    1be8:	7000           	moveq #0,d0
-    1bea:	302f 002a      	move.w 42(sp),d0
-    1bee:	d081           	add.l d1,d0
-    1bf0:	d080           	add.l d0,d0
-    1bf2:	222f 001e      	move.l 30(sp),d1
-    1bf6:	d280           	add.l d0,d1
-    1bf8:	2f41 0012      	move.l d1,18(sp)
-          UWORD *tmpdest = pos4dest +  size4blit;
-    1bfc:	7000           	moveq #0,d0
-    1bfe:	302f 0016      	move.w 22(sp),d0
-    1c02:	d080           	add.l d0,d0
-    1c04:	222f 001a      	move.l 26(sp),d1
-    1c08:	d280           	add.l d0,d1
-    1c0a:	2f41 000e      	move.l d1,14(sp)
-          
-          Zoom_CopyWord( tmpsource, tmpdest, planes);
-    1c0e:	7000           	moveq #0,d0
-    1c10:	3017           	move.w (sp),d0
-    1c12:	2f00           	move.l d0,-(sp)
-    1c14:	2f2f 0012      	move.l 18(sp),-(sp)
-    1c18:	2f2f 001a      	move.l 26(sp),-(sp)
-    1c1c:	4eba f2ea      	jsr f08 <Zoom_CopyWord>(pc)
-    1c20:	4fef 000c      	lea 12(sp),sp
-          linesleft--;
-    1c24:	302f 0022      	move.w 34(sp),d0
-    1c28:	5340           	subq.w #1,d0
-    1c2a:	3f40 0022      	move.w d0,34(sp)
-        }
-        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
-    1c2e:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1c34:	c1d7           	muls.w (sp),d0
-    1c36:	7200           	moveq #0,d1
-    1c38:	3200           	move.w d0,d1
-    1c3a:	7000           	moveq #0,d0
-    1c3c:	302f 002a      	move.w 42(sp),d0
-    1c40:	d080           	add.l d0,d0
-    1c42:	d0af 001e      	add.l 30(sp),d0
-    1c46:	2f01           	move.l d1,-(sp)
-    1c48:	2f2f 001e      	move.l 30(sp),-(sp)
-    1c4c:	2f00           	move.l d0,-(sp)
-    1c4e:	4eba f2b8      	jsr f08 <Zoom_CopyWord>(pc)
-    1c52:	4fef 000c      	lea 12(sp),sp
-        pos4source += size4blit;
-    1c56:	7000           	moveq #0,d0
-    1c58:	302f 0016      	move.w 22(sp),d0
-    1c5c:	d080           	add.l d0,d0
-    1c5e:	d1af 001e      	add.l d0,30(sp)
-        pos4dest += size4blit + onestep; 
-    1c62:	7200           	moveq #0,d1
-    1c64:	322f 0016      	move.w 22(sp),d1
-    1c68:	7000           	moveq #0,d0
-    1c6a:	302f 0018      	move.w 24(sp),d0
-    1c6e:	d081           	add.l d1,d0
-    1c70:	d080           	add.l d0,d0
-    1c72:	d1af 001a      	add.l d0,26(sp)
-        
-        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
-    1c76:	302f 0002      	move.w 2(sp),d0
-    1c7a:	d040           	add.w d0,d0
-    1c7c:	906f 0002      	sub.w 2(sp),d0
-    1c80:	0640 0012      	addi.w #18,d0
-    1c84:	33c0 0001 bad2 	move.w d0,1bad2 <ZoomHorizontal>
-      while(linesleft > 0) {
-    1c8a:	4a6f 0022      	tst.w 34(sp)
-    1c8e:	6e00 ff0e      	bgt.w 1b9e <Zoom_ZoomIntoPicture+0x142>
-    1c92:	6000 0148      	bra.w 1ddc <Zoom_ZoomIntoPicture+0x380>
-      }
-    } else {  
-      Init_ZoomBlit( startofword, nextzoom, shiftright);   
-    1c96:	326f 0032      	movea.w 50(sp),a1
-    1c9a:	306f 002c      	movea.w 44(sp),a0
-    1c9e:	7000           	moveq #0,d0
-    1ca0:	302f 002e      	move.w 46(sp),d0
-    1ca4:	2f09           	move.l a1,-(sp)
-    1ca6:	2f08           	move.l a0,-(sp)
-    1ca8:	2f00           	move.l d0,-(sp)
-    1caa:	4eba fcd2      	jsr 197e <Init_ZoomBlit>(pc)
-    1cae:	4fef 000c      	lea 12(sp),sp
-      nextzoom -= (19 + zoomnr);
-    1cb2:	302f 002c      	move.w 44(sp),d0
-    1cb6:	906f 0002      	sub.w 2(sp),d0
-    1cba:	0640 ffed      	addi.w #-19,d0
-    1cbe:	3f40 002c      	move.w d0,44(sp)
-    1cc2:	6000 00ee      	bra.w 1db2 <Zoom_ZoomIntoPicture+0x356>
-      while( linesleft > 0) {
-        if( linesleft >= ZoomHorizontal+1) {
-    1cc6:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1ccc:	b06f 0022      	cmp.w 34(sp),d0
-    1cd0:	6c16           	bge.s 1ce8 <Zoom_ZoomIntoPicture+0x28c>
-          linesleft -= ZoomHorizontal;
-    1cd2:	322f 0022      	move.w 34(sp),d1
-    1cd6:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1cdc:	3041           	movea.w d1,a0
-    1cde:	90c0           	suba.w d0,a0
-    1ce0:	3008           	move.w a0,d0
-    1ce2:	3f40 0022      	move.w d0,34(sp)
-    1ce6:	600c           	bra.s 1cf4 <Zoom_ZoomIntoPicture+0x298>
-        } else {
-          ZoomHorizontal = linesleft;
-    1ce8:	33ef 0022 0001 	move.w 34(sp),1bad2 <ZoomHorizontal>
-    1cee:	bad2 
-          linesleft = 0;
-    1cf0:	426f 0022      	clr.w 34(sp)
-        }
-        UWORD size4blit = ZoomHorizontal*onestep;
-    1cf4:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1cfa:	322f 0018      	move.w 24(sp),d1
-    1cfe:	c3c0           	muls.w d0,d1
-    1d00:	3f41 000c      	move.w d1,12(sp)
-        //Add aditional line
-        if( linesleft>0) {
-    1d04:	4a6f 0022      	tst.w 34(sp)
-    1d08:	6f4c           	ble.s 1d56 <Zoom_ZoomIntoPicture+0x2fa>
-          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
-    1d0a:	7200           	moveq #0,d1
-    1d0c:	322f 000c      	move.w 12(sp),d1
-    1d10:	7000           	moveq #0,d0
-    1d12:	302f 002a      	move.w 42(sp),d0
-    1d16:	d081           	add.l d1,d0
-    1d18:	d080           	add.l d0,d0
-    1d1a:	222f 001e      	move.l 30(sp),d1
-    1d1e:	d280           	add.l d0,d1
-    1d20:	2f41 0008      	move.l d1,8(sp)
-          UWORD *tmpdest = pos4dest + size4blit;
-    1d24:	7000           	moveq #0,d0
-    1d26:	302f 000c      	move.w 12(sp),d0
-    1d2a:	d080           	add.l d0,d0
-    1d2c:	222f 001a      	move.l 26(sp),d1
-    1d30:	d280           	add.l d0,d1
-    1d32:	2f41 0004      	move.l d1,4(sp)
-          
-          Zoom_ZoomBlit( tmpsource, tmpdest, planes);
-    1d36:	7000           	moveq #0,d0
-    1d38:	3017           	move.w (sp),d0
-    1d3a:	2f00           	move.l d0,-(sp)
-    1d3c:	2f2f 0008      	move.l 8(sp),-(sp)
-    1d40:	2f2f 0010      	move.l 16(sp),-(sp)
-    1d44:	4eba f200      	jsr f46 <Zoom_ZoomBlit>(pc)
-    1d48:	4fef 000c      	lea 12(sp),sp
-          linesleft--;
-    1d4c:	302f 0022      	move.w 34(sp),d0
-    1d50:	5340           	subq.w #1,d0
-    1d52:	3f40 0022      	move.w d0,34(sp)
-        }
-        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
-    1d56:	3039 0001 bad2 	move.w 1bad2 <ZoomHorizontal>,d0
-    1d5c:	c1d7           	muls.w (sp),d0
-    1d5e:	7200           	moveq #0,d1
-    1d60:	3200           	move.w d0,d1
-    1d62:	7000           	moveq #0,d0
-    1d64:	302f 002a      	move.w 42(sp),d0
-    1d68:	d080           	add.l d0,d0
-    1d6a:	d0af 001e      	add.l 30(sp),d0
-    1d6e:	2f01           	move.l d1,-(sp)
-    1d70:	2f2f 001e      	move.l 30(sp),-(sp)
-    1d74:	2f00           	move.l d0,-(sp)
-    1d76:	4eba f1ce      	jsr f46 <Zoom_ZoomBlit>(pc)
-    1d7a:	4fef 000c      	lea 12(sp),sp
-        pos4source += size4blit;
-    1d7e:	7000           	moveq #0,d0
-    1d80:	302f 000c      	move.w 12(sp),d0
-    1d84:	d080           	add.l d0,d0
-    1d86:	d1af 001e      	add.l d0,30(sp)
-        pos4dest += size4blit + onestep;   
-    1d8a:	7200           	moveq #0,d1
-    1d8c:	322f 000c      	move.w 12(sp),d1
-    1d90:	7000           	moveq #0,d0
-    1d92:	302f 0018      	move.w 24(sp),d0
-    1d96:	d081           	add.l d1,d0
-    1d98:	d080           	add.l d0,d0
-    1d9a:	d1af 001a      	add.l d0,26(sp)
-        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
-    1d9e:	302f 0002      	move.w 2(sp),d0
-    1da2:	d040           	add.w d0,d0
-    1da4:	906f 0002      	sub.w 2(sp),d0
-    1da8:	0640 0012      	addi.w #18,d0
-    1dac:	33c0 0001 bad2 	move.w d0,1bad2 <ZoomHorizontal>
-      while( linesleft > 0) {
-    1db2:	4a6f 0022      	tst.w 34(sp)
-    1db6:	6e00 ff0e      	bgt.w 1cc6 <Zoom_ZoomIntoPicture+0x26a>
-      }
-      shiftright--;  
-    1dba:	302f 0032      	move.w 50(sp),d0
-    1dbe:	5340           	subq.w #1,d0
-    1dc0:	3f40 0032      	move.w d0,50(sp)
-      if(shiftright < 0) {
-    1dc4:	4a6f 0032      	tst.w 50(sp)
-    1dc8:	6c12           	bge.s 1ddc <Zoom_ZoomIntoPicture+0x380>
-        shiftright += 16;
-    1dca:	302f 0032      	move.w 50(sp),d0
-    1dce:	0640 0010      	addi.w #16,d0
-    1dd2:	3f40 0032      	move.w d0,50(sp)
-        shifttoleft = 1;
-    1dd6:	3f7c 0001 002a 	move.w #1,42(sp)
-      }
-    }
-    startofword -= 16;
-    1ddc:	066f fff0 002e 	addi.w #-16,46(sp)
-  for(int i=0;i<22;i++) {
-    1de2:	52af 0024      	addq.l #1,36(sp)
-    1de6:	7015           	moveq #21,d0
-    1de8:	b0af 0024      	cmp.l 36(sp),d0
-    1dec:	6c00 fd1e      	bge.w 1b0c <Zoom_ZoomIntoPicture+0xb0>
-  }
-}
-    1df0:	4fef 0034      	lea 52(sp),sp
-    1df4:	4e75           	rts
-
-00001df6 <Zoom_SetBplPointers>:
-
-void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper) {
-    1df6:	4fef fff0      	lea -16(sp),sp
-  ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
-    1dfa:	3039 0001 bace 	move.w 1bace <Zoom_LevelOf102Zoom>,d0
-    1e00:	e248           	lsr.w #1,d0
-    1e02:	3000           	move.w d0,d0
-    1e04:	0280 0000 ffff 	andi.l #65535,d0
-    1e0a:	7208           	moveq #8,d1
-    1e0c:	9280           	sub.l d0,d1
-    1e0e:	2001           	move.l d1,d0
-    1e10:	2200           	move.l d0,d1
-    1e12:	2001           	move.l d1,d0
-    1e14:	e988           	lsl.l #4,d0
-    1e16:	9081           	sub.l d1,d0
-    1e18:	e988           	lsl.l #4,d0
-    1e1a:	5880           	addq.l #4,d0
-    1e1c:	d0af 0014      	add.l 20(sp),d0
-    1e20:	2f40 000c      	move.l d0,12(sp)
-                                                         *ZMLINESIZE*ZMBPLDEPTH/4;
-  UWORD *posofcopper = (UWORD *)copper + ZMCOPBPL1HIGH;
-    1e24:	7072           	moveq #114,d0
-    1e26:	d0af 0018      	add.l 24(sp),d0
-    1e2a:	2f40 0008      	move.l d0,8(sp)
-  
-  for(int i=0;i<ZMBPLDEPTH;i++) {
-    1e2e:	42af 0004      	clr.l 4(sp)
-    1e32:	6030           	bra.s 1e64 <Zoom_SetBplPointers+0x6e>
-    UWORD highword = (ULONG)plane2set >> 16;
-    1e34:	202f 000c      	move.l 12(sp),d0
-    1e38:	4240           	clr.w d0
-    1e3a:	4840           	swap d0
-    1e3c:	3f40 0002      	move.w d0,2(sp)
-    UWORD lowword = (ULONG)plane2set & 0xffff;
-    1e40:	3eaf 000e      	move.w 14(sp),(sp)
-    *posofcopper = highword;
-    1e44:	206f 0008      	movea.l 8(sp),a0
-    1e48:	30af 0002      	move.w 2(sp),(a0)
-    posofcopper += 2;
-    1e4c:	58af 0008      	addq.l #4,8(sp)
-    *posofcopper = lowword;
-    1e50:	206f 0008      	movea.l 8(sp),a0
-    1e54:	3097           	move.w (sp),(a0)
-    posofcopper += 2;
-    1e56:	58af 0008      	addq.l #4,8(sp)
-    plane2set += ZMLINESIZE; //Next plane (interleaved)
-    1e5a:	7230           	moveq #48,d1
-    1e5c:	d3af 000c      	add.l d1,12(sp)
-  for(int i=0;i<ZMBPLDEPTH;i++) {
-    1e60:	52af 0004      	addq.l #1,4(sp)
-    1e64:	7004           	moveq #4,d0
-    1e66:	b0af 0004      	cmp.l 4(sp),d0
-    1e6a:	6cc8           	bge.s 1e34 <Zoom_SetBplPointers+0x3e>
-  }
-  
-}
-    1e6c:	4fef 0010      	lea 16(sp),sp
-    1e70:	4e75           	rts
-
-00001e72 <Zoom_SwapBuffers>:
-
-void Zoom_SwapBuffers() {
-    1e72:	598f           	subq.l #4,sp
-  ULONG tmp = (ULONG) DrawBuffer;
-    1e74:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    1e7a:	2e80           	move.l d0,(sp)
-  DrawBuffer = ViewBuffer;
-    1e7c:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-    1e82:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
-  ViewBuffer = (ULONG *) tmp;
-    1e88:	2017           	move.l (sp),d0
-    1e8a:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
-}
-    1e90:	588f           	addq.l #4,sp
-    1e92:	4e75           	rts
-
-00001e94 <Zoom_ZoomIntoPicture2>:
-
-void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
-  UWORD levelofzoom, UWORD nrofplanes) {
-    1e94:	4fef ffcc      	lea -52(sp),sp
-    1e98:	2f02           	move.l d2,-(sp)
-    1e9a:	222f 0048      	move.l 72(sp),d1
-    1e9e:	202f 004c      	move.l 76(sp),d0
-    1ea2:	3201           	move.w d1,d1
-    1ea4:	3f41 0008      	move.w d1,8(sp)
-    1ea8:	3000           	move.w d0,d0
-    1eaa:	3f40 0006      	move.w d0,6(sp)
-
-  
-  UWORD posx4a = 320-7*(levelofzoom-1);
-    1eae:	302f 0008      	move.w 8(sp),d0
-    1eb2:	3200           	move.w d0,d1
-    1eb4:	e748           	lsl.w #3,d0
-    1eb6:	3401           	move.w d1,d2
-    1eb8:	9440           	sub.w d0,d2
-    1eba:	3002           	move.w d2,d0
-    1ebc:	3040           	movea.w d0,a0
-    1ebe:	41e8 0147      	lea 327(a0),a0
-    1ec2:	3f48 0036      	move.w a0,54(sp)
-  UWORD posx4b = 640-14*( levelofzoom-1);
-    1ec6:	322f 0008      	move.w 8(sp),d1
-    1eca:	3001           	move.w d1,d0
-    1ecc:	e749           	lsl.w #3,d1
-    1ece:	9041           	sub.w d1,d0
-    1ed0:	d040           	add.w d0,d0
-    1ed2:	3200           	move.w d0,d1
-    1ed4:	0641 028e      	addi.w #654,d1
-    1ed8:	3f41 0034      	move.w d1,52(sp)
-  UWORD ystart = 8*levelofzoom;
-    1edc:	302f 0008      	move.w 8(sp),d0
-    1ee0:	e748           	lsl.w #3,d0
-    1ee2:	3f40 001c      	move.w d0,28(sp)
-  target = target + 21;
-    1ee6:	742a           	moveq #42,d2
-    1ee8:	d5af 0044      	add.l d2,68(sp)
-  ULONG pos4astart = ( ULONG)source1 + ystart * 40;
-    1eec:	7200           	moveq #0,d1
-    1eee:	322f 001c      	move.w 28(sp),d1
-    1ef2:	2001           	move.l d1,d0
-    1ef4:	d080           	add.l d0,d0
-    1ef6:	d080           	add.l d0,d0
-    1ef8:	d081           	add.l d1,d0
-    1efa:	e788           	lsl.l #3,d0
-    1efc:	2200           	move.l d0,d1
-    1efe:	202f 003c      	move.l 60(sp),d0
-    1f02:	2401           	move.l d1,d2
-    1f04:	d480           	add.l d0,d2
-    1f06:	2f42 0018      	move.l d2,24(sp)
-  ULONG pos4bstart = ( ULONG)source2 + ystart * 80;
-    1f0a:	7200           	moveq #0,d1
-    1f0c:	322f 001c      	move.w 28(sp),d1
-    1f10:	2001           	move.l d1,d0
-    1f12:	d080           	add.l d0,d0
-    1f14:	d080           	add.l d0,d0
-    1f16:	d081           	add.l d1,d0
-    1f18:	e988           	lsl.l #4,d0
-    1f1a:	2200           	move.l d0,d1
-    1f1c:	202f 0040      	move.l 64(sp),d0
-    1f20:	2401           	move.l d1,d2
-    1f22:	d480           	add.l d0,d2
-    1f24:	2f42 0014      	move.l d2,20(sp)
-  UWORD *zl4word = Zoom_Zl4Words + 21 * (levelofzoom) - 1;
-    1f28:	2079 0001 baf8 	movea.l 1baf8 <Zoom_Zl4Words>,a0
-    1f2e:	7200           	moveq #0,d1
-    1f30:	322f 0008      	move.w 8(sp),d1
-    1f34:	2001           	move.l d1,d0
-    1f36:	d080           	add.l d0,d0
-    1f38:	d081           	add.l d1,d0
-    1f3a:	2200           	move.l d0,d1
-    1f3c:	e789           	lsl.l #3,d1
-    1f3e:	9280           	sub.l d0,d1
-    1f40:	2001           	move.l d1,d0
-    1f42:	d081           	add.l d1,d0
-    1f44:	2200           	move.l d0,d1
-    1f46:	2001           	move.l d1,d0
-    1f48:	5580           	subq.l #2,d0
-    1f4a:	d1c0           	adda.l d0,a0
-    1f4c:	2f48 0030      	move.l a0,48(sp)
-  WaitBlt();
-    1f50:	4eba e18e      	jsr e0 <WaitBlt>(pc)
-  hw->bltafwm = 0xffff;
-    1f54:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1f5a:	317c ffff 0044 	move.w #-1,68(a0)
-  hw->bltalwm = 0xffff;
-    1f60:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1f66:	317c ffff 0046 	move.w #-1,70(a0)
-  hw->bltdmod = ZMLINESIZE2 - 2;
-    1f6c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    1f72:	317c 002a 0066 	move.w #42,102(a0)
-  for(int i=1;i<=21;i++) {
-    1f78:	7001           	moveq #1,d0
-    1f7a:	2f40 002c      	move.l d0,44(sp)
-    1f7e:	6000 0202      	bra.w 2182 <Zoom_ZoomIntoPicture2+0x2ee>
-    UWORD *targetpos = target - i;
-    1f82:	202f 002c      	move.l 44(sp),d0
-    1f86:	d080           	add.l d0,d0
-    1f88:	4480           	neg.l d0
-    1f8a:	222f 0044      	move.l 68(sp),d1
-    1f8e:	d280           	add.l d0,d1
-    1f90:	2f41 0028      	move.l d1,40(sp)
-    UWORD nrofpixels = 16 - *zl4word;
-    1f94:	206f 0030      	movea.l 48(sp),a0
-    1f98:	3010           	move.w (a0),d0
-    1f9a:	7410           	moveq #16,d2
-    1f9c:	9440           	sub.w d0,d2
-    1f9e:	3f42 0012      	move.w d2,18(sp)
-    posx4a -= nrofpixels;
-    1fa2:	302f 0012      	move.w 18(sp),d0
-    1fa6:	916f 0036      	sub.w d0,54(sp)
-    posx4b -= nrofpixels*2;
-    1faa:	302f 0012      	move.w 18(sp),d0
-    1fae:	d040           	add.w d0,d0
-    1fb0:	916f 0034      	sub.w d0,52(sp)
-    ULONG pos4a = pos4astart + ( ( posx4a - 1) >> 4) * 2;
-    1fb4:	7000           	moveq #0,d0
-    1fb6:	302f 0036      	move.w 54(sp),d0
-    1fba:	5380           	subq.l #1,d0
-    1fbc:	e880           	asr.l #4,d0
-    1fbe:	d080           	add.l d0,d0
-    1fc0:	222f 0018      	move.l 24(sp),d1
-    1fc4:	d280           	add.l d0,d1
-    1fc6:	2f41 0024      	move.l d1,36(sp)
-    ULONG pos4b = pos4bstart + ( ( posx4b - 1) >> 4) * 2;
-    1fca:	7000           	moveq #0,d0
-    1fcc:	302f 0034      	move.w 52(sp),d0
-    1fd0:	5380           	subq.l #1,d0
-    1fd2:	e880           	asr.l #4,d0
-    1fd4:	d080           	add.l d0,d0
-    1fd6:	242f 0014      	move.l 20(sp),d2
-    1fda:	d480           	add.l d0,d2
-    1fdc:	2f42 0020      	move.l d2,32(sp)
-    //shift channel a = R of (17 + zl - pos)/16
-    UWORD shifta = ( ( 16 + *zl4word - ( posx4a & 0xf)) & 0xf) << 12;
-    1fe0:	206f 0030      	movea.l 48(sp),a0
-    1fe4:	3010           	move.w (a0),d0
-    1fe6:	906f 0036      	sub.w 54(sp),d0
-    1fea:	3000           	move.w d0,d0
-    1fec:	0280 0000 ffff 	andi.l #65535,d0
-    1ff2:	720c           	moveq #12,d1
-    1ff4:	e3a8           	lsl.l d1,d0
-    1ff6:	3f40 0010      	move.w d0,16(sp)
-    //shift channel b = R of (17 - pos)/16 
-    UWORD shiftb = ( (16  - ( posx4b & 0xf)) & 0xf) << 12;
-    1ffa:	7000           	moveq #0,d0
-    1ffc:	302f 0034      	move.w 52(sp),d0
-    2000:	4480           	neg.l d0
-    2002:	740c           	moveq #12,d2
-    2004:	e5a8           	lsl.l d2,d0
-    2006:	3f40 000e      	move.w d0,14(sp)
-    UWORD bltcon0 = 0xde4 + shifta;
-    200a:	306f 0010      	movea.w 16(sp),a0
-    200e:	41e8 0de4      	lea 3556(a0),a0
-    2012:	3f48 000c      	move.w a0,12(sp)
-    UWORD linesleft = 271;
-    2016:	3f7c 010f 001e 	move.w #271,30(sp)
-    UWORD lines2write;
-    WaitBlt();
-    201c:	4eba e0c2      	jsr e0 <WaitBlt>(pc)
-    hw->bltcon1 = shiftb; 
-    2020:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    2026:	316f 000e 0042 	move.w 14(sp),66(a0)
-    hw->bltcon0 = bltcon0;
-    202c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    2032:	316f 000c 0040 	move.w 12(sp),64(a0)
-    hw->bltcdat = 0xffff >> (*zl4word--*2);
-    2038:	202f 0030      	move.l 48(sp),d0
-    203c:	2200           	move.l d0,d1
-    203e:	5581           	subq.l #2,d1
-    2040:	2f41 0030      	move.l d1,48(sp)
-    2044:	2040           	movea.l d0,a0
-    2046:	3010           	move.w (a0),d0
-    2048:	3000           	move.w d0,d0
-    204a:	0280 0000 ffff 	andi.l #65535,d0
-    2050:	d080           	add.l d0,d0
-    2052:	7200           	moveq #0,d1
-    2054:	4641           	not.w d1
-    2056:	2401           	move.l d1,d2
-    2058:	e0a2           	asr.l d0,d2
-    205a:	2002           	move.l d2,d0
-    205c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    2062:	2000           	move.l d0,d0
-    2064:	3140 0070      	move.w d0,112(a0)
-    2068:	6000 010c      	bra.w 2176 <Zoom_ZoomIntoPicture2+0x2e2>
-    while (linesleft > 0) {
-      lines2write = 2*levelofzoom;
-    206c:	302f 0008      	move.w 8(sp),d0
-    2070:	d040           	add.w d0,d0
-    2072:	3f40 000a      	move.w d0,10(sp)
-      lines2write = linesleft > lines2write ? lines2write : linesleft;
-    2076:	322f 000a      	move.w 10(sp),d1
-    207a:	302f 001e      	move.w 30(sp),d0
-    207e:	b240           	cmp.w d0,d1
-    2080:	6402           	bcc.s 2084 <Zoom_ZoomIntoPicture2+0x1f0>
-    2082:	3001           	move.w d1,d0
-    2084:	3f40 000a      	move.w d0,10(sp)
-      Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 36, 76);
-    2088:	7000           	moveq #0,d0
-    208a:	302f 000a      	move.w 10(sp),d0
-    208e:	206f 0020      	movea.l 32(sp),a0
-    2092:	222f 0024      	move.l 36(sp),d1
-    2096:	4878 004c      	pea 4c <GetVBR+0x44>
-    209a:	4878 0024      	pea 24 <GetVBR+0x1c>
-    209e:	2f00           	move.l d0,-(sp)
-    20a0:	2f2f 0034      	move.l 52(sp),-(sp)
-    20a4:	2f08           	move.l a0,-(sp)
-    20a6:	2f01           	move.l d1,-(sp)
-    20a8:	4eba ef00      	jsr faa <Zoom_ZoomBlit2>(pc)
-    20ac:	4fef 0018      	lea 24(sp),sp
-      pos4a += 40 * lines2write;
-    20b0:	7200           	moveq #0,d1
-    20b2:	322f 000a      	move.w 10(sp),d1
-    20b6:	2001           	move.l d1,d0
-    20b8:	d080           	add.l d0,d0
-    20ba:	d080           	add.l d0,d0
-    20bc:	d081           	add.l d1,d0
-    20be:	e788           	lsl.l #3,d0
-    20c0:	d1af 0024      	add.l d0,36(sp)
-      pos4b += 80 * lines2write;
-    20c4:	7200           	moveq #0,d1
-    20c6:	322f 000a      	move.w 10(sp),d1
-    20ca:	2001           	move.l d1,d0
-    20cc:	d080           	add.l d0,d0
-    20ce:	d080           	add.l d0,d0
-    20d0:	d081           	add.l d1,d0
-    20d2:	e988           	lsl.l #4,d0
-    20d4:	d1af 0020      	add.l d0,32(sp)
-      targetpos += lines2write * ZMLINESIZE2/2;
-    20d8:	7200           	moveq #0,d1
-    20da:	322f 000a      	move.w 10(sp),d1
-    20de:	2001           	move.l d1,d0
-    20e0:	d080           	add.l d0,d0
-    20e2:	d081           	add.l d1,d0
-    20e4:	d080           	add.l d0,d0
-    20e6:	d080           	add.l d0,d0
-    20e8:	9081           	sub.l d1,d0
-    20ea:	d080           	add.l d0,d0
-    20ec:	d080           	add.l d0,d0
-    20ee:	d1af 0028      	add.l d0,40(sp)
-      linesleft -= lines2write;
-    20f2:	302f 000a      	move.w 10(sp),d0
-    20f6:	916f 001e      	sub.w d0,30(sp)
-      if( linesleft == 0) break;
-    20fa:	4a6f 001e      	tst.w 30(sp)
-    20fe:	677e           	beq.s 217e <Zoom_ZoomIntoPicture2+0x2ea>
-      lines2write = 16 - levelofzoom * 2;
-    2100:	7000           	moveq #0,d0
-    2102:	302f 0008      	move.w 8(sp),d0
-    2106:	7208           	moveq #8,d1
-    2108:	9280           	sub.l d0,d1
-    210a:	2001           	move.l d1,d0
-    210c:	2000           	move.l d0,d0
-    210e:	d040           	add.w d0,d0
-    2110:	3f40 000a      	move.w d0,10(sp)
-      lines2write = linesleft > lines2write ? lines2write : linesleft;
-    2114:	322f 000a      	move.w 10(sp),d1
-    2118:	302f 001e      	move.w 30(sp),d0
-    211c:	b240           	cmp.w d0,d1
-    211e:	6402           	bcc.s 2122 <Zoom_ZoomIntoPicture2+0x28e>
-    2120:	3001           	move.w d1,d0
-    2122:	3f40 000a      	move.w d0,10(sp)
-      if( lines2write > 0) {
-    2126:	4a6f 000a      	tst.w 10(sp)
-    212a:	674a           	beq.s 2176 <Zoom_ZoomIntoPicture2+0x2e2>
-        Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 76, 156);
-    212c:	7000           	moveq #0,d0
-    212e:	302f 000a      	move.w 10(sp),d0
-    2132:	206f 0020      	movea.l 32(sp),a0
-    2136:	222f 0024      	move.l 36(sp),d1
-    213a:	4878 009c      	pea 9c <WaitVbl+0x6>
-    213e:	4878 004c      	pea 4c <GetVBR+0x44>
-    2142:	2f00           	move.l d0,-(sp)
-    2144:	2f2f 0034      	move.l 52(sp),-(sp)
-    2148:	2f08           	move.l a0,-(sp)
-    214a:	2f01           	move.l d1,-(sp)
-    214c:	4eba ee5c      	jsr faa <Zoom_ZoomBlit2>(pc)
-    2150:	4fef 0018      	lea 24(sp),sp
-        targetpos += lines2write * ZMLINESIZE2/2;
-    2154:	7200           	moveq #0,d1
-    2156:	322f 000a      	move.w 10(sp),d1
-    215a:	2001           	move.l d1,d0
-    215c:	d080           	add.l d0,d0
-    215e:	d081           	add.l d1,d0
-    2160:	d080           	add.l d0,d0
-    2162:	d080           	add.l d0,d0
-    2164:	9081           	sub.l d1,d0
-    2166:	d080           	add.l d0,d0
-    2168:	d080           	add.l d0,d0
-    216a:	d1af 0028      	add.l d0,40(sp)
-        linesleft -= lines2write;
-    216e:	342f 000a      	move.w 10(sp),d2
-    2172:	956f 001e      	sub.w d2,30(sp)
-    while (linesleft > 0) {
-    2176:	4a6f 001e      	tst.w 30(sp)
-    217a:	6600 fef0      	bne.w 206c <Zoom_ZoomIntoPicture2+0x1d8>
-  for(int i=1;i<=21;i++) {
-    217e:	52af 002c      	addq.l #1,44(sp)
-    2182:	7015           	moveq #21,d0
-    2184:	b0af 002c      	cmp.l 44(sp),d0
-    2188:	6c00 fdf8      	bge.w 1f82 <Zoom_ZoomIntoPicture2+0xee>
-      }
-    }
-  }
-}
-    218c:	241f           	move.l (sp)+,d2
-    218e:	4fef 0034      	lea 52(sp),sp
-    2192:	4e75           	rts
-
-00002194 <SwScrollerTest>:
+00000aba <SwScrollerTest>:
 
 char *sw_text = "!               ";
 UWORD sw_testfont[] = { 0xffff, 0x0000, 0xffff, 0x0000, 0xffff, 0x0000, 0xffff,
            0x0000, 0xff00,0x00ff,0xff00, 0x00ff,0xff00,0x00ff, 0xff00, 0x00ff };
 
 void SwScrollerTest() {
-    2194:	4fef ff98      	lea -104(sp),sp
-    2198:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+     aba:	4fef ff98      	lea -104(sp),sp
+     abe:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   PrepareDisplaySW();
-    219c:	4eba 0218      	jsr 23b6 <PrepareDisplaySW>(pc)
+     ac2:	4eba 0218      	jsr cdc <PrepareDisplaySW>(pc)
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
-    21a0:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    21a6:	4878 0010      	pea 10 <GetVBR+0x8>
-    21aa:	4879 0001 a328 	pea 1a328 <ClsSprites>
-    21b0:	42a7           	clr.l -(sp)
-    21b2:	2f00           	move.l d0,-(sp)
-    21b4:	4eba 088c      	jsr 2a42 <TestCopperlistBatch>(pc)
-    21b8:	4fef 0010      	lea 16(sp),sp
-    21bc:	4a80           	tst.l d0
-    21be:	6642           	bne.s 2202 <SwScrollerTest+0x6e>
+     ac6:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+     acc:	4878 0010      	pea 10 <_start+0x10>
+     ad0:	4879 0001 a5a0 	pea 1a5a0 <ClsSprites>
+     ad6:	42a7           	clr.l -(sp)
+     ad8:	2f00           	move.l d0,-(sp)
+     ada:	4eba 20fc      	jsr 2bd8 <TestCopperlistBatch>(pc)
+     ade:	4fef 0010      	lea 16(sp),sp
+     ae2:	4a80           	tst.l d0
+     ae4:	6642           	bne.s b28 <SwScrollerTest+0x6e>
     Write( Output(), "Sprite section of copper starting on pos 0 messed up\n", 
-    21c0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    21c6:	2c40           	movea.l d0,a6
-    21c8:	4eae ffc4      	jsr -60(a6)
-    21cc:	2f40 0070      	move.l d0,112(sp)
-    21d0:	202f 0070      	move.l 112(sp),d0
-    21d4:	2f40 006c      	move.l d0,108(sp)
-    21d8:	2f7c 0001 7552 	move.l #95570,104(sp)
-    21de:	0068 
-    21e0:	702c           	moveq #44,d0
-    21e2:	2f40 0064      	move.l d0,100(sp)
-    21e6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    21ec:	2c40           	movea.l d0,a6
-    21ee:	222f 006c      	move.l 108(sp),d1
-    21f2:	242f 0068      	move.l 104(sp),d2
-    21f6:	262f 0064      	move.l 100(sp),d3
-    21fa:	4eae ffd0      	jsr -48(a6)
-    21fe:	2f40 0060      	move.l d0,96(sp)
+     ae6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     aec:	2c40           	movea.l d0,a6
+     aee:	4eae ffc4      	jsr -60(a6)
+     af2:	2f40 0070      	move.l d0,112(sp)
+     af6:	202f 0070      	move.l 112(sp),d0
+     afa:	2f40 006c      	move.l d0,108(sp)
+     afe:	2f7c 0000 7693 	move.l #30355,104(sp)
+     b04:	0068 
+     b06:	702c           	moveq #44,d0
+     b08:	2f40 0064      	move.l d0,100(sp)
+     b0c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     b12:	2c40           	movea.l d0,a6
+     b14:	222f 006c      	move.l 108(sp),d1
+     b18:	242f 0068      	move.l 104(sp),d2
+     b1c:	262f 0064      	move.l 100(sp),d3
+     b20:	4eae ffd0      	jsr -48(a6)
+     b24:	2f40 0060      	move.l d0,96(sp)
                                                                             44);
   if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
-    2202:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2208:	4878 000c      	pea c <GetVBR+0x4>
-    220c:	4879 0001 a368 	pea 1a368 <ClScreen>
-    2212:	4878 0010      	pea 10 <GetVBR+0x8>
-    2216:	2f00           	move.l d0,-(sp)
-    2218:	4eba 0828      	jsr 2a42 <TestCopperlistBatch>(pc)
-    221c:	4fef 0010      	lea 16(sp),sp
-    2220:	4a80           	tst.l d0
-    2222:	6642           	bne.s 2266 <SwScrollerTest+0xd2>
+     b28:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+     b2e:	4878 000c      	pea c <_start+0xc>
+     b32:	4879 0001 a5e0 	pea 1a5e0 <ClScreen>
+     b38:	4878 0010      	pea 10 <_start+0x10>
+     b3c:	2f00           	move.l d0,-(sp)
+     b3e:	4eba 2098      	jsr 2bd8 <TestCopperlistBatch>(pc)
+     b42:	4fef 0010      	lea 16(sp),sp
+     b46:	4a80           	tst.l d0
+     b48:	6642           	bne.s b8c <SwScrollerTest+0xd2>
     Write( Output(), "Screen section of copper starting on pos 16 messed up\n",
-    2224:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    222a:	2c40           	movea.l d0,a6
-    222c:	4eae ffc4      	jsr -60(a6)
-    2230:	2f40 005c      	move.l d0,92(sp)
-    2234:	202f 005c      	move.l 92(sp),d0
-    2238:	2f40 0058      	move.l d0,88(sp)
-    223c:	2f7c 0001 7588 	move.l #95624,84(sp)
-    2242:	0054 
-    2244:	7036           	moveq #54,d0
-    2246:	2f40 0050      	move.l d0,80(sp)
-    224a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2250:	2c40           	movea.l d0,a6
-    2252:	222f 0058      	move.l 88(sp),d1
-    2256:	242f 0054      	move.l 84(sp),d2
-    225a:	262f 0050      	move.l 80(sp),d3
-    225e:	4eae ffd0      	jsr -48(a6)
-    2262:	2f40 004c      	move.l d0,76(sp)
+     b4a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     b50:	2c40           	movea.l d0,a6
+     b52:	4eae ffc4      	jsr -60(a6)
+     b56:	2f40 005c      	move.l d0,92(sp)
+     b5a:	202f 005c      	move.l 92(sp),d0
+     b5e:	2f40 0058      	move.l d0,88(sp)
+     b62:	2f7c 0000 76c9 	move.l #30409,84(sp)
+     b68:	0054 
+     b6a:	7036           	moveq #54,d0
+     b6c:	2f40 0050      	move.l d0,80(sp)
+     b70:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     b76:	2c40           	movea.l d0,a6
+     b78:	222f 0058      	move.l 88(sp),d1
+     b7c:	242f 0054      	move.l 84(sp),d2
+     b80:	262f 0050      	move.l 80(sp),d3
+     b84:	4eae ffd0      	jsr -48(a6)
+     b88:	2f40 004c      	move.l d0,76(sp)
                                                                             54);
   
    if(  TestCopperlistBatch(  Copperlist1, 30, ClColor, 2) == 0)
-    2266:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    226c:	4878 0002      	pea 2 <_start+0x2>
-    2270:	4879 0001 a2a8 	pea 1a2a8 <ClColor>
-    2276:	4878 001e      	pea 1e <GetVBR+0x16>
-    227a:	2f00           	move.l d0,-(sp)
-    227c:	4eba 07c4      	jsr 2a42 <TestCopperlistBatch>(pc)
-    2280:	4fef 0010      	lea 16(sp),sp
-    2284:	4a80           	tst.l d0
-    2286:	6642           	bne.s 22ca <SwScrollerTest+0x136>
+     b8c:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+     b92:	4878 0002      	pea 2 <_start+0x2>
+     b96:	4879 0001 a520 	pea 1a520 <ClColor>
+     b9c:	4878 001e      	pea 1e <_start+0x1e>
+     ba0:	2f00           	move.l d0,-(sp)
+     ba2:	4eba 2034      	jsr 2bd8 <TestCopperlistBatch>(pc)
+     ba6:	4fef 0010      	lea 16(sp),sp
+     baa:	4a80           	tst.l d0
+     bac:	6642           	bne.s bf0 <SwScrollerTest+0x136>
     Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
-    2288:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    228e:	2c40           	movea.l d0,a6
-    2290:	4eae ffc4      	jsr -60(a6)
-    2294:	2f40 0048      	move.l d0,72(sp)
-    2298:	202f 0048      	move.l 72(sp),d0
-    229c:	2f40 0044      	move.l d0,68(sp)
-    22a0:	2f7c 0001 75bf 	move.l #95679,64(sp)
-    22a6:	0040 
-    22a8:	7021           	moveq #33,d0
-    22aa:	2f40 003c      	move.l d0,60(sp)
-    22ae:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    22b4:	2c40           	movea.l d0,a6
-    22b6:	222f 0044      	move.l 68(sp),d1
-    22ba:	242f 0040      	move.l 64(sp),d2
-    22be:	262f 003c      	move.l 60(sp),d3
-    22c2:	4eae ffd0      	jsr -48(a6)
-    22c6:	2f40 0038      	move.l d0,56(sp)
+     bae:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     bb4:	2c40           	movea.l d0,a6
+     bb6:	4eae ffc4      	jsr -60(a6)
+     bba:	2f40 0048      	move.l d0,72(sp)
+     bbe:	202f 0048      	move.l 72(sp),d0
+     bc2:	2f40 0044      	move.l d0,68(sp)
+     bc6:	2f7c 0000 7700 	move.l #30464,64(sp)
+     bcc:	0040 
+     bce:	7021           	moveq #33,d0
+     bd0:	2f40 003c      	move.l d0,60(sp)
+     bd4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     bda:	2c40           	movea.l d0,a6
+     bdc:	222f 0044      	move.l 68(sp),d1
+     be0:	242f 0040      	move.l 64(sp),d2
+     be4:	262f 003c      	move.l 60(sp),d3
+     be8:	4eae ffd0      	jsr -48(a6)
+     bec:	2f40 0038      	move.l d0,56(sp)
 
   if( TestCopperlistPos( Copperlist1, 32, 0xfffffffe) == 0)
-    22ca:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    22d0:	4878 fffe      	pea fffffffe <gcc8_c_support.c.e9862530+0xfffd3e2d>
-    22d4:	4878 0020      	pea 20 <GetVBR+0x18>
-    22d8:	2f00           	move.l d0,-(sp)
-    22da:	4eba 07a4      	jsr 2a80 <TestCopperlistPos>(pc)
-    22de:	4fef 000c      	lea 12(sp),sp
-    22e2:	4a80           	tst.l d0
-    22e4:	6642           	bne.s 2328 <SwScrollerTest+0x194>
+     bf0:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+     bf6:	4878 fffe      	pea fffffffe <_end+0xfffd7a86>
+     bfa:	4878 0020      	pea 20 <_start+0x20>
+     bfe:	2f00           	move.l d0,-(sp)
+     c00:	4eba 2014      	jsr 2c16 <TestCopperlistPos>(pc)
+     c04:	4fef 000c      	lea 12(sp),sp
+     c08:	4a80           	tst.l d0
+     c0a:	6642           	bne.s c4e <SwScrollerTest+0x194>
     Write( Output(), "Copperlist End not correctly set.\n", 34);
-    22e6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    22ec:	2c40           	movea.l d0,a6
-    22ee:	4eae ffc4      	jsr -60(a6)
-    22f2:	2f40 0034      	move.l d0,52(sp)
-    22f6:	202f 0034      	move.l 52(sp),d0
-    22fa:	2f40 0030      	move.l d0,48(sp)
-    22fe:	2f7c 0001 75e1 	move.l #95713,44(sp)
-    2304:	002c 
-    2306:	7022           	moveq #34,d0
-    2308:	2f40 0028      	move.l d0,40(sp)
-    230c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2312:	2c40           	movea.l d0,a6
-    2314:	222f 0030      	move.l 48(sp),d1
-    2318:	242f 002c      	move.l 44(sp),d2
-    231c:	262f 0028      	move.l 40(sp),d3
-    2320:	4eae ffd0      	jsr -48(a6)
-    2324:	2f40 0024      	move.l d0,36(sp)
+     c0c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     c12:	2c40           	movea.l d0,a6
+     c14:	4eae ffc4      	jsr -60(a6)
+     c18:	2f40 0034      	move.l d0,52(sp)
+     c1c:	202f 0034      	move.l 52(sp),d0
+     c20:	2f40 0030      	move.l d0,48(sp)
+     c24:	2f7c 0000 7722 	move.l #30498,44(sp)
+     c2a:	002c 
+     c2c:	7022           	moveq #34,d0
+     c2e:	2f40 0028      	move.l d0,40(sp)
+     c32:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     c38:	2c40           	movea.l d0,a6
+     c3a:	222f 0030      	move.l 48(sp),d1
+     c3e:	242f 002c      	move.l 44(sp),d2
+     c42:	262f 0028      	move.l 40(sp),d3
+     c46:	4eae ffd0      	jsr -48(a6)
+     c4a:	2f40 0024      	move.l d0,36(sp)
 
   WriteFont(  sw_testfont, DrawBuffer, sw_text);
-    2328:	2239 0001 b518 	move.l 1b518 <sw_text>,d1
-    232e:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    2334:	2f01           	move.l d1,-(sp)
-    2336:	2f00           	move.l d0,-(sp)
-    2338:	4879 0001 b51c 	pea 1b51c <sw_testfont>
-    233e:	4eba 0388      	jsr 26c8 <WriteFont>(pc)
-    2342:	4fef 000c      	lea 12(sp),sp
+     c4e:	2239 0001 b764 	move.l 1b764 <sw_text>,d1
+     c54:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+     c5a:	2f01           	move.l d1,-(sp)
+     c5c:	2f00           	move.l d0,-(sp)
+     c5e:	4879 0001 b768 	pea 1b768 <sw_testfont>
+     c64:	4eba 0380      	jsr fe6 <WriteFont>(pc)
+     c68:	4fef 000c      	lea 12(sp),sp
 
   UWORD *tstpointer = (UWORD *)DrawBuffer;
-    2346:	2f79 0001 ba98 	move.l 1ba98 <DrawBuffer>,32(sp)
-    234c:	0020 
+     c6c:	2f79 0002 8510 	move.l 28510 <DrawBuffer>,32(sp)
+     c72:	0020 
   if( *tstpointer != 0xff00)
-    234e:	206f 0020      	movea.l 32(sp),a0
-    2352:	3010           	move.w (a0),d0
-    2354:	0c40 ff00      	cmpi.w #-256,d0
-    2358:	6742           	beq.s 239c <SwScrollerTest+0x208>
+     c74:	206f 0020      	movea.l 32(sp),a0
+     c78:	3010           	move.w (a0),d0
+     c7a:	0c40 ff00      	cmpi.w #-256,d0
+     c7e:	6742           	beq.s cc2 <SwScrollerTest+0x208>
     Write( Output(), "SwScrollerTest: Test Font not correctly Written.\n", 49);
-    235a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2360:	2c40           	movea.l d0,a6
-    2362:	4eae ffc4      	jsr -60(a6)
-    2366:	2f40 001c      	move.l d0,28(sp)
-    236a:	202f 001c      	move.l 28(sp),d0
-    236e:	2f40 0018      	move.l d0,24(sp)
-    2372:	2f7c 0001 7604 	move.l #95748,20(sp)
-    2378:	0014 
-    237a:	7031           	moveq #49,d0
-    237c:	2f40 0010      	move.l d0,16(sp)
-    2380:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2386:	2c40           	movea.l d0,a6
-    2388:	222f 0018      	move.l 24(sp),d1
-    238c:	242f 0014      	move.l 20(sp),d2
-    2390:	262f 0010      	move.l 16(sp),d3
-    2394:	4eae ffd0      	jsr -48(a6)
-    2398:	2f40 000c      	move.l d0,12(sp)
+     c80:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     c86:	2c40           	movea.l d0,a6
+     c88:	4eae ffc4      	jsr -60(a6)
+     c8c:	2f40 001c      	move.l d0,28(sp)
+     c90:	202f 001c      	move.l 28(sp),d0
+     c94:	2f40 0018      	move.l d0,24(sp)
+     c98:	2f7c 0000 7745 	move.l #30533,20(sp)
+     c9e:	0014 
+     ca0:	7031           	moveq #49,d0
+     ca2:	2f40 0010      	move.l d0,16(sp)
+     ca6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     cac:	2c40           	movea.l d0,a6
+     cae:	222f 0018      	move.l 24(sp),d1
+     cb2:	242f 0014      	move.l 20(sp),d2
+     cb6:	262f 0010      	move.l 16(sp),d3
+     cba:	4eae ffd0      	jsr -48(a6)
+     cbe:	2f40 000c      	move.l d0,12(sp)
 
   FreeDisplay( SWCPSIZE, SWBPLSIZE);
-    239c:	2f3c 0000 c800 	move.l #51200,-(sp)
-    23a2:	4878 0084      	pea 84 <SetInterruptHandler+0xa>
-    23a6:	4eba dd66      	jsr 10e <FreeDisplay>(pc)
-    23aa:	508f           	addq.l #8,sp
-    23ac:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    23b0:	4fef 0068      	lea 104(sp),sp
-    23b4:	4e75           	rts
+     cc2:	2f3c 0000 c800 	move.l #51200,-(sp)
+     cc8:	4878 0084      	pea 84 <_start+0x84>
+     ccc:	4eba f412      	jsr e0 <FreeDisplay>(pc)
+     cd0:	508f           	addq.l #8,sp
+     cd2:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+     cd6:	4fef 0068      	lea 104(sp),sp
+     cda:	4e75           	rts
 
-000023b6 <PrepareDisplaySW>:
+00000cdc <PrepareDisplaySW>:
  #include "swscroller.h"
  #include "utils.h"
  
  INCBIN(swfont, "raw/ruby16_8_1.raw");
 
  int PrepareDisplaySW() {
-    23b6:	4fef ffb8      	lea -72(sp),sp
-    23ba:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+     cdc:	4fef ffb8      	lea -72(sp),sp
+     ce0:	48e7 3002      	movem.l d2-d3/a6,-(sp)
 
   Copperlist1 = ClbuildSW();
-    23be:	4eba 0182      	jsr 2542 <ClbuildSW>(pc)
-    23c2:	23c0 0001 ba90 	move.l d0,1ba90 <Copperlist1>
+     ce4:	4eba 017e      	jsr e64 <ClbuildSW>(pc)
+     ce8:	23c0 0002 8508 	move.l d0,28508 <Copperlist1>
   Copperlist2 = ClbuildSW();
-    23c8:	4eba 0178      	jsr 2542 <ClbuildSW>(pc)
-    23cc:	23c0 0001 ba94 	move.l d0,1ba94 <Copperlist2>
+     cee:	4eba 0174      	jsr e64 <ClbuildSW>(pc)
+     cf2:	23c0 0002 850c 	move.l d0,2850c <Copperlist2>
   Bitplane1 = AllocMem(SWBPLSIZE, MEMF_CHIP);
-    23d2:	2f7c 0000 c800 	move.l #51200,80(sp)
-    23d8:	0050 
-    23da:	7002           	moveq #2,d0
-    23dc:	2f40 004c      	move.l d0,76(sp)
-    23e0:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    23e6:	2c40           	movea.l d0,a6
-    23e8:	202f 0050      	move.l 80(sp),d0
-    23ec:	222f 004c      	move.l 76(sp),d1
-    23f0:	4eae ff3a      	jsr -198(a6)
-    23f4:	2f40 0048      	move.l d0,72(sp)
-    23f8:	202f 0048      	move.l 72(sp),d0
-    23fc:	23c0 0001 ba88 	move.l d0,1ba88 <Bitplane1>
+     cf8:	2f7c 0000 c800 	move.l #51200,80(sp)
+     cfe:	0050 
+     d00:	7002           	moveq #2,d0
+     d02:	2f40 004c      	move.l d0,76(sp)
+     d06:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     d0c:	2c40           	movea.l d0,a6
+     d0e:	202f 0050      	move.l 80(sp),d0
+     d12:	222f 004c      	move.l 76(sp),d1
+     d16:	4eae ff3a      	jsr -198(a6)
+     d1a:	2f40 0048      	move.l d0,72(sp)
+     d1e:	202f 0048      	move.l 72(sp),d0
+     d22:	23c0 0002 8500 	move.l d0,28500 <Bitplane1>
   if(Bitplane1 == 0) {
-    2402:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    2408:	4a80           	tst.l d0
-    240a:	6658           	bne.s 2464 <PrepareDisplaySW+0xae>
+     d28:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+     d2e:	6658           	bne.s d88 <PrepareDisplaySW+0xac>
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    240c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2412:	2c40           	movea.l d0,a6
-    2414:	4eae ffc4      	jsr -60(a6)
-    2418:	2f40 0044      	move.l d0,68(sp)
-    241c:	202f 0044      	move.l 68(sp),d0
-    2420:	2f40 0040      	move.l d0,64(sp)
-    2424:	2f7c 0001 74cd 	move.l #95437,60(sp)
-    242a:	003c 
-    242c:	7026           	moveq #38,d0
-    242e:	2f40 0038      	move.l d0,56(sp)
-    2432:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2438:	2c40           	movea.l d0,a6
-    243a:	222f 0040      	move.l 64(sp),d1
-    243e:	242f 003c      	move.l 60(sp),d2
-    2442:	262f 0038      	move.l 56(sp),d3
-    2446:	4eae ffd0      	jsr -48(a6)
-    244a:	2f40 0034      	move.l d0,52(sp)
+     d30:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     d36:	2c40           	movea.l d0,a6
+     d38:	4eae ffc4      	jsr -60(a6)
+     d3c:	2f40 0044      	move.l d0,68(sp)
+     d40:	202f 0044      	move.l 68(sp),d0
+     d44:	2f40 0040      	move.l d0,64(sp)
+     d48:	2f7c 0000 7d29 	move.l #32041,60(sp)
+     d4e:	003c 
+     d50:	7026           	moveq #38,d0
+     d52:	2f40 0038      	move.l d0,56(sp)
+     d56:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     d5c:	2c40           	movea.l d0,a6
+     d5e:	222f 0040      	move.l 64(sp),d1
+     d62:	242f 003c      	move.l 60(sp),d2
+     d66:	262f 0038      	move.l 56(sp),d3
+     d6a:	4eae ffd0      	jsr -48(a6)
+     d6e:	2f40 0034      	move.l d0,52(sp)
     Exit(1);
-    244e:	7001           	moveq #1,d0
-    2450:	2f40 0030      	move.l d0,48(sp)
-    2454:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    245a:	2c40           	movea.l d0,a6
-    245c:	222f 0030      	move.l 48(sp),d1
-    2460:	4eae ff70      	jsr -144(a6)
+     d72:	7001           	moveq #1,d0
+     d74:	2f40 0030      	move.l d0,48(sp)
+     d78:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     d7e:	2c40           	movea.l d0,a6
+     d80:	222f 0030      	move.l 48(sp),d1
+     d84:	4eae ff70      	jsr -144(a6)
   }
   DrawBuffer = Bitplane1;
-    2464:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    246a:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
+     d88:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+     d8e:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
   DrawCopper = Copperlist1;
-    2470:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2476:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
+     d94:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+     d9a:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
   Bitplane2 = AllocMem(SWBPLSIZE, MEMF_CHIP);
-    247c:	2f7c 0000 c800 	move.l #51200,44(sp)
-    2482:	002c 
-    2484:	7002           	moveq #2,d0
-    2486:	2f40 0028      	move.l d0,40(sp)
-    248a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    2490:	2c40           	movea.l d0,a6
-    2492:	202f 002c      	move.l 44(sp),d0
-    2496:	222f 0028      	move.l 40(sp),d1
-    249a:	4eae ff3a      	jsr -198(a6)
-    249e:	2f40 0024      	move.l d0,36(sp)
-    24a2:	202f 0024      	move.l 36(sp),d0
-    24a6:	23c0 0001 ba8c 	move.l d0,1ba8c <Bitplane2>
+     da0:	2f7c 0000 c800 	move.l #51200,44(sp)
+     da6:	002c 
+     da8:	7002           	moveq #2,d0
+     daa:	2f40 0028      	move.l d0,40(sp)
+     dae:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     db4:	2c40           	movea.l d0,a6
+     db6:	202f 002c      	move.l 44(sp),d0
+     dba:	222f 0028      	move.l 40(sp),d1
+     dbe:	4eae ff3a      	jsr -198(a6)
+     dc2:	2f40 0024      	move.l d0,36(sp)
+     dc6:	202f 0024      	move.l 36(sp),d0
+     dca:	23c0 0002 8504 	move.l d0,28504 <Bitplane2>
   if(Bitplane2 == 0) {
-    24ac:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    24b2:	4a80           	tst.l d0
-    24b4:	6658           	bne.s 250e <PrepareDisplaySW+0x158>
+     dd0:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+     dd6:	6658           	bne.s e30 <PrepareDisplaySW+0x154>
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    24b6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    24bc:	2c40           	movea.l d0,a6
-    24be:	4eae ffc4      	jsr -60(a6)
-    24c2:	2f40 0020      	move.l d0,32(sp)
-    24c6:	202f 0020      	move.l 32(sp),d0
-    24ca:	2f40 001c      	move.l d0,28(sp)
-    24ce:	2f7c 0001 74f4 	move.l #95476,24(sp)
-    24d4:	0018 
-    24d6:	7026           	moveq #38,d0
-    24d8:	2f40 0014      	move.l d0,20(sp)
-    24dc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    24e2:	2c40           	movea.l d0,a6
-    24e4:	222f 001c      	move.l 28(sp),d1
-    24e8:	242f 0018      	move.l 24(sp),d2
-    24ec:	262f 0014      	move.l 20(sp),d3
-    24f0:	4eae ffd0      	jsr -48(a6)
-    24f4:	2f40 0010      	move.l d0,16(sp)
+     dd8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     dde:	2c40           	movea.l d0,a6
+     de0:	4eae ffc4      	jsr -60(a6)
+     de4:	2f40 0020      	move.l d0,32(sp)
+     de8:	202f 0020      	move.l 32(sp),d0
+     dec:	2f40 001c      	move.l d0,28(sp)
+     df0:	2f7c 0000 7d50 	move.l #32080,24(sp)
+     df6:	0018 
+     df8:	7026           	moveq #38,d0
+     dfa:	2f40 0014      	move.l d0,20(sp)
+     dfe:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     e04:	2c40           	movea.l d0,a6
+     e06:	222f 001c      	move.l 28(sp),d1
+     e0a:	242f 0018      	move.l 24(sp),d2
+     e0e:	262f 0014      	move.l 20(sp),d3
+     e12:	4eae ffd0      	jsr -48(a6)
+     e16:	2f40 0010      	move.l d0,16(sp)
     Exit(1);
-    24f8:	7001           	moveq #1,d0
-    24fa:	2f40 000c      	move.l d0,12(sp)
-    24fe:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2504:	2c40           	movea.l d0,a6
-    2506:	222f 000c      	move.l 12(sp),d1
-    250a:	4eae ff70      	jsr -144(a6)
+     e1a:	7001           	moveq #1,d0
+     e1c:	2f40 000c      	move.l d0,12(sp)
+     e20:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     e26:	2c40           	movea.l d0,a6
+     e28:	222f 000c      	move.l 12(sp),d1
+     e2c:	4eae ff70      	jsr -144(a6)
   }
   ViewBuffer = Bitplane2;
-    250e:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    2514:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
+     e30:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+     e36:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
   ViewCopper = Copperlist2;
-    251a:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    2520:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
+     e3c:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+     e42:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
   SwapCl();
-    2526:	4eba dd02      	jsr 22a <SwapCl>(pc)
+     e48:	4eba f3aa      	jsr 1f4 <SwapCl>(pc)
   SetBplPointers();
-    252a:	4eba dca0      	jsr 1cc <SetBplPointers>(pc)
+     e4c:	4eba f348      	jsr 196 <SetBplPointers>(pc)
   SwapCl();
-    252e:	4eba dcfa      	jsr 22a <SwapCl>(pc)
+     e50:	4eba f3a2      	jsr 1f4 <SwapCl>(pc)
   SetBplPointers();
-    2532:	4eba dc98      	jsr 1cc <SetBplPointers>(pc)
+     e54:	4eba f340      	jsr 196 <SetBplPointers>(pc)
   return 0;
-    2536:	7000           	moveq #0,d0
+     e58:	7000           	moveq #0,d0
 }
-    2538:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    253c:	4fef 0048      	lea 72(sp),sp
-    2540:	4e75           	rts
+     e5a:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+     e5e:	4fef 0048      	lea 72(sp),sp
+     e62:	4e75           	rts
 
-00002542 <ClbuildSW>:
+00000e64 <ClbuildSW>:
 
 ULONG * ClbuildSW() {
-    2542:	4fef ffc4      	lea -60(sp),sp
-    2546:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+     e64:	4fef ffc4      	lea -60(sp),sp
+     e68:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   
   ULONG *retval = AllocMem(  SWCPSIZE, MEMF_CHIP);
-    254a:	2f7c 0000 0084 	move.l #132,48(sp)
-    2550:	0030 
-    2552:	7002           	moveq #2,d0
-    2554:	2f40 002c      	move.l d0,44(sp)
-    2558:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    255e:	2c40           	movea.l d0,a6
-    2560:	202f 0030      	move.l 48(sp),d0
-    2564:	222f 002c      	move.l 44(sp),d1
-    2568:	4eae ff3a      	jsr -198(a6)
-    256c:	2f40 0028      	move.l d0,40(sp)
-    2570:	202f 0028      	move.l 40(sp),d0
-    2574:	2f40 0024      	move.l d0,36(sp)
+     e6c:	2f7c 0000 0084 	move.l #132,48(sp)
+     e72:	0030 
+     e74:	7002           	moveq #2,d0
+     e76:	2f40 002c      	move.l d0,44(sp)
+     e7a:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+     e80:	2c40           	movea.l d0,a6
+     e82:	202f 0030      	move.l 48(sp),d0
+     e86:	222f 002c      	move.l 44(sp),d1
+     e8a:	4eae ff3a      	jsr -198(a6)
+     e8e:	2f40 0028      	move.l d0,40(sp)
+     e92:	202f 0028      	move.l 40(sp),d0
+     e96:	2f40 0024      	move.l d0,36(sp)
   
   if( retval == 0) {
-    2578:	4aaf 0024      	tst.l 36(sp)
-    257c:	6658           	bne.s 25d6 <ClbuildSW+0x94>
+     e9a:	6658           	bne.s ef4 <ClbuildSW+0x90>
     Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
-    257e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2584:	2c40           	movea.l d0,a6
-    2586:	4eae ffc4      	jsr -60(a6)
-    258a:	2f40 0020      	move.l d0,32(sp)
-    258e:	202f 0020      	move.l 32(sp),d0
-    2592:	2f40 001c      	move.l d0,28(sp)
-    2596:	2f7c 0001 751b 	move.l #95515,24(sp)
-    259c:	0018 
-    259e:	7228           	moveq #40,d1
-    25a0:	2f41 0014      	move.l d1,20(sp)
-    25a4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    25aa:	2c40           	movea.l d0,a6
-    25ac:	222f 001c      	move.l 28(sp),d1
-    25b0:	242f 0018      	move.l 24(sp),d2
-    25b4:	262f 0014      	move.l 20(sp),d3
-    25b8:	4eae ffd0      	jsr -48(a6)
-    25bc:	2f40 0010      	move.l d0,16(sp)
+     e9c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     ea2:	2c40           	movea.l d0,a6
+     ea4:	4eae ffc4      	jsr -60(a6)
+     ea8:	2f40 0020      	move.l d0,32(sp)
+     eac:	202f 0020      	move.l 32(sp),d0
+     eb0:	2f40 001c      	move.l d0,28(sp)
+     eb4:	2f7c 0000 7d77 	move.l #32119,24(sp)
+     eba:	0018 
+     ebc:	7228           	moveq #40,d1
+     ebe:	2f41 0014      	move.l d1,20(sp)
+     ec2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     ec8:	2c40           	movea.l d0,a6
+     eca:	222f 001c      	move.l 28(sp),d1
+     ece:	242f 0018      	move.l 24(sp),d2
+     ed2:	262f 0014      	move.l 20(sp),d3
+     ed6:	4eae ffd0      	jsr -48(a6)
+     eda:	2f40 0010      	move.l d0,16(sp)
     Exit(1);
-    25c0:	7401           	moveq #1,d2
-    25c2:	2f42 000c      	move.l d2,12(sp)
-    25c6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    25cc:	2c40           	movea.l d0,a6
-    25ce:	222f 000c      	move.l 12(sp),d1
-    25d2:	4eae ff70      	jsr -144(a6)
+     ede:	7401           	moveq #1,d2
+     ee0:	2f42 000c      	move.l d2,12(sp)
+     ee4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+     eea:	2c40           	movea.l d0,a6
+     eec:	222f 000c      	move.l 12(sp),d1
+     ef0:	4eae ff70      	jsr -144(a6)
   }
   ULONG *cl = retval;
-    25d6:	2f6f 0024 0044 	move.l 36(sp),68(sp)
+     ef4:	2f6f 0024 0044 	move.l 36(sp),68(sp)
   //clinstruction = DrawCopper;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
-    25dc:	2f7c 0001 a328 	move.l #107304,64(sp)
-    25e2:	0040 
+     efa:	2f7c 0001 a5a0 	move.l #107936,64(sp)
+     f00:	0040 
   for(int i=0; i<16;i++)
-    25e4:	42af 003c      	clr.l 60(sp)
-    25e8:	6024           	bra.s 260e <ClbuildSW+0xcc>
+     f02:	42af 003c      	clr.l 60(sp)
+     f06:	6024           	bra.s f2c <ClbuildSW+0xc8>
     *cl++ = *clpartinstruction++;
-    25ea:	222f 0040      	move.l 64(sp),d1
-    25ee:	2001           	move.l d1,d0
-    25f0:	5880           	addq.l #4,d0
-    25f2:	2f40 0040      	move.l d0,64(sp)
-    25f6:	202f 0044      	move.l 68(sp),d0
-    25fa:	2400           	move.l d0,d2
-    25fc:	5882           	addq.l #4,d2
-    25fe:	2f42 0044      	move.l d2,68(sp)
-    2602:	2041           	movea.l d1,a0
-    2604:	2210           	move.l (a0),d1
-    2606:	2040           	movea.l d0,a0
-    2608:	2081           	move.l d1,(a0)
+     f08:	222f 0040      	move.l 64(sp),d1
+     f0c:	2001           	move.l d1,d0
+     f0e:	5880           	addq.l #4,d0
+     f10:	2f40 0040      	move.l d0,64(sp)
+     f14:	202f 0044      	move.l 68(sp),d0
+     f18:	2400           	move.l d0,d2
+     f1a:	5882           	addq.l #4,d2
+     f1c:	2f42 0044      	move.l d2,68(sp)
+     f20:	2041           	movea.l d1,a0
+     f22:	2210           	move.l (a0),d1
+     f24:	2040           	movea.l d0,a0
+     f26:	2081           	move.l d1,(a0)
   for(int i=0; i<16;i++)
-    260a:	52af 003c      	addq.l #1,60(sp)
-    260e:	700f           	moveq #15,d0
-    2610:	b0af 003c      	cmp.l 60(sp),d0
-    2614:	6cd4           	bge.s 25ea <ClbuildSW+0xa8>
+     f28:	52af 003c      	addq.l #1,60(sp)
+     f2c:	700f           	moveq #15,d0
+     f2e:	b0af 003c      	cmp.l 60(sp),d0
+     f32:	6cd4           	bge.s f08 <ClbuildSW+0xa4>
   clpartinstruction = ClScreen;
-    2616:	2f7c 0001 a368 	move.l #107368,64(sp)
-    261c:	0040 
+     f34:	2f7c 0001 a5e0 	move.l #108000,64(sp)
+     f3a:	0040 
   for(int i=0; i<12;i++)
-    261e:	42af 0038      	clr.l 56(sp)
-    2622:	6024           	bra.s 2648 <ClbuildSW+0x106>
+     f3c:	42af 0038      	clr.l 56(sp)
+     f40:	6024           	bra.s f66 <ClbuildSW+0x102>
     *cl++ = *clpartinstruction++;
-    2624:	222f 0040      	move.l 64(sp),d1
-    2628:	2401           	move.l d1,d2
-    262a:	5882           	addq.l #4,d2
-    262c:	2f42 0040      	move.l d2,64(sp)
-    2630:	202f 0044      	move.l 68(sp),d0
-    2634:	2400           	move.l d0,d2
-    2636:	5882           	addq.l #4,d2
-    2638:	2f42 0044      	move.l d2,68(sp)
-    263c:	2041           	movea.l d1,a0
-    263e:	2210           	move.l (a0),d1
-    2640:	2040           	movea.l d0,a0
-    2642:	2081           	move.l d1,(a0)
+     f42:	222f 0040      	move.l 64(sp),d1
+     f46:	2401           	move.l d1,d2
+     f48:	5882           	addq.l #4,d2
+     f4a:	2f42 0040      	move.l d2,64(sp)
+     f4e:	202f 0044      	move.l 68(sp),d0
+     f52:	2400           	move.l d0,d2
+     f54:	5882           	addq.l #4,d2
+     f56:	2f42 0044      	move.l d2,68(sp)
+     f5a:	2041           	movea.l d1,a0
+     f5c:	2210           	move.l (a0),d1
+     f5e:	2040           	movea.l d0,a0
+     f60:	2081           	move.l d1,(a0)
   for(int i=0; i<12;i++)
-    2644:	52af 0038      	addq.l #1,56(sp)
-    2648:	700b           	moveq #11,d0
-    264a:	b0af 0038      	cmp.l 56(sp),d0
-    264e:	6cd4           	bge.s 2624 <ClbuildSW+0xe2>
+     f62:	52af 0038      	addq.l #1,56(sp)
+     f66:	700b           	moveq #11,d0
+     f68:	b0af 0038      	cmp.l 56(sp),d0
+     f6c:	6cd4           	bge.s f42 <ClbuildSW+0xde>
   //cl[CopBpl1High] = (long) cl + 2;
   *cl++ = 0x00e00000;
-    2650:	202f 0044      	move.l 68(sp),d0
-    2654:	2200           	move.l d0,d1
-    2656:	5881           	addq.l #4,d1
-    2658:	2f41 0044      	move.l d1,68(sp)
-    265c:	2040           	movea.l d0,a0
-    265e:	20bc 00e0 0000 	move.l #14680064,(a0)
+     f6e:	202f 0044      	move.l 68(sp),d0
+     f72:	2200           	move.l d0,d1
+     f74:	5881           	addq.l #4,d1
+     f76:	2f41 0044      	move.l d1,68(sp)
+     f7a:	2040           	movea.l d0,a0
+     f7c:	20bc 00e0 0000 	move.l #14680064,(a0)
   //cl[CopBpl1Low] = (long) cl + 2;
   *cl++ = 0x00e20000;
-    2664:	202f 0044      	move.l 68(sp),d0
-    2668:	2200           	move.l d0,d1
-    266a:	5881           	addq.l #4,d1
-    266c:	2f41 0044      	move.l d1,68(sp)
-    2670:	2040           	movea.l d0,a0
-    2672:	20bc 00e2 0000 	move.l #14811136,(a0)
+     f82:	202f 0044      	move.l 68(sp),d0
+     f86:	2200           	move.l d0,d1
+     f88:	5881           	addq.l #4,d1
+     f8a:	2f41 0044      	move.l d1,68(sp)
+     f8e:	2040           	movea.l d0,a0
+     f90:	20bc 00e2 0000 	move.l #14811136,(a0)
 
   clpartinstruction = ClColor;
-    2678:	2f7c 0001 a2a8 	move.l #107176,64(sp)
-    267e:	0040 
+     f96:	2f7c 0001 a520 	move.l #107808,64(sp)
+     f9c:	0040 
   for(int i=0; i<2;i++)
-    2680:	42af 0034      	clr.l 52(sp)
-    2684:	6024           	bra.s 26aa <ClbuildSW+0x168>
+     f9e:	42af 0034      	clr.l 52(sp)
+     fa2:	6024           	bra.s fc8 <ClbuildSW+0x164>
     *cl++ = *clpartinstruction++;
-    2686:	222f 0040      	move.l 64(sp),d1
-    268a:	2001           	move.l d1,d0
-    268c:	5880           	addq.l #4,d0
-    268e:	2f40 0040      	move.l d0,64(sp)
-    2692:	202f 0044      	move.l 68(sp),d0
-    2696:	2400           	move.l d0,d2
-    2698:	5882           	addq.l #4,d2
-    269a:	2f42 0044      	move.l d2,68(sp)
-    269e:	2041           	movea.l d1,a0
-    26a0:	2210           	move.l (a0),d1
-    26a2:	2040           	movea.l d0,a0
-    26a4:	2081           	move.l d1,(a0)
+     fa4:	222f 0040      	move.l 64(sp),d1
+     fa8:	2001           	move.l d1,d0
+     faa:	5880           	addq.l #4,d0
+     fac:	2f40 0040      	move.l d0,64(sp)
+     fb0:	202f 0044      	move.l 68(sp),d0
+     fb4:	2400           	move.l d0,d2
+     fb6:	5882           	addq.l #4,d2
+     fb8:	2f42 0044      	move.l d2,68(sp)
+     fbc:	2041           	movea.l d1,a0
+     fbe:	2210           	move.l (a0),d1
+     fc0:	2040           	movea.l d0,a0
+     fc2:	2081           	move.l d1,(a0)
   for(int i=0; i<2;i++)
-    26a6:	52af 0034      	addq.l #1,52(sp)
-    26aa:	7001           	moveq #1,d0
-    26ac:	b0af 0034      	cmp.l 52(sp),d0
-    26b0:	6cd4           	bge.s 2686 <ClbuildSW+0x144>
+     fc4:	52af 0034      	addq.l #1,52(sp)
+     fc8:	7001           	moveq #1,d0
+     fca:	b0af 0034      	cmp.l 52(sp),d0
+     fce:	6cd4           	bge.s fa4 <ClbuildSW+0x140>
 
   *cl = 0xfffffffe;
-    26b2:	206f 0044      	movea.l 68(sp),a0
-    26b6:	72fe           	moveq #-2,d1
-    26b8:	2081           	move.l d1,(a0)
+     fd0:	206f 0044      	movea.l 68(sp),a0
+     fd4:	72fe           	moveq #-2,d1
+     fd6:	2081           	move.l d1,(a0)
 
   return retval;
-    26ba:	202f 0024      	move.l 36(sp),d0
+     fd8:	202f 0024      	move.l 36(sp),d0
 }
-    26be:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    26c2:	4fef 003c      	lea 60(sp),sp
-    26c6:	4e75           	rts
+     fdc:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+     fe0:	4fef 003c      	lea 60(sp),sp
+     fe4:	4e75           	rts
 
-000026c8 <WriteFont>:
+00000fe6 <WriteFont>:
 
 void WriteFont( UWORD *font, UWORD *Destination, char *text) {
-    26c8:	4fef fff0      	lea -16(sp),sp
+     fe6:	4fef fff0      	lea -16(sp),sp
   UWORD *bmpptr = Destination;
-    26cc:	2f6f 0018 000c 	move.l 24(sp),12(sp)
+     fea:	2f6f 0018 000c 	move.l 24(sp),12(sp)
   UWORD *fntptr = font;
-    26d2:	2f6f 0014 0008 	move.l 20(sp),8(sp)
+     ff0:	2f6f 0014 0008 	move.l 20(sp),8(sp)
 
   char charpos = *text;
-    26d8:	206f 001c      	movea.l 28(sp),a0
-    26dc:	1f50 0003      	move.b (a0),3(sp)
+     ff6:	206f 001c      	movea.l 28(sp),a0
+     ffa:	1f50 0003      	move.b (a0),3(sp)
   charpos -= 0x20;
-    26e0:	102f 0003      	move.b 3(sp),d0
-    26e4:	0600 ffe0      	addi.b #-32,d0
-    26e8:	1f40 0003      	move.b d0,3(sp)
+     ffe:	102f 0003      	move.b 3(sp),d0
+    1002:	0600 ffe0      	addi.b #-32,d0
+    1006:	1f40 0003      	move.b d0,3(sp)
   charpos = charpos<<3;
-    26ec:	102f 0003      	move.b 3(sp),d0
-    26f0:	4880           	ext.w d0
-    26f2:	48c0           	ext.l d0
-    26f4:	e788           	lsl.l #3,d0
-    26f6:	1f40 0003      	move.b d0,3(sp)
+    100a:	102f 0003      	move.b 3(sp),d0
+    100e:	4880           	ext.w d0
+    1010:	48c0           	ext.l d0
+    1012:	e788           	lsl.l #3,d0
+    1014:	1f40 0003      	move.b d0,3(sp)
   fntptr += charpos;
-    26fa:	102f 0003      	move.b 3(sp),d0
-    26fe:	4880           	ext.w d0
-    2700:	3040           	movea.w d0,a0
-    2702:	2008           	move.l a0,d0
-    2704:	d088           	add.l a0,d0
-    2706:	d1af 0008      	add.l d0,8(sp)
+    1018:	102f 0003      	move.b 3(sp),d0
+    101c:	4880           	ext.w d0
+    101e:	3040           	movea.w d0,a0
+    1020:	2008           	move.l a0,d0
+    1022:	d088           	add.l a0,d0
+    1024:	d1af 0008      	add.l d0,8(sp)
   for(int i=1;i<=8;i++) {
-    270a:	7001           	moveq #1,d0
-    270c:	2f40 0004      	move.l d0,4(sp)
-    2710:	6020           	bra.s 2732 <WriteFont+0x6a>
+    1028:	7001           	moveq #1,d0
+    102a:	2f40 0004      	move.l d0,4(sp)
+    102e:	6020           	bra.s 1050 <WriteFont+0x6a>
     *bmpptr = *fntptr++;
-    2712:	202f 0008      	move.l 8(sp),d0
-    2716:	2200           	move.l d0,d1
-    2718:	5481           	addq.l #2,d1
-    271a:	2f41 0008      	move.l d1,8(sp)
-    271e:	2040           	movea.l d0,a0
-    2720:	3010           	move.w (a0),d0
-    2722:	206f 000c      	movea.l 12(sp),a0
-    2726:	3080           	move.w d0,(a0)
+    1030:	202f 0008      	move.l 8(sp),d0
+    1034:	2200           	move.l d0,d1
+    1036:	5481           	addq.l #2,d1
+    1038:	2f41 0008      	move.l d1,8(sp)
+    103c:	2040           	movea.l d0,a0
+    103e:	3010           	move.w (a0),d0
+    1040:	206f 000c      	movea.l 12(sp),a0
+    1044:	3080           	move.w d0,(a0)
     bmpptr += 40;
-    2728:	7050           	moveq #80,d0
-    272a:	d1af 000c      	add.l d0,12(sp)
+    1046:	7050           	moveq #80,d0
+    1048:	d1af 000c      	add.l d0,12(sp)
   for(int i=1;i<=8;i++) {
-    272e:	52af 0004      	addq.l #1,4(sp)
-    2732:	7208           	moveq #8,d1
-    2734:	b2af 0004      	cmp.l 4(sp),d1
-    2738:	6cd8           	bge.s 2712 <WriteFont+0x4a>
+    104c:	52af 0004      	addq.l #1,4(sp)
+    1050:	7208           	moveq #8,d1
+    1052:	b2af 0004      	cmp.l 4(sp),d1
+    1056:	6cd8           	bge.s 1030 <WriteFont+0x4a>
   }
 
 }
-    273a:	4fef 0010      	lea 16(sp),sp
-    273e:	4e75           	rts
+    1058:	4fef 0010      	lea 16(sp),sp
+    105c:	4e75           	rts
 
-00002740 <ClBuild>:
+0000105e <Zoom_VblankHandler>:
+
+INCBIN(startimage, "raw/zoom.raw")
+
+void Zoom_VblankHandler() {
+  
+  Zoom_Counter++;
+    105e:	3039 0002 855e 	move.w 2855e <Zoom_Counter>,d0
+    1064:	5240           	addq.w #1,d0
+    1066:	33c0 0002 855e 	move.w d0,2855e <Zoom_Counter>
+  SwapCl();
+    106c:	4eba f186      	jsr 1f4 <SwapCl>(pc)
+  Zoom_MouseReleased = 1;
+    1070:	33fc 0001 0002 	move.w #1,28564 <Zoom_MouseReleased>
+    1076:	8564 
+  if( MouseLeft())
+    1078:	4eba f23c      	jsr 2b6 <MouseLeft>(pc)
+    107c:	4a40           	tst.w d0
+    107e:	6708           	beq.s 1088 <Zoom_VblankHandler+0x2a>
+    Zoom_Mousepressed = 1;
+    1080:	33fc 0001 0002 	move.w #1,28566 <Zoom_Mousepressed>
+    1086:	8566 
+  if( Zoom_Mousepressed == 1 && !MouseLeft()) {
+    1088:	3039 0002 8566 	move.w 28566 <Zoom_Mousepressed>,d0
+    108e:	0c40 0001      	cmpi.w #1,d0
+    1092:	6616           	bne.s 10aa <Zoom_VblankHandler+0x4c>
+    1094:	4eba f220      	jsr 2b6 <MouseLeft>(pc)
+    1098:	4a40           	tst.w d0
+    109a:	660e           	bne.s 10aa <Zoom_VblankHandler+0x4c>
+    Zoom_MouseReleased = 1;
+    109c:	33fc 0001 0002 	move.w #1,28564 <Zoom_MouseReleased>
+    10a2:	8564 
+    Zoom_Mousepressed = 0;
+    10a4:	4279 0002 8566 	clr.w 28566 <Zoom_Mousepressed>
+  }
+    if( Zoom_MouseReleased == 1) {
+    10aa:	3039 0002 8564 	move.w 28564 <Zoom_MouseReleased>,d0
+    10b0:	0c40 0001      	cmpi.w #1,d0
+    10b4:	666a           	bne.s 1120 <Zoom_VblankHandler+0xc2>
+      Zoom_MouseReleased = 0;
+    10b6:	4279 0002 8564 	clr.w 28564 <Zoom_MouseReleased>
+      if( Zoom_LevelOf102Zoom == 0) {
+    10bc:	3039 0002 856c 	move.w 2856c <Zoom_LevelOf102Zoom>,d0
+    10c2:	664e           	bne.s 1112 <Zoom_VblankHandler+0xb4>
+ 
+        if( Zoom_LevelOfZoom == 17)
+    10c4:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+    10ca:	0c40 0011      	cmpi.w #17,d0
+    10ce:	660a           	bne.s 10da <Zoom_VblankHandler+0x7c>
+          Zoom_LevelOfZoom = 0;
+    10d0:	33fc 0000 0002 	move.w #0,2856a <Zoom_LevelOfZoom>
+    10d6:	856a 
+    10d8:	600e           	bra.s 10e8 <Zoom_VblankHandler+0x8a>
+        else
+          Zoom_LevelOfZoom++;
+    10da:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+    10e0:	5240           	addq.w #1,d0
+    10e2:	33c0 0002 856a 	move.w d0,2856a <Zoom_LevelOfZoom>
+        Zoom_LevelOf102Zoom = MaxZoom102[Zoom_LevelOfZoom] - 2;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
+    10e8:	3039 0002 856a 	move.w 2856a <Zoom_LevelOfZoom>,d0
+    10ee:	3000           	move.w d0,d0
+    10f0:	0280 0000 ffff 	andi.l #65535,d0
+    10f6:	2240           	movea.l d0,a1
+    10f8:	d3c0           	adda.l d0,a1
+    10fa:	41f9 0001 b738 	lea 1b738 <MaxZoom102>,a0
+    1100:	3031 8800      	move.w (0,a1,a0.l),d0
+    1104:	5540           	subq.w #2,d0
+    1106:	33c0 0002 856c 	move.w d0,2856c <Zoom_LevelOf102Zoom>
+        Zoom_SwapBuffers();
+    110c:	4eba 0fd2      	jsr 20e0 <Zoom_SwapBuffers>(pc)
+    1110:	600e           	bra.s 1120 <Zoom_VblankHandler+0xc2>
+      } else 
+        Zoom_LevelOf102Zoom--;
+    1112:	3039 0002 856c 	move.w 2856c <Zoom_LevelOf102Zoom>,d0
+    1118:	5340           	subq.w #1,d0
+    111a:	33c0 0002 856c 	move.w d0,2856c <Zoom_LevelOf102Zoom>
+    }
+  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
+    1120:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    1126:	3039 0002 856c 	move.w 2856c <Zoom_LevelOf102Zoom>,d0
+    112c:	3000           	move.w d0,d0
+    112e:	0280 0000 ffff 	andi.l #65535,d0
+    1134:	2f01           	move.l d1,-(sp)
+    1136:	2f00           	move.l d0,-(sp)
+    1138:	4eba f420      	jsr 55a <Zoom_Shrink102>(pc)
+    113c:	508f           	addq.l #8,sp
+  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
+    113e:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    1144:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    114a:	2f01           	move.l d1,-(sp)
+    114c:	2f00           	move.l d0,-(sp)
+    114e:	4eba 0f12      	jsr 2062 <Zoom_SetBplPointers>(pc)
+    1152:	508f           	addq.l #8,sp
+ 
+}
+    1154:	4e75           	rts
+
+00001156 <Zoom_LoadImage>:
+
+void Zoom_LoadImage( ULONG *destination) {  
+    1156:	4fef fff4      	lea -12(sp),sp
+    115a:	2f0e           	move.l a6,-(sp)
+  CopyMem( startimage, destination, ZMBPLSIZE);
+    115c:	2f79 0001 b7bc 	move.l 1b7bc <startimage>,12(sp)
+    1162:	000c 
+    1164:	2f6f 0014 0008 	move.l 20(sp),8(sp)
+    116a:	2f7c 0000 ff00 	move.l #65280,4(sp)
+    1170:	0004 
+    1172:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    1178:	2c40           	movea.l d0,a6
+    117a:	206f 000c      	movea.l 12(sp),a0
+    117e:	226f 0008      	movea.l 8(sp),a1
+    1182:	202f 0004      	move.l 4(sp),d0
+    1186:	4eae fd90      	jsr -624(a6)
+}
+    118a:	2c5f           	movea.l (sp)+,a6
+    118c:	4fef 000c      	lea 12(sp),sp
+    1190:	4e75           	rts
+
+00001192 <Zoom_CopyWord>:
+
+ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
+         0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
+                                                       0x010a0000, 0x01001200 };
+
+void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {  
+    1192:	598f           	subq.l #4,sp
+    1194:	202f 0010      	move.l 16(sp),d0
+    1198:	3000           	move.w d0,d0
+    119a:	3f40 0002      	move.w d0,2(sp)
+
+  WaitBlt();
+    119e:	4eba ef14      	jsr b4 <WaitBlt>(pc)
+
+  hw->bltapt = (UWORD *) source;
+    11a2:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    11a8:	216f 0008 0050 	move.l 8(sp),80(a0)
+  hw->bltdpt = (UWORD *) destination;
+    11ae:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    11b4:	216f 000c 0054 	move.l 12(sp),84(a0)
+  hw->bltsize = (height<<6)+2;
+    11ba:	302f 0002      	move.w 2(sp),d0
+    11be:	ed48           	lsl.w #6,d0
+    11c0:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    11c6:	5440           	addq.w #2,d0
+    11c8:	3140 0058      	move.w d0,88(a0)
+
+}
+    11cc:	588f           	addq.l #4,sp
+    11ce:	4e75           	rts
+
+000011d0 <Zoom_ZoomBlit>:
+
+void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
+    11d0:	518f           	subq.l #8,sp
+    11d2:	202f 0014      	move.l 20(sp),d0
+    11d6:	3000           	move.w d0,d0
+    11d8:	3f40 0002      	move.w d0,2(sp)
+
+                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
+              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
+
+  UWORD *blta = source + ZoomBlit_Increment4SrcA;
+    11dc:	3039 0002 8554 	move.w 28554 <ZoomBlit_Increment4SrcA>,d0
+    11e2:	3000           	move.w d0,d0
+    11e4:	0280 0000 ffff 	andi.l #65535,d0
+    11ea:	d080           	add.l d0,d0
+    11ec:	222f 000c      	move.l 12(sp),d1
+    11f0:	d280           	add.l d0,d1
+    11f2:	2f41 0004      	move.l d1,4(sp)
+  WaitBlt();
+    11f6:	4eba eebc      	jsr b4 <WaitBlt>(pc)
+  1111*/
+  //0000 0000 1010 1010 1010 1010
+  //0000 0001 0101 0101 0101 0101
+  //                     4    a
+  
+  hw->bltapt = blta;
+    11fa:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1200:	216f 0004 0050 	move.l 4(sp),80(a0)
+  hw->bltbpt = source;
+    1206:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    120c:	216f 000c 004c 	move.l 12(sp),76(a0)
+  hw->bltdpt = destination;
+    1212:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1218:	216f 0010 0054 	move.l 16(sp),84(a0)
+  hw->bltsize = (height<<6)+2;
+    121e:	302f 0002      	move.w 2(sp),d0
+    1222:	ed48           	lsl.w #6,d0
+    1224:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    122a:	5440           	addq.w #2,d0
+    122c:	3140 0058      	move.w d0,88(a0)
+
+}
+    1230:	508f           	addq.l #8,sp
+    1232:	4e75           	rts
+
+00001234 <Zoom_ZoomBlit2>:
+
+void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
+                                                 UWORD bltamod, UWORD bltbmod) {
+    1234:	4fef fff4      	lea -12(sp),sp
+    1238:	206f 001c      	movea.l 28(sp),a0
+    123c:	222f 0020      	move.l 32(sp),d1
+    1240:	202f 0024      	move.l 36(sp),d0
+    1244:	3048           	movea.w a0,a0
+    1246:	3f48 0004      	move.w a0,4(sp)
+    124a:	3201           	move.w d1,d1
+    124c:	3f41 0002      	move.w d1,2(sp)
+    1250:	3000           	move.w d0,d0
+    1252:	3e80           	move.w d0,(sp)
+
+                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
+              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
+  UWORD *bp = 0x200;
+    1254:	2f7c 0000 0200 	move.l #512,8(sp)
+    125a:	0008 
+  *bp = 0;
+    125c:	206f 0008      	movea.l 8(sp),a0
+    1260:	4250           	clr.w (a0)
+  UWORD bltsize = (height << 6) + 2;
+    1262:	302f 0004      	move.w 4(sp),d0
+    1266:	ed48           	lsl.w #6,d0
+    1268:	3200           	move.w d0,d1
+    126a:	5441           	addq.w #2,d1
+    126c:	3f41 0006      	move.w d1,6(sp)
+  
+  WaitBlt();
+    1270:	4eba ee42      	jsr b4 <WaitBlt>(pc)
+  1101
+  1111*/
+  //0000 0000 1010 1010 1010 1010
+  //0000 0001 0101 0101 0101 0101
+  //                     4    a
+  hw->bltamod = bltamod;
+    1274:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    127a:	316f 0002 0064 	move.w 2(sp),100(a0)
+  hw->bltbmod = bltbmod;  
+    1280:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1286:	3157 0062      	move.w (sp),98(a0)
+  hw->bltapt = src4a;
+    128a:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1290:	216f 0010 0050 	move.l 16(sp),80(a0)
+  hw->bltbpt = src4b;
+    1296:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    129c:	216f 0014 004c 	move.l 20(sp),76(a0)
+  hw->bltdpt = dst;
+    12a2:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    12a8:	216f 0018 0054 	move.l 24(sp),84(a0)
+  hw->bltsize = (height<<6)+2;
+    12ae:	302f 0004      	move.w 4(sp),d0
+    12b2:	ed48           	lsl.w #6,d0
+    12b4:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    12ba:	5440           	addq.w #2,d0
+    12bc:	3140 0058      	move.w d0,88(a0)
+
+}
+    12c0:	4fef 000c      	lea 12(sp),sp
+    12c4:	4e75           	rts
+
+000012c6 <Zoom_InitRun>:
+
+
+void Zoom_InitRun() {
+    12c6:	4fef ffc8      	lea -56(sp),sp
+    12ca:	2f0e           	move.l a6,-(sp)
+    
+  Zoom_Counter = 0;
+    12cc:	4279 0002 855e 	clr.w 2855e <Zoom_Counter>
+  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+    12d2:	7004           	moveq #4,d0
+    12d4:	2f40 0038      	move.l d0,56(sp)
+    12d8:	7002           	moveq #2,d0
+    12da:	2f40 0034      	move.l d0,52(sp)
+    12de:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    12e4:	2c40           	movea.l d0,a6
+    12e6:	202f 0038      	move.l 56(sp),d0
+    12ea:	222f 0034      	move.l 52(sp),d1
+    12ee:	4eae ff3a      	jsr -198(a6)
+    12f2:	2f40 0030      	move.l d0,48(sp)
+    12f6:	202f 0030      	move.l 48(sp),d0
+    12fa:	23c0 0002 854c 	move.l d0,2854c <Zoom_ZoomBlitMask>
+  Zoom_LevelOf102Zoom = 15;
+    1300:	33fc 000f 0002 	move.w #15,2856c <Zoom_LevelOf102Zoom>
+    1306:	856c 
+  ZoomHorizontal = 16;
+    1308:	33fc 0010 0002 	move.w #16,28570 <ZoomHorizontal>
+    130e:	8570 
+  Zoom_PrepareDisplay();
+    1310:	4eba 01da      	jsr 14ec <Zoom_PrepareDisplay>(pc)
+  Zoom_StartImage = startimage;
+    1314:	2039 0001 b7bc 	move.l 1b7bc <startimage>,d0
+    131a:	23c0 0002 8560 	move.l d0,28560 <Zoom_StartImage>
+  Zoom_LoadImage( Bitplane1);
+    1320:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    1326:	2f00           	move.l d0,-(sp)
+    1328:	4eba fe2c      	jsr 1156 <Zoom_LoadImage>(pc)
+    132c:	588f           	addq.l #4,sp
+  Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
+    132e:	2239 0002 8504 	move.l 28504 <Bitplane2>,d1
+    1334:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    133a:	4878 0005      	pea 5 <_start+0x5>
+    133e:	42a7           	clr.l -(sp)
+    1340:	2f01           	move.l d1,-(sp)
+    1342:	2f00           	move.l d0,-(sp)
+    1344:	4eba 0992      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    1348:	4fef 0010      	lea 16(sp),sp
+  CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
+    134c:	2f79 0002 8504 	move.l 28504 <Bitplane2>,44(sp)
+    1352:	002c 
+    1354:	2f79 0002 8500 	move.l 28500 <Bitplane1>,40(sp)
+    135a:	0028 
+    135c:	2f7c 0000 ff00 	move.l #65280,36(sp)
+    1362:	0024 
+    1364:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    136a:	2c40           	movea.l d0,a6
+    136c:	206f 002c      	movea.l 44(sp),a0
+    1370:	226f 0028      	movea.l 40(sp),a1
+    1374:	202f 0024      	move.l 36(sp),d0
+    1378:	4eae fd90      	jsr -624(a6)
+  CopyMem( Bitplane2, startimage, ZMBPLSIZE);
+    137c:	2f79 0002 8504 	move.l 28504 <Bitplane2>,32(sp)
+    1382:	0020 
+    1384:	2f79 0001 b7bc 	move.l 1b7bc <startimage>,28(sp)
+    138a:	001c 
+    138c:	2f7c 0000 ff00 	move.l #65280,24(sp)
+    1392:	0018 
+    1394:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    139a:	2c40           	movea.l d0,a6
+    139c:	206f 0020      	movea.l 32(sp),a0
+    13a0:	226f 001c      	movea.l 28(sp),a1
+    13a4:	202f 0018      	move.l 24(sp),d0
+    13a8:	4eae fd90      	jsr -624(a6)
+  
+  Zoom_Shrink102( 15, Copperlist1);
+    13ac:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    13b2:	2f00           	move.l d0,-(sp)
+    13b4:	4878 000f      	pea f <_start+0xf>
+    13b8:	4eba f1a0      	jsr 55a <Zoom_Shrink102>(pc)
+    13bc:	508f           	addq.l #8,sp
+  Zoom_Shrink102( 15, Copperlist2);
+    13be:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    13c4:	2f00           	move.l d0,-(sp)
+    13c6:	4878 000f      	pea f <_start+0xf>
+    13ca:	4eba f18e      	jsr 55a <Zoom_Shrink102>(pc)
+    13ce:	508f           	addq.l #8,sp
+  Zoom_LevelOfZoom = 1;
+    13d0:	33fc 0001 0002 	move.w #1,2856a <Zoom_LevelOfZoom>
+    13d6:	856a 
+  Zoom_Direction = 1;                                                  
+    13d8:	33fc 0001 0002 	move.w #1,2856e <Zoom_Direction>
+    13de:	856e 
+  if ((Zoom_vbint = AllocMem(sizeof(struct Interrupt),    
+    13e0:	7016           	moveq #22,d0
+    13e2:	2f40 0014      	move.l d0,20(sp)
+    13e6:	2f7c 0001 0001 	move.l #65537,16(sp)
+    13ec:	0010 
+    13ee:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    13f4:	2c40           	movea.l d0,a6
+    13f6:	202f 0014      	move.l 20(sp),d0
+    13fa:	222f 0010      	move.l 16(sp),d1
+    13fe:	4eae ff3a      	jsr -198(a6)
+    1402:	2f40 000c      	move.l d0,12(sp)
+    1406:	202f 000c      	move.l 12(sp),d0
+    140a:	23c0 0002 8556 	move.l d0,28556 <Zoom_vbint>
+    1410:	2039 0002 8556 	move.l 28556 <Zoom_vbint>,d0
+    1416:	673e           	beq.s 1456 <Zoom_InitRun+0x190>
+                         MEMF_PUBLIC|MEMF_CLEAR))) {
+    Zoom_vbint->is_Node.ln_Type = NT_INTERRUPT;       
+    1418:	2079 0002 8556 	movea.l 28556 <Zoom_vbint>,a0
+    141e:	117c 0002 0008 	move.b #2,8(a0)
+    Zoom_vbint->is_Node.ln_Pri = -60;
+    1424:	2079 0002 8556 	movea.l 28556 <Zoom_vbint>,a0
+    142a:	117c ffc4 0009 	move.b #-60,9(a0)
+    Zoom_vbint->is_Node.ln_Name = "VertB-Example";
+    1430:	2079 0002 8556 	movea.l 28556 <Zoom_vbint>,a0
+    1436:	217c 0001 7c9f 	move.l #97439,10(a0)
+    143c:	000a 
+    Zoom_vbint->is_Data = NULL;
+    143e:	2079 0002 8556 	movea.l 28556 <Zoom_vbint>,a0
+    1444:	42a8 000e      	clr.l 14(a0)
+    Zoom_vbint->is_Code = Zoom_VblankHandler;
+    1448:	2079 0002 8556 	movea.l 28556 <Zoom_vbint>,a0
+    144e:	217c 0000 105e 	move.l #4190,18(a0)
+    1454:	0012 
+  }
+
+  AddIntServer( INTB_VERTB, Zoom_vbint);
+    1456:	7005           	moveq #5,d0
+    1458:	2f40 0008      	move.l d0,8(sp)
+    145c:	2f79 0002 8556 	move.l 28556 <Zoom_vbint>,4(sp)
+    1462:	0004 
+    1464:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    146a:	2c40           	movea.l d0,a6
+    146c:	202f 0008      	move.l 8(sp),d0
+    1470:	226f 0004      	movea.l 4(sp),a1
+    1474:	4eae ff58      	jsr -168(a6)
+  Zoom_SetBplPointers( ViewBuffer, ViewCopper);
+    1478:	2239 0002 851c 	move.l 2851c <ViewCopper>,d1
+    147e:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    1484:	2f01           	move.l d1,-(sp)
+    1486:	2f00           	move.l d0,-(sp)
+    1488:	4eba 0bd8      	jsr 2062 <Zoom_SetBplPointers>(pc)
+    148c:	508f           	addq.l #8,sp
+  Zoom_SetBplPointers( ViewBuffer, DrawCopper);
+    148e:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    1494:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    149a:	2f01           	move.l d1,-(sp)
+    149c:	2f00           	move.l d0,-(sp)
+    149e:	4eba 0bc2      	jsr 2062 <Zoom_SetBplPointers>(pc)
+    14a2:	508f           	addq.l #8,sp
+  SwapCl();
+    14a4:	4eba ed4e      	jsr 1f4 <SwapCl>(pc)
+  
+}
+    14a8:	2c5f           	movea.l (sp)+,a6
+    14aa:	4fef 0038      	lea 56(sp),sp
+    14ae:	4e75           	rts
+
+000014b0 <Zoom_Dealloc>:
+
+void Zoom_Dealloc() {
+    14b0:	518f           	subq.l #8,sp
+    14b2:	2f0e           	move.l a6,-(sp)
+  RemIntServer(INTB_VERTB, Zoom_vbint);
+    14b4:	7005           	moveq #5,d0
+    14b6:	2f40 0008      	move.l d0,8(sp)
+    14ba:	2f79 0002 8556 	move.l 28556 <Zoom_vbint>,4(sp)
+    14c0:	0004 
+    14c2:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    14c8:	2c40           	movea.l d0,a6
+    14ca:	202f 0008      	move.l 8(sp),d0
+    14ce:	226f 0004      	movea.l 4(sp),a1
+    14d2:	4eae ff52      	jsr -174(a6)
+  FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
+    14d6:	2f3c 0000 ff00 	move.l #65280,-(sp)
+    14dc:	4878 031c      	pea 31c <RunDemo+0x6>
+    14e0:	4eba ebfe      	jsr e0 <FreeDisplay>(pc)
+    14e4:	508f           	addq.l #8,sp
+}
+    14e6:	2c5f           	movea.l (sp)+,a6
+    14e8:	508f           	addq.l #8,sp
+    14ea:	4e75           	rts
+
+000014ec <Zoom_PrepareDisplay>:
+  
+int Zoom_PrepareDisplay() {
+    14ec:	4fef ffb8      	lea -72(sp),sp
+    14f0:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+  Copperlist1 = ClbuildZoom( );
+    14f4:	4eba 01ba      	jsr 16b0 <ClbuildZoom>(pc)
+    14f8:	23c0 0002 8508 	move.l d0,28508 <Copperlist1>
+  Copperlist2 = ClbuildZoom( );
+    14fe:	4eba 01b0      	jsr 16b0 <ClbuildZoom>(pc)
+    1502:	23c0 0002 850c 	move.l d0,2850c <Copperlist2>
+  Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
+    1508:	2f7c 0000 ff00 	move.l #65280,80(sp)
+    150e:	0050 
+    1510:	7002           	moveq #2,d0
+    1512:	2f40 004c      	move.l d0,76(sp)
+    1516:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    151c:	2c40           	movea.l d0,a6
+    151e:	202f 0050      	move.l 80(sp),d0
+    1522:	222f 004c      	move.l 76(sp),d1
+    1526:	4eae ff3a      	jsr -198(a6)
+    152a:	2f40 0048      	move.l d0,72(sp)
+    152e:	202f 0048      	move.l 72(sp),d0
+    1532:	23c0 0002 8500 	move.l d0,28500 <Bitplane1>
+  if(Bitplane1 == 0) {
+    1538:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    153e:	6658           	bne.s 1598 <Zoom_PrepareDisplay+0xac>
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+    1540:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1546:	2c40           	movea.l d0,a6
+    1548:	4eae ffc4      	jsr -60(a6)
+    154c:	2f40 0044      	move.l d0,68(sp)
+    1550:	202f 0044      	move.l 68(sp),d0
+    1554:	2f40 0040      	move.l d0,64(sp)
+    1558:	2f7c 0000 7d29 	move.l #32041,60(sp)
+    155e:	003c 
+    1560:	7026           	moveq #38,d0
+    1562:	2f40 0038      	move.l d0,56(sp)
+    1566:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    156c:	2c40           	movea.l d0,a6
+    156e:	222f 0040      	move.l 64(sp),d1
+    1572:	242f 003c      	move.l 60(sp),d2
+    1576:	262f 0038      	move.l 56(sp),d3
+    157a:	4eae ffd0      	jsr -48(a6)
+    157e:	2f40 0034      	move.l d0,52(sp)
+    Exit(1);
+    1582:	7001           	moveq #1,d0
+    1584:	2f40 0030      	move.l d0,48(sp)
+    1588:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    158e:	2c40           	movea.l d0,a6
+    1590:	222f 0030      	move.l 48(sp),d1
+    1594:	4eae ff70      	jsr -144(a6)
+  }
+  DrawBuffer = Bitplane1;
+    1598:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    159e:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
+  DrawCopper = Copperlist1;
+    15a4:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    15aa:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
+  Bitplane2 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
+    15b0:	2f7c 0000 ff00 	move.l #65280,44(sp)
+    15b6:	002c 
+    15b8:	7002           	moveq #2,d0
+    15ba:	2f40 0028      	move.l d0,40(sp)
+    15be:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    15c4:	2c40           	movea.l d0,a6
+    15c6:	202f 002c      	move.l 44(sp),d0
+    15ca:	222f 0028      	move.l 40(sp),d1
+    15ce:	4eae ff3a      	jsr -198(a6)
+    15d2:	2f40 0024      	move.l d0,36(sp)
+    15d6:	202f 0024      	move.l 36(sp),d0
+    15da:	23c0 0002 8504 	move.l d0,28504 <Bitplane2>
+  if(Bitplane2 == 0) {
+    15e0:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    15e6:	6658           	bne.s 1640 <Zoom_PrepareDisplay+0x154>
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+    15e8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    15ee:	2c40           	movea.l d0,a6
+    15f0:	4eae ffc4      	jsr -60(a6)
+    15f4:	2f40 0020      	move.l d0,32(sp)
+    15f8:	202f 0020      	move.l 32(sp),d0
+    15fc:	2f40 001c      	move.l d0,28(sp)
+    1600:	2f7c 0000 7d50 	move.l #32080,24(sp)
+    1606:	0018 
+    1608:	7026           	moveq #38,d0
+    160a:	2f40 0014      	move.l d0,20(sp)
+    160e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1614:	2c40           	movea.l d0,a6
+    1616:	222f 001c      	move.l 28(sp),d1
+    161a:	242f 0018      	move.l 24(sp),d2
+    161e:	262f 0014      	move.l 20(sp),d3
+    1622:	4eae ffd0      	jsr -48(a6)
+    1626:	2f40 0010      	move.l d0,16(sp)
+    Exit(1);
+    162a:	7001           	moveq #1,d0
+    162c:	2f40 000c      	move.l d0,12(sp)
+    1630:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1636:	2c40           	movea.l d0,a6
+    1638:	222f 000c      	move.l 12(sp),d1
+    163c:	4eae ff70      	jsr -144(a6)
+  }
+  ViewBuffer = Bitplane2;
+    1640:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    1646:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
+  ViewCopper = Copperlist2;
+    164c:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    1652:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
+  return 0;
+    1658:	7000           	moveq #0,d0
+}
+    165a:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    165e:	4fef 0048      	lea 72(sp),sp
+    1662:	4e75           	rts
+
+00001664 <Zoom_Init>:
+
+void Zoom_Init() {
+    1664:	4fef fff4      	lea -12(sp),sp
+    1668:	2f0e           	move.l a6,-(sp)
+  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+    166a:	7004           	moveq #4,d0
+    166c:	2f40 000c      	move.l d0,12(sp)
+    1670:	7002           	moveq #2,d0
+    1672:	2f40 0008      	move.l d0,8(sp)
+    1676:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    167c:	2c40           	movea.l d0,a6
+    167e:	202f 000c      	move.l 12(sp),d0
+    1682:	222f 0008      	move.l 8(sp),d1
+    1686:	4eae ff3a      	jsr -198(a6)
+    168a:	2f40 0004      	move.l d0,4(sp)
+    168e:	202f 0004      	move.l 4(sp),d0
+    1692:	23c0 0002 854c 	move.l d0,2854c <Zoom_ZoomBlitMask>
+  ZoomHorizontal = 16;
+    1698:	33fc 0010 0002 	move.w #16,28570 <ZoomHorizontal>
+    169e:	8570 
+  Zoom_LevelOf102Zoom = 15;
+    16a0:	33fc 000f 0002 	move.w #15,2856c <Zoom_LevelOf102Zoom>
+    16a6:	856c 
+}
+    16a8:	2c5f           	movea.l (sp)+,a6
+    16aa:	4fef 000c      	lea 12(sp),sp
+    16ae:	4e75           	rts
+
+000016b0 <ClbuildZoom>:
+
+
+ULONG * ClbuildZoom() {
+    16b0:	4fef ffac      	lea -84(sp),sp
+    16b4:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+  
+  ULONG *retval = AllocMem(  ZMCPSIZE, MEMF_CHIP);
+    16b8:	2f7c 0000 031c 	move.l #796,68(sp)
+    16be:	0044 
+    16c0:	7002           	moveq #2,d0
+    16c2:	2f40 0040      	move.l d0,64(sp)
+    16c6:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    16cc:	2c40           	movea.l d0,a6
+    16ce:	202f 0044      	move.l 68(sp),d0
+    16d2:	222f 0040      	move.l 64(sp),d1
+    16d6:	4eae ff3a      	jsr -198(a6)
+    16da:	2f40 003c      	move.l d0,60(sp)
+    16de:	202f 003c      	move.l 60(sp),d0
+    16e2:	2f40 0038      	move.l d0,56(sp)
+  
+  if( retval == 0) {
+    16e6:	6658           	bne.s 1740 <ClbuildZoom+0x90>
+    Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
+    16e8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    16ee:	2c40           	movea.l d0,a6
+    16f0:	4eae ffc4      	jsr -60(a6)
+    16f4:	2f40 0034      	move.l d0,52(sp)
+    16f8:	202f 0034      	move.l 52(sp),d0
+    16fc:	2f40 0030      	move.l d0,48(sp)
+    1700:	2f7c 0000 7d77 	move.l #32119,44(sp)
+    1706:	002c 
+    1708:	7228           	moveq #40,d1
+    170a:	2f41 0028      	move.l d1,40(sp)
+    170e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1714:	2c40           	movea.l d0,a6
+    1716:	222f 0030      	move.l 48(sp),d1
+    171a:	242f 002c      	move.l 44(sp),d2
+    171e:	262f 0028      	move.l 40(sp),d3
+    1722:	4eae ffd0      	jsr -48(a6)
+    1726:	2f40 0024      	move.l d0,36(sp)
+    Exit(1);
+    172a:	7401           	moveq #1,d2
+    172c:	2f42 0020      	move.l d2,32(sp)
+    1730:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1736:	2c40           	movea.l d0,a6
+    1738:	222f 0020      	move.l 32(sp),d1
+    173c:	4eae ff70      	jsr -144(a6)
+  }
+  ULONG *cl = retval;
+    1740:	2f6f 0038 005c 	move.l 56(sp),92(sp)
+  //clinstruction = DrawCopper;
+  ULONG *clpartinstruction;
+  clpartinstruction = ClsSprites;
+    1746:	2f7c 0001 a5a0 	move.l #107936,88(sp)
+    174c:	0058 
+  for(int i=0; i<16;i++)
+    174e:	42af 0054      	clr.l 84(sp)
+    1752:	6024           	bra.s 1778 <ClbuildZoom+0xc8>
+    *cl++ = *clpartinstruction++;
+    1754:	222f 0058      	move.l 88(sp),d1
+    1758:	2001           	move.l d1,d0
+    175a:	5880           	addq.l #4,d0
+    175c:	2f40 0058      	move.l d0,88(sp)
+    1760:	202f 005c      	move.l 92(sp),d0
+    1764:	2400           	move.l d0,d2
+    1766:	5882           	addq.l #4,d2
+    1768:	2f42 005c      	move.l d2,92(sp)
+    176c:	2041           	movea.l d1,a0
+    176e:	2210           	move.l (a0),d1
+    1770:	2040           	movea.l d0,a0
+    1772:	2081           	move.l d1,(a0)
+  for(int i=0; i<16;i++)
+    1774:	52af 0054      	addq.l #1,84(sp)
+    1778:	700f           	moveq #15,d0
+    177a:	b0af 0054      	cmp.l 84(sp),d0
+    177e:	6cd4           	bge.s 1754 <ClbuildZoom+0xa4>
+  //clpartinstruction = ClScreenZoom;
+  clpartinstruction = ClScreen;
+    1780:	2f7c 0001 a5e0 	move.l #108000,88(sp)
+    1786:	0058 
+  for(int i=0; i<12;i++)
+    1788:	42af 0050      	clr.l 80(sp)
+    178c:	6024           	bra.s 17b2 <ClbuildZoom+0x102>
+    *cl++ = *clpartinstruction++;
+    178e:	222f 0058      	move.l 88(sp),d1
+    1792:	2401           	move.l d1,d2
+    1794:	5882           	addq.l #4,d2
+    1796:	2f42 0058      	move.l d2,88(sp)
+    179a:	202f 005c      	move.l 92(sp),d0
+    179e:	2400           	move.l d0,d2
+    17a0:	5882           	addq.l #4,d2
+    17a2:	2f42 005c      	move.l d2,92(sp)
+    17a6:	2041           	movea.l d1,a0
+    17a8:	2210           	move.l (a0),d1
+    17aa:	2040           	movea.l d0,a0
+    17ac:	2081           	move.l d1,(a0)
+  for(int i=0; i<12;i++)
+    17ae:	52af 0050      	addq.l #1,80(sp)
+    17b2:	700b           	moveq #11,d0
+    17b4:	b0af 0050      	cmp.l 80(sp),d0
+    17b8:	6cd4           	bge.s 178e <ClbuildZoom+0xde>
+  //cl[CopBpl1High] = (long) cl + 2;
+  *cl++ = 0x00e00000;
+    17ba:	202f 005c      	move.l 92(sp),d0
+    17be:	2200           	move.l d0,d1
+    17c0:	5881           	addq.l #4,d1
+    17c2:	2f41 005c      	move.l d1,92(sp)
+    17c6:	2040           	movea.l d0,a0
+    17c8:	20bc 00e0 0000 	move.l #14680064,(a0)
+  //cl[CopBpl1Low] = (long) cl + 2;
+  *cl++ = 0x00e20000;
+    17ce:	202f 005c      	move.l 92(sp),d0
+    17d2:	2200           	move.l d0,d1
+    17d4:	5881           	addq.l #4,d1
+    17d6:	2f41 005c      	move.l d1,92(sp)
+    17da:	2040           	movea.l d0,a0
+    17dc:	20bc 00e2 0000 	move.l #14811136,(a0)
+  *cl++ = 0x00e40000;
+    17e2:	202f 005c      	move.l 92(sp),d0
+    17e6:	2200           	move.l d0,d1
+    17e8:	5881           	addq.l #4,d1
+    17ea:	2f41 005c      	move.l d1,92(sp)
+    17ee:	2040           	movea.l d0,a0
+    17f0:	20bc 00e4 0000 	move.l #14942208,(a0)
+  *cl++ = 0x00e60000;
+    17f6:	202f 005c      	move.l 92(sp),d0
+    17fa:	2200           	move.l d0,d1
+    17fc:	5881           	addq.l #4,d1
+    17fe:	2f41 005c      	move.l d1,92(sp)
+    1802:	2040           	movea.l d0,a0
+    1804:	20bc 00e6 0000 	move.l #15073280,(a0)
+  *cl++ = 0x00e80000;
+    180a:	202f 005c      	move.l 92(sp),d0
+    180e:	2200           	move.l d0,d1
+    1810:	5881           	addq.l #4,d1
+    1812:	2f41 005c      	move.l d1,92(sp)
+    1816:	2040           	movea.l d0,a0
+    1818:	20bc 00e8 0000 	move.l #15204352,(a0)
+  *cl++ = 0x00ea0000;
+    181e:	202f 005c      	move.l 92(sp),d0
+    1822:	2200           	move.l d0,d1
+    1824:	5881           	addq.l #4,d1
+    1826:	2f41 005c      	move.l d1,92(sp)
+    182a:	2040           	movea.l d0,a0
+    182c:	20bc 00ea 0000 	move.l #15335424,(a0)
+  *cl++ = 0x00ec0000;
+    1832:	202f 005c      	move.l 92(sp),d0
+    1836:	2200           	move.l d0,d1
+    1838:	5881           	addq.l #4,d1
+    183a:	2f41 005c      	move.l d1,92(sp)
+    183e:	2040           	movea.l d0,a0
+    1840:	20bc 00ec 0000 	move.l #15466496,(a0)
+  *cl++ = 0x00ee0000;
+    1846:	202f 005c      	move.l 92(sp),d0
+    184a:	2200           	move.l d0,d1
+    184c:	5881           	addq.l #4,d1
+    184e:	2f41 005c      	move.l d1,92(sp)
+    1852:	2040           	movea.l d0,a0
+    1854:	20bc 00ee 0000 	move.l #15597568,(a0)
+  *cl++ = 0x00f00000;
+    185a:	202f 005c      	move.l 92(sp),d0
+    185e:	2200           	move.l d0,d1
+    1860:	5881           	addq.l #4,d1
+    1862:	2f41 005c      	move.l d1,92(sp)
+    1866:	2040           	movea.l d0,a0
+    1868:	20bc 00f0 0000 	move.l #15728640,(a0)
+  *cl++ = 0x00f20000;
+    186e:	202f 005c      	move.l 92(sp),d0
+    1872:	2200           	move.l d0,d1
+    1874:	5881           	addq.l #4,d1
+    1876:	2f41 005c      	move.l d1,92(sp)
+    187a:	2040           	movea.l d0,a0
+    187c:	20bc 00f2 0000 	move.l #15859712,(a0)
+
+  clpartinstruction = ClColor;
+    1882:	2f7c 0001 a520 	move.l #107808,88(sp)
+    1888:	0058 
+  for(int i=0; i<32;i++)
+    188a:	42af 004c      	clr.l 76(sp)
+    188e:	6024           	bra.s 18b4 <ClbuildZoom+0x204>
+    *cl++ = *clpartinstruction++;
+    1890:	222f 0058      	move.l 88(sp),d1
+    1894:	2001           	move.l d1,d0
+    1896:	5880           	addq.l #4,d0
+    1898:	2f40 0058      	move.l d0,88(sp)
+    189c:	202f 005c      	move.l 92(sp),d0
+    18a0:	2400           	move.l d0,d2
+    18a2:	5882           	addq.l #4,d2
+    18a4:	2f42 005c      	move.l d2,92(sp)
+    18a8:	2041           	movea.l d1,a0
+    18aa:	2210           	move.l (a0),d1
+    18ac:	2040           	movea.l d0,a0
+    18ae:	2081           	move.l d1,(a0)
+  for(int i=0; i<32;i++)
+    18b0:	52af 004c      	addq.l #1,76(sp)
+    18b4:	701f           	moveq #31,d0
+    18b6:	b0af 004c      	cmp.l 76(sp),d0
+    18ba:	6cd4           	bge.s 1890 <ClbuildZoom+0x1e0>
+  
+  ULONG cop2 = cl+3;
+    18bc:	700c           	moveq #12,d0
+    18be:	d0af 005c      	add.l 92(sp),d0
+    18c2:	2f40 001c      	move.l d0,28(sp)
+  ULONG cop2lch = 0x00840000 + ( cop2 >> 16);
+    18c6:	202f 001c      	move.l 28(sp),d0
+    18ca:	4240           	clr.w d0
+    18cc:	4840           	swap d0
+    18ce:	2200           	move.l d0,d1
+    18d0:	0681 0084 0000 	addi.l #8650752,d1
+    18d6:	2f41 0018      	move.l d1,24(sp)
+  ULONG cop2lcl = 0x00860000 + (cop2 & 0xffff);
+    18da:	202f 001c      	move.l 28(sp),d0
+    18de:	0280 0000 ffff 	andi.l #65535,d0
+    18e4:	2400           	move.l d0,d2
+    18e6:	0682 0086 0000 	addi.l #8781824,d2
+    18ec:	2f42 0014      	move.l d2,20(sp)
+  clpartinstruction = Cl102ZoomInit;
+    18f0:	2f7c 0001 a610 	move.l #108048,88(sp)
+    18f6:	0058 
+  *cl++ = cop2lch;
+    18f8:	202f 005c      	move.l 92(sp),d0
+    18fc:	2200           	move.l d0,d1
+    18fe:	5881           	addq.l #4,d1
+    1900:	2f41 005c      	move.l d1,92(sp)
+    1904:	2040           	movea.l d0,a0
+    1906:	20af 0018      	move.l 24(sp),(a0)
+  *cl++ = cop2lcl;
+    190a:	202f 005c      	move.l 92(sp),d0
+    190e:	2200           	move.l d0,d1
+    1910:	5881           	addq.l #4,d1
+    1912:	2f41 005c      	move.l d1,92(sp)
+    1916:	2040           	movea.l d0,a0
+    1918:	20af 0014      	move.l 20(sp),(a0)
+  *cl++ = 0x2c01ff00;
+    191c:	202f 005c      	move.l 92(sp),d0
+    1920:	2200           	move.l d0,d1
+    1922:	5881           	addq.l #4,d1
+    1924:	2f41 005c      	move.l d1,92(sp)
+    1928:	2040           	movea.l d0,a0
+    192a:	20bc 2c01 ff00 	move.l #738328320,(a0)
+
+  ULONG cop2br1 = cop2 + ( (30)<<2);
+    1930:	7078           	moveq #120,d0
+    1932:	d0af 001c      	add.l 28(sp),d0
+    1936:	2f40 0010      	move.l d0,16(sp)
+  ULONG cop2br2 = cop2 + ( (86)<<2);
+    193a:	222f 001c      	move.l 28(sp),d1
+    193e:	0681 0000 0158 	addi.l #344,d1
+    1944:	2f41 000c      	move.l d1,12(sp)
+  clpartinstruction = Cl102ZoomRepeat;
+    1948:	2f7c 0001 a61c 	move.l #108060,88(sp)
+    194e:	0058 
+  clpartinstruction[28] = 0x00840000 + ( cop2br1 >> 16);
+    1950:	202f 0010      	move.l 16(sp),d0
+    1954:	4240           	clr.w d0
+    1956:	4840           	swap d0
+    1958:	307c 0070      	movea.w #112,a0
+    195c:	d1ef 0058      	adda.l 88(sp),a0
+    1960:	0680 0084 0000 	addi.l #8650752,d0
+    1966:	2080           	move.l d0,(a0)
+  clpartinstruction[29] = 0x00860000 + ( cop2br1 & 0xffff);
+    1968:	202f 0010      	move.l 16(sp),d0
+    196c:	0280 0000 ffff 	andi.l #65535,d0
+    1972:	307c 0074      	movea.w #116,a0
+    1976:	d1ef 0058      	adda.l 88(sp),a0
+    197a:	0680 0086 0000 	addi.l #8781824,d0
+    1980:	2080           	move.l d0,(a0)
+  clpartinstruction[84] = 0x00840000 + ( cop2br2 >> 16);
+    1982:	202f 000c      	move.l 12(sp),d0
+    1986:	4240           	clr.w d0
+    1988:	4840           	swap d0
+    198a:	206f 0058      	movea.l 88(sp),a0
+    198e:	41e8 0150      	lea 336(a0),a0
+    1992:	0680 0084 0000 	addi.l #8650752,d0
+    1998:	2080           	move.l d0,(a0)
+  clpartinstruction[85] = 0x00860000 + ( cop2br2 & 0xffff);
+    199a:	202f 000c      	move.l 12(sp),d0
+    199e:	0280 0000 ffff 	andi.l #65535,d0
+    19a4:	206f 0058      	movea.l 88(sp),a0
+    19a8:	41e8 0154      	lea 340(a0),a0
+    19ac:	0680 0086 0000 	addi.l #8781824,d0
+    19b2:	2080           	move.l d0,(a0)
+  for(int i=0;i<26+27+27+26+27+1-8-12;i++)
+    19b4:	42af 0048      	clr.l 72(sp)
+    19b8:	6024           	bra.s 19de <ClbuildZoom+0x32e>
+    *cl++ = *clpartinstruction++;
+    19ba:	222f 0058      	move.l 88(sp),d1
+    19be:	2401           	move.l d1,d2
+    19c0:	5882           	addq.l #4,d2
+    19c2:	2f42 0058      	move.l d2,88(sp)
+    19c6:	202f 005c      	move.l 92(sp),d0
+    19ca:	2400           	move.l d0,d2
+    19cc:	5882           	addq.l #4,d2
+    19ce:	2f42 005c      	move.l d2,92(sp)
+    19d2:	2041           	movea.l d1,a0
+    19d4:	2210           	move.l (a0),d1
+    19d6:	2040           	movea.l d0,a0
+    19d8:	2081           	move.l d1,(a0)
+  for(int i=0;i<26+27+27+26+27+1-8-12;i++)
+    19da:	52af 0048      	addq.l #1,72(sp)
+    19de:	7071           	moveq #113,d0
+    19e0:	b0af 0048      	cmp.l 72(sp),d0
+    19e4:	6cd4           	bge.s 19ba <ClbuildZoom+0x30a>
+
+   *cl++ = 0xfffffffe;
+    19e6:	202f 005c      	move.l 92(sp),d0
+    19ea:	2200           	move.l d0,d1
+    19ec:	5881           	addq.l #4,d1
+    19ee:	2f41 005c      	move.l d1,92(sp)
+    19f2:	74fe           	moveq #-2,d2
+    19f4:	2040           	movea.l d0,a0
+    19f6:	2082           	move.l d2,(a0)
+
+  return retval;
+    19f8:	202f 0038      	move.l 56(sp),d0
+}
+    19fc:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    1a00:	4fef 0054      	lea 84(sp),sp
+    1a04:	4e75           	rts
+
+00001a06 <PrepareDisplayZoom>:
+
+ int PrepareDisplayZoom() {
+    1a06:	4fef ffb8      	lea -72(sp),sp
+    1a0a:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+
+  Copperlist1 = ClbuildZoom();
+    1a0e:	4eba fca0      	jsr 16b0 <ClbuildZoom>(pc)
+    1a12:	23c0 0002 8508 	move.l d0,28508 <Copperlist1>
+  Copperlist2 = ClbuildZoom();
+    1a18:	4eba fc96      	jsr 16b0 <ClbuildZoom>(pc)
+    1a1c:	23c0 0002 850c 	move.l d0,2850c <Copperlist2>
+  Bitplane1 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
+    1a22:	2f7c 0000 ff00 	move.l #65280,80(sp)
+    1a28:	0050 
+    1a2a:	7002           	moveq #2,d0
+    1a2c:	2f40 004c      	move.l d0,76(sp)
+    1a30:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    1a36:	2c40           	movea.l d0,a6
+    1a38:	202f 0050      	move.l 80(sp),d0
+    1a3c:	222f 004c      	move.l 76(sp),d1
+    1a40:	4eae ff3a      	jsr -198(a6)
+    1a44:	2f40 0048      	move.l d0,72(sp)
+    1a48:	202f 0048      	move.l 72(sp),d0
+    1a4c:	23c0 0002 8500 	move.l d0,28500 <Bitplane1>
+  if(Bitplane1 == 0) {
+    1a52:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    1a58:	6658           	bne.s 1ab2 <PrepareDisplayZoom+0xac>
+    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
+    1a5a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1a60:	2c40           	movea.l d0,a6
+    1a62:	4eae ffc4      	jsr -60(a6)
+    1a66:	2f40 0044      	move.l d0,68(sp)
+    1a6a:	202f 0044      	move.l 68(sp),d0
+    1a6e:	2f40 0040      	move.l d0,64(sp)
+    1a72:	2f7c 0000 7d29 	move.l #32041,60(sp)
+    1a78:	003c 
+    1a7a:	7026           	moveq #38,d0
+    1a7c:	2f40 0038      	move.l d0,56(sp)
+    1a80:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1a86:	2c40           	movea.l d0,a6
+    1a88:	222f 0040      	move.l 64(sp),d1
+    1a8c:	242f 003c      	move.l 60(sp),d2
+    1a90:	262f 0038      	move.l 56(sp),d3
+    1a94:	4eae ffd0      	jsr -48(a6)
+    1a98:	2f40 0034      	move.l d0,52(sp)
+    Exit(1);
+    1a9c:	7001           	moveq #1,d0
+    1a9e:	2f40 0030      	move.l d0,48(sp)
+    1aa2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1aa8:	2c40           	movea.l d0,a6
+    1aaa:	222f 0030      	move.l 48(sp),d1
+    1aae:	4eae ff70      	jsr -144(a6)
+  }
+  DrawBuffer = Bitplane1;
+    1ab2:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    1ab8:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
+  DrawCopper = Copperlist1;
+    1abe:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    1ac4:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
+  Bitplane2 = AllocMem(ZMBPLSIZE, MEMF_CHIP);
+    1aca:	2f7c 0000 ff00 	move.l #65280,44(sp)
+    1ad0:	002c 
+    1ad2:	7002           	moveq #2,d0
+    1ad4:	2f40 0028      	move.l d0,40(sp)
+    1ad8:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    1ade:	2c40           	movea.l d0,a6
+    1ae0:	202f 002c      	move.l 44(sp),d0
+    1ae4:	222f 0028      	move.l 40(sp),d1
+    1ae8:	4eae ff3a      	jsr -198(a6)
+    1aec:	2f40 0024      	move.l d0,36(sp)
+    1af0:	202f 0024      	move.l 36(sp),d0
+    1af4:	23c0 0002 8504 	move.l d0,28504 <Bitplane2>
+  if(Bitplane2 == 0) {
+    1afa:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    1b00:	6658           	bne.s 1b5a <PrepareDisplayZoom+0x154>
+    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
+    1b02:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1b08:	2c40           	movea.l d0,a6
+    1b0a:	4eae ffc4      	jsr -60(a6)
+    1b0e:	2f40 0020      	move.l d0,32(sp)
+    1b12:	202f 0020      	move.l 32(sp),d0
+    1b16:	2f40 001c      	move.l d0,28(sp)
+    1b1a:	2f7c 0000 7d50 	move.l #32080,24(sp)
+    1b20:	0018 
+    1b22:	7026           	moveq #38,d0
+    1b24:	2f40 0014      	move.l d0,20(sp)
+    1b28:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1b2e:	2c40           	movea.l d0,a6
+    1b30:	222f 001c      	move.l 28(sp),d1
+    1b34:	242f 0018      	move.l 24(sp),d2
+    1b38:	262f 0014      	move.l 20(sp),d3
+    1b3c:	4eae ffd0      	jsr -48(a6)
+    1b40:	2f40 0010      	move.l d0,16(sp)
+    Exit(1);
+    1b44:	7001           	moveq #1,d0
+    1b46:	2f40 000c      	move.l d0,12(sp)
+    1b4a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    1b50:	2c40           	movea.l d0,a6
+    1b52:	222f 000c      	move.l 12(sp),d1
+    1b56:	4eae ff70      	jsr -144(a6)
+  }
+  ViewBuffer = Bitplane2;
+    1b5a:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    1b60:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
+  ViewCopper = Copperlist2; 
+    1b66:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    1b6c:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
+  return 0;
+    1b72:	7000           	moveq #0,d0
+}
+    1b74:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    1b78:	4fef 0048      	lea 72(sp),sp
+    1b7c:	4e75           	rts
+
+00001b7e <Init_Blit>:
+
+void Init_Blit() {
+  hw->bltafwm = 0xffff;
+    1b7e:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1b84:	317c ffff 0044 	move.w #-1,68(a0)
+  hw->bltalwm = 0xffff;
+    1b8a:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1b90:	317c ffff 0046 	move.w #-1,70(a0)
+  hw->bltamod = ZMLINESIZE - 4;
+    1b96:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1b9c:	317c 002c 0064 	move.w #44,100(a0)
+  hw->bltbmod = ZMLINESIZE - 4;
+    1ba2:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1ba8:	317c 002c 0062 	move.w #44,98(a0)
+  hw->bltdmod = ZMLINESIZE - 4;
+    1bae:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1bb4:	317c 002c 0066 	move.w #44,102(a0)
+}
+    1bba:	4e75           	rts
+
+00001bbc <Init_Blit2>:
+
+
+void Init_Blit2() {
+  hw->bltafwm = 0xffff;
+    1bbc:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1bc2:	317c ffff 0044 	move.w #-1,68(a0)
+  hw->bltalwm = 0xffff;
+    1bc8:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1bce:	317c ffff 0046 	move.w #-1,70(a0)
+  hw->bltamod = 36;
+    1bd4:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1bda:	317c 0024 0064 	move.w #36,100(a0)
+  hw->bltbmod = 76;
+    1be0:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1be6:	317c 004c 0062 	move.w #76,98(a0)
+  hw->bltdmod = ZMLINESIZE2 - 4;
+    1bec:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1bf2:	317c 0028 0066 	move.w #40,102(a0)
+}
+    1bf8:	4e75           	rts
+
+00001bfa <Init_ZoomBlit>:
+
+void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
+    1bfa:	4fef fff4      	lea -12(sp),sp
+    1bfe:	206f 0010      	movea.l 16(sp),a0
+    1c02:	222f 0014      	move.l 20(sp),d1
+    1c06:	202f 0018      	move.l 24(sp),d0
+    1c0a:	3048           	movea.w a0,a0
+    1c0c:	3f48 0004      	move.w a0,4(sp)
+    1c10:	3201           	move.w d1,d1
+    1c12:	3f41 0002      	move.w d1,2(sp)
+    1c16:	3000           	move.w d0,d0
+    1c18:	3e80           	move.w d0,(sp)
+  ZoomBlit_Increment4SrcA = 0;
+    1c1a:	4279 0002 8554 	clr.w 28554 <ZoomBlit_Increment4SrcA>
+
+  UWORD colnr = nextzoom - startofword - 1;                                                                          
+    1c20:	302f 0002      	move.w 2(sp),d0
+    1c24:	906f 0004      	sub.w 4(sp),d0
+    1c28:	3200           	move.w d0,d1
+    1c2a:	5341           	subq.w #1,d1
+    1c2c:	3f41 0008      	move.w d1,8(sp)
+  UWORD shiftb = shiftright << 12;    //SEEEEE0|12.X..f E=Empty
+    1c30:	3017           	move.w (sp),d0
+    1c32:	720c           	moveq #12,d1
+    1c34:	e368           	lsl.w d1,d0
+    1c36:	3f40 0006      	move.w d0,6(sp)
+  UWORD shifta;
+  if( shiftright == 0) {
+    1c3a:	4a57           	tst.w (sp)
+    1c3c:	6610           	bne.s 1c4e <Init_ZoomBlit+0x54>
+    ZoomBlit_Increment4SrcA = 1;
+    1c3e:	33fc 0001 0002 	move.w #1,28554 <ZoomBlit_Increment4SrcA>
+    1c44:	8554 
+    shifta = 15 << 12;
+    1c46:	3f7c f000 000a 	move.w #-4096,10(sp)
+    1c4c:	600c           	bra.s 1c5a <Init_ZoomBlit+0x60>
+  } else {
+    shifta = (shiftright - 1) << 12;
+    1c4e:	3017           	move.w (sp),d0
+    1c50:	5340           	subq.w #1,d0
+    1c52:	720c           	moveq #12,d1
+    1c54:	e368           	lsl.w d1,d0
+    1c56:	3f40 000a      	move.w d0,10(sp)
+  }
+  WaitBlt(); 
+    1c5a:	4eba e458      	jsr b4 <WaitBlt>(pc)
+  hw->bltcon1 = shiftb; 
+    1c5e:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1c64:	316f 0006 0042 	move.w 6(sp),66(a0)
+  hw->bltcon0 = 0xde4 + shifta;
+    1c6a:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1c70:	302f 000a      	move.w 10(sp),d0
+    1c74:	0640 0de4      	addi.w #3556,d0
+    1c78:	3140 0040      	move.w d0,64(a0)
+  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
+    1c7c:	7000           	moveq #0,d0
+    1c7e:	302f 0008      	move.w 8(sp),d0
+    1c82:	7210           	moveq #16,d1
+    1c84:	9280           	sub.l d0,d1
+    1c86:	7000           	moveq #0,d0
+    1c88:	4640           	not.w d0
+    1c8a:	e3a8           	lsl.l d1,d0
+    1c8c:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1c92:	2000           	move.l d0,d0
+    1c94:	3140 0070      	move.w d0,112(a0)
+}
+    1c98:	4fef 000c      	lea 12(sp),sp
+    1c9c:	4e75           	rts
+
+00001c9e <Init_Copy>:
+
+void Init_Copy( WORD shift) {
+    1c9e:	598f           	subq.l #4,sp
+    1ca0:	202f 0008      	move.l 8(sp),d0
+    1ca4:	3000           	move.w d0,d0
+    1ca6:	3e80           	move.w d0,(sp)
+  UWORD shiftright = shift << 12;
+    1ca8:	3017           	move.w (sp),d0
+    1caa:	720c           	moveq #12,d1
+    1cac:	e368           	lsl.w d1,d0
+    1cae:	3f40 0002      	move.w d0,2(sp)
+  WaitBlt();
+    1cb2:	4eba e400      	jsr b4 <WaitBlt>(pc)
+  hw->bltcon0 = 0x9f0 + shiftright;
+    1cb6:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1cbc:	302f 0002      	move.w 2(sp),d0
+    1cc0:	0640 09f0      	addi.w #2544,d0
+    1cc4:	3140 0040      	move.w d0,64(a0)
+  hw->bltcon1 = 0;
+    1cc8:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    1cce:	317c 0000 0042 	move.w #0,66(a0)
+}
+    1cd4:	588f           	addq.l #4,sp
+    1cd6:	4e75           	rts
+
+00001cd8 <Zoom_ZoomIntoPicture>:
+
+void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
+                                                                 UWORD planes) {
+    1cd8:	4fef ffcc      	lea -52(sp),sp
+    1cdc:	222f 0040      	move.l 64(sp),d1
+    1ce0:	202f 0044      	move.l 68(sp),d0
+    1ce4:	3201           	move.w d1,d1
+    1ce6:	3f41 0002      	move.w d1,2(sp)
+    1cea:	3000           	move.w d0,d0
+    1cec:	3e80           	move.w d0,(sp)
+  
+  WaitBlt();  
+    1cee:	4eba e3c4      	jsr b4 <WaitBlt>(pc)
+  Init_Blit();
+    1cf2:	4eba fe8a      	jsr 1b7e <Init_Blit>(pc)
+  WORD shiftright = 9;
+    1cf6:	3f7c 0009 0032 	move.w #9,50(sp)
+  UWORD shifthoriz = 7;
+    1cfc:	3f7c 0007 0030 	move.w #7,48(sp)
+  UWORD startofword = 21*16;
+    1d02:	3f7c 0150 002e 	move.w #336,46(sp)
+  WORD nextzoom = 22*16 - 20 + zoomnr * 10;
+    1d08:	322f 0002      	move.w 2(sp),d1
+    1d0c:	3001           	move.w d1,d0
+    1d0e:	d040           	add.w d0,d0
+    1d10:	d040           	add.w d0,d0
+    1d12:	d041           	add.w d1,d0
+    1d14:	d040           	add.w d0,d0
+    1d16:	0640 014c      	addi.w #332,d0
+    1d1a:	3f40 002c      	move.w d0,44(sp)
+    1d1e:	601a           	bra.s 1d3a <Zoom_ZoomIntoPicture+0x62>
+  while( nextzoom > 22 * 16) {
+    nextzoom -= (19 + zoomnr);
+    1d20:	302f 002c      	move.w 44(sp),d0
+    1d24:	906f 0002      	sub.w 2(sp),d0
+    1d28:	0640 ffed      	addi.w #-19,d0
+    1d2c:	3f40 002c      	move.w d0,44(sp)
+    shiftright--;
+    1d30:	302f 0032      	move.w 50(sp),d0
+    1d34:	5340           	subq.w #1,d0
+    1d36:	3f40 0032      	move.w d0,50(sp)
+  while( nextzoom > 22 * 16) {
+    1d3a:	0c6f 0160 002c 	cmpi.w #352,44(sp)
+    1d40:	6ede           	bgt.s 1d20 <Zoom_ZoomIntoPicture+0x48>
+  } 
+  //UWORD nextzoom = 352-28 + (zoomnr << 3);
+  UWORD shifttoleft = 0;
+    1d42:	426f 002a      	clr.w 42(sp)
+  //WORD linesforzoom = 16;
+
+  WORD ZoomHorizontalStart = 18 - zoomnr * 5;
+    1d46:	322f 0002      	move.w 2(sp),d1
+    1d4a:	3001           	move.w d1,d0
+    1d4c:	d040           	add.w d0,d0
+    1d4e:	d040           	add.w d0,d0
+    1d50:	d041           	add.w d1,d0
+    1d52:	4440           	neg.w d0
+    1d54:	0640 0012      	addi.w #18,d0
+    1d58:	3f40 0028      	move.w d0,40(sp)
+    1d5c:	601c           	bra.s 1d7a <Zoom_ZoomIntoPicture+0xa2>
+  while( ZoomHorizontalStart < 0) {
+      ZoomHorizontalStart += 1 + 18 + zoomnr;
+    1d5e:	302f 0028      	move.w 40(sp),d0
+    1d62:	d06f 0002      	add.w 2(sp),d0
+    1d66:	0640 0013      	addi.w #19,d0
+    1d6a:	3f40 0028      	move.w d0,40(sp)
+      shifthoriz--;
+    1d6e:	302f 0030      	move.w 48(sp),d0
+    1d72:	3200           	move.w d0,d1
+    1d74:	5341           	subq.w #1,d1
+    1d76:	3f41 0030      	move.w d1,48(sp)
+  while( ZoomHorizontalStart < 0) {
+    1d7a:	4a6f 0028      	tst.w 40(sp)
+    1d7e:	6dde           	blt.s 1d5e <Zoom_ZoomIntoPicture+0x86>
+  } 
+
+  for(int i=0;i<22;i++) {
+    1d80:	42af 0024      	clr.l 36(sp)
+    1d84:	6000 02cc      	bra.w 2052 <Zoom_ZoomIntoPicture+0x37a>
+
+    ZoomHorizontal = ZoomHorizontalStart;
+    1d88:	33ef 0028 0002 	move.w 40(sp),28570 <ZoomHorizontal>
+    1d8e:	8570 
+
+    WORD linesleft = 272;
+    1d90:	3f7c 0110 0022 	move.w #272,34(sp)
+    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz*planes-2-i;
+    1d96:	7000           	moveq #0,d0
+    1d98:	302f 0030      	move.w 48(sp),d0
+    1d9c:	7200           	moveq #0,d1
+    1d9e:	3217           	move.w (sp),d1
+    1da0:	2f01           	move.l d1,-(sp)
+    1da2:	2f00           	move.l d0,-(sp)
+    1da4:	4eb9 0000 74ec 	jsr 74ec <__mulsi3>
+    1daa:	508f           	addq.l #8,sp
+    1dac:	2200           	move.l d0,d1
+    1dae:	2001           	move.l d1,d0
+    1db0:	d080           	add.l d0,d0
+    1db2:	d081           	add.l d1,d0
+    1db4:	e788           	lsl.l #3,d0
+    1db6:	2200           	move.l d0,d1
+    1db8:	202f 0024      	move.l 36(sp),d0
+    1dbc:	9280           	sub.l d0,d1
+    1dbe:	2001           	move.l d1,d0
+    1dc0:	0680 8000 0016 	addi.l #-2147483626,d0
+    1dc6:	d080           	add.l d0,d0
+    1dc8:	222f 0038      	move.l 56(sp),d1
+    1dcc:	d280           	add.l d0,d1
+    1dce:	2f41 001e      	move.l d1,30(sp)
+    UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
+    1dd2:	202f 0024      	move.l 36(sp),d0
+    1dd6:	7216           	moveq #22,d1
+    1dd8:	9280           	sub.l d0,d1
+    1dda:	2001           	move.l d1,d0
+    1ddc:	d081           	add.l d1,d0
+    1dde:	222f 003c      	move.l 60(sp),d1
+    1de2:	d280           	add.l d0,d1
+    1de4:	2f41 001a      	move.l d1,26(sp)
+    
+    UWORD onestep = ZMLINESIZE/2*planes;
+    1de8:	3217           	move.w (sp),d1
+    1dea:	3001           	move.w d1,d0
+    1dec:	d040           	add.w d0,d0
+    1dee:	d041           	add.w d1,d0
+    1df0:	e748           	lsl.w #3,d0
+    1df2:	3f40 0018      	move.w d0,24(sp)
+    if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
+    1df6:	7000           	moveq #0,d0
+    1df8:	302f 002e      	move.w 46(sp),d0
+    1dfc:	306f 002c      	movea.w 44(sp),a0
+    1e00:	b1c0           	cmpa.l d0,a0
+    1e02:	6e00 0106      	bgt.w 1f0a <Zoom_ZoomIntoPicture+0x232>
+      Init_Copy( shiftright);
+    1e06:	306f 0032      	movea.w 50(sp),a0
+    1e0a:	2f08           	move.l a0,-(sp)
+    1e0c:	4eba fe90      	jsr 1c9e <Init_Copy>(pc)
+    1e10:	588f           	addq.l #4,sp
+    1e12:	6000 00ea      	bra.w 1efe <Zoom_ZoomIntoPicture+0x226>
+              
+      while(linesleft > 0) {
+        if( linesleft >= ZoomHorizontal+1) {
+    1e16:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1e1c:	b06f 0022      	cmp.w 34(sp),d0
+    1e20:	6c12           	bge.s 1e34 <Zoom_ZoomIntoPicture+0x15c>
+          linesleft -= ZoomHorizontal;
+    1e22:	322f 0022      	move.w 34(sp),d1
+    1e26:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1e2c:	9240           	sub.w d0,d1
+    1e2e:	3f41 0022      	move.w d1,34(sp)
+    1e32:	600c           	bra.s 1e40 <Zoom_ZoomIntoPicture+0x168>
+        } else {
+          ZoomHorizontal = linesleft;
+    1e34:	33ef 0022 0002 	move.w 34(sp),28570 <ZoomHorizontal>
+    1e3a:	8570 
+          linesleft = 0;
+    1e3c:	426f 0022      	clr.w 34(sp)
+        } 
+        UWORD size4blit = ZoomHorizontal*onestep; 
+    1e40:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1e46:	322f 0018      	move.w 24(sp),d1
+    1e4a:	c3c0           	muls.w d0,d1
+    1e4c:	3f41 000c      	move.w d1,12(sp)
+        //Add aditional line
+        if( linesleft>0) {
+    1e50:	4a6f 0022      	tst.w 34(sp)
+    1e54:	6f4c           	ble.s 1ea2 <Zoom_ZoomIntoPicture+0x1ca>
+          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
+    1e56:	7200           	moveq #0,d1
+    1e58:	322f 000c      	move.w 12(sp),d1
+    1e5c:	7000           	moveq #0,d0
+    1e5e:	302f 002a      	move.w 42(sp),d0
+    1e62:	d081           	add.l d1,d0
+    1e64:	d080           	add.l d0,d0
+    1e66:	222f 001e      	move.l 30(sp),d1
+    1e6a:	d280           	add.l d0,d1
+    1e6c:	2f41 0008      	move.l d1,8(sp)
+          UWORD *tmpdest = pos4dest +  size4blit;
+    1e70:	7000           	moveq #0,d0
+    1e72:	302f 000c      	move.w 12(sp),d0
+    1e76:	d080           	add.l d0,d0
+    1e78:	222f 001a      	move.l 26(sp),d1
+    1e7c:	d280           	add.l d0,d1
+    1e7e:	2f41 0004      	move.l d1,4(sp)
+          
+          Zoom_CopyWord( tmpsource, tmpdest, planes);
+    1e82:	7000           	moveq #0,d0
+    1e84:	3017           	move.w (sp),d0
+    1e86:	2f00           	move.l d0,-(sp)
+    1e88:	2f2f 0008      	move.l 8(sp),-(sp)
+    1e8c:	2f2f 0010      	move.l 16(sp),-(sp)
+    1e90:	4eba f300      	jsr 1192 <Zoom_CopyWord>(pc)
+    1e94:	4fef 000c      	lea 12(sp),sp
+          linesleft--;
+    1e98:	302f 0022      	move.w 34(sp),d0
+    1e9c:	5340           	subq.w #1,d0
+    1e9e:	3f40 0022      	move.w d0,34(sp)
+        }
+        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
+    1ea2:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1ea8:	c1d7           	muls.w (sp),d0
+    1eaa:	7200           	moveq #0,d1
+    1eac:	3200           	move.w d0,d1
+    1eae:	7000           	moveq #0,d0
+    1eb0:	302f 002a      	move.w 42(sp),d0
+    1eb4:	d080           	add.l d0,d0
+    1eb6:	d0af 001e      	add.l 30(sp),d0
+    1eba:	2f01           	move.l d1,-(sp)
+    1ebc:	2f2f 001e      	move.l 30(sp),-(sp)
+    1ec0:	2f00           	move.l d0,-(sp)
+    1ec2:	4eba f2ce      	jsr 1192 <Zoom_CopyWord>(pc)
+    1ec6:	4fef 000c      	lea 12(sp),sp
+        pos4source += size4blit;
+    1eca:	7000           	moveq #0,d0
+    1ecc:	302f 000c      	move.w 12(sp),d0
+    1ed0:	d080           	add.l d0,d0
+    1ed2:	d1af 001e      	add.l d0,30(sp)
+        pos4dest += size4blit + onestep; 
+    1ed6:	7200           	moveq #0,d1
+    1ed8:	322f 000c      	move.w 12(sp),d1
+    1edc:	7000           	moveq #0,d0
+    1ede:	302f 0018      	move.w 24(sp),d0
+    1ee2:	d081           	add.l d1,d0
+    1ee4:	d080           	add.l d0,d0
+    1ee6:	d1af 001a      	add.l d0,26(sp)
+        
+        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
+    1eea:	302f 0002      	move.w 2(sp),d0
+    1eee:	d040           	add.w d0,d0
+    1ef0:	906f 0002      	sub.w 2(sp),d0
+    1ef4:	0640 0012      	addi.w #18,d0
+    1ef8:	33c0 0002 8570 	move.w d0,28570 <ZoomHorizontal>
+      while(linesleft > 0) {
+    1efe:	4a6f 0022      	tst.w 34(sp)
+    1f02:	6e00 ff12      	bgt.w 1e16 <Zoom_ZoomIntoPicture+0x13e>
+    1f06:	6000 0140      	bra.w 2048 <Zoom_ZoomIntoPicture+0x370>
+      }
+    } else {  
+      Init_ZoomBlit( startofword, nextzoom, shiftright);   
+    1f0a:	326f 0032      	movea.w 50(sp),a1
+    1f0e:	306f 002c      	movea.w 44(sp),a0
+    1f12:	7000           	moveq #0,d0
+    1f14:	302f 002e      	move.w 46(sp),d0
+    1f18:	2f09           	move.l a1,-(sp)
+    1f1a:	2f08           	move.l a0,-(sp)
+    1f1c:	2f00           	move.l d0,-(sp)
+    1f1e:	4eba fcda      	jsr 1bfa <Init_ZoomBlit>(pc)
+    1f22:	4fef 000c      	lea 12(sp),sp
+      nextzoom -= (19 + zoomnr);
+    1f26:	302f 002c      	move.w 44(sp),d0
+    1f2a:	906f 0002      	sub.w 2(sp),d0
+    1f2e:	0640 ffed      	addi.w #-19,d0
+    1f32:	3f40 002c      	move.w d0,44(sp)
+    1f36:	6000 00ea      	bra.w 2022 <Zoom_ZoomIntoPicture+0x34a>
+      while( linesleft > 0) {
+        if( linesleft >= ZoomHorizontal+1) {
+    1f3a:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1f40:	b06f 0022      	cmp.w 34(sp),d0
+    1f44:	6c12           	bge.s 1f58 <Zoom_ZoomIntoPicture+0x280>
+          linesleft -= ZoomHorizontal;
+    1f46:	322f 0022      	move.w 34(sp),d1
+    1f4a:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1f50:	9240           	sub.w d0,d1
+    1f52:	3f41 0022      	move.w d1,34(sp)
+    1f56:	600c           	bra.s 1f64 <Zoom_ZoomIntoPicture+0x28c>
+        } else {
+          ZoomHorizontal = linesleft;
+    1f58:	33ef 0022 0002 	move.w 34(sp),28570 <ZoomHorizontal>
+    1f5e:	8570 
+          linesleft = 0;
+    1f60:	426f 0022      	clr.w 34(sp)
+        }
+        UWORD size4blit = ZoomHorizontal*onestep;
+    1f64:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1f6a:	322f 0018      	move.w 24(sp),d1
+    1f6e:	c3c0           	muls.w d0,d1
+    1f70:	3f41 0016      	move.w d1,22(sp)
+        //Add aditional line
+        if( linesleft>0) {
+    1f74:	4a6f 0022      	tst.w 34(sp)
+    1f78:	6f4c           	ble.s 1fc6 <Zoom_ZoomIntoPicture+0x2ee>
+          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
+    1f7a:	7200           	moveq #0,d1
+    1f7c:	322f 0016      	move.w 22(sp),d1
+    1f80:	7000           	moveq #0,d0
+    1f82:	302f 002a      	move.w 42(sp),d0
+    1f86:	d081           	add.l d1,d0
+    1f88:	d080           	add.l d0,d0
+    1f8a:	222f 001e      	move.l 30(sp),d1
+    1f8e:	d280           	add.l d0,d1
+    1f90:	2f41 0012      	move.l d1,18(sp)
+          UWORD *tmpdest = pos4dest + size4blit;
+    1f94:	7000           	moveq #0,d0
+    1f96:	302f 0016      	move.w 22(sp),d0
+    1f9a:	d080           	add.l d0,d0
+    1f9c:	222f 001a      	move.l 26(sp),d1
+    1fa0:	d280           	add.l d0,d1
+    1fa2:	2f41 000e      	move.l d1,14(sp)
+          
+          Zoom_ZoomBlit( tmpsource, tmpdest, planes);
+    1fa6:	7000           	moveq #0,d0
+    1fa8:	3017           	move.w (sp),d0
+    1faa:	2f00           	move.l d0,-(sp)
+    1fac:	2f2f 0012      	move.l 18(sp),-(sp)
+    1fb0:	2f2f 001a      	move.l 26(sp),-(sp)
+    1fb4:	4eba f21a      	jsr 11d0 <Zoom_ZoomBlit>(pc)
+    1fb8:	4fef 000c      	lea 12(sp),sp
+          linesleft--;
+    1fbc:	302f 0022      	move.w 34(sp),d0
+    1fc0:	5340           	subq.w #1,d0
+    1fc2:	3f40 0022      	move.w d0,34(sp)
+        }
+        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
+    1fc6:	3039 0002 8570 	move.w 28570 <ZoomHorizontal>,d0
+    1fcc:	c1d7           	muls.w (sp),d0
+    1fce:	7200           	moveq #0,d1
+    1fd0:	3200           	move.w d0,d1
+    1fd2:	7000           	moveq #0,d0
+    1fd4:	302f 002a      	move.w 42(sp),d0
+    1fd8:	d080           	add.l d0,d0
+    1fda:	d0af 001e      	add.l 30(sp),d0
+    1fde:	2f01           	move.l d1,-(sp)
+    1fe0:	2f2f 001e      	move.l 30(sp),-(sp)
+    1fe4:	2f00           	move.l d0,-(sp)
+    1fe6:	4eba f1e8      	jsr 11d0 <Zoom_ZoomBlit>(pc)
+    1fea:	4fef 000c      	lea 12(sp),sp
+        pos4source += size4blit;
+    1fee:	7000           	moveq #0,d0
+    1ff0:	302f 0016      	move.w 22(sp),d0
+    1ff4:	d080           	add.l d0,d0
+    1ff6:	d1af 001e      	add.l d0,30(sp)
+        pos4dest += size4blit + onestep;   
+    1ffa:	7200           	moveq #0,d1
+    1ffc:	322f 0016      	move.w 22(sp),d1
+    2000:	7000           	moveq #0,d0
+    2002:	302f 0018      	move.w 24(sp),d0
+    2006:	d081           	add.l d1,d0
+    2008:	d080           	add.l d0,d0
+    200a:	d1af 001a      	add.l d0,26(sp)
+        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
+    200e:	302f 0002      	move.w 2(sp),d0
+    2012:	d040           	add.w d0,d0
+    2014:	906f 0002      	sub.w 2(sp),d0
+    2018:	0640 0012      	addi.w #18,d0
+    201c:	33c0 0002 8570 	move.w d0,28570 <ZoomHorizontal>
+      while( linesleft > 0) {
+    2022:	4a6f 0022      	tst.w 34(sp)
+    2026:	6e00 ff12      	bgt.w 1f3a <Zoom_ZoomIntoPicture+0x262>
+      }
+      shiftright--;  
+    202a:	302f 0032      	move.w 50(sp),d0
+    202e:	5340           	subq.w #1,d0
+    2030:	3f40 0032      	move.w d0,50(sp)
+      if(shiftright < 0) {
+    2034:	6a12           	bpl.s 2048 <Zoom_ZoomIntoPicture+0x370>
+        shiftright += 16;
+    2036:	302f 0032      	move.w 50(sp),d0
+    203a:	0640 0010      	addi.w #16,d0
+    203e:	3f40 0032      	move.w d0,50(sp)
+        shifttoleft = 1;
+    2042:	3f7c 0001 002a 	move.w #1,42(sp)
+      }
+    }
+    startofword -= 16;
+    2048:	066f fff0 002e 	addi.w #-16,46(sp)
+  for(int i=0;i<22;i++) {
+    204e:	52af 0024      	addq.l #1,36(sp)
+    2052:	7015           	moveq #21,d0
+    2054:	b0af 0024      	cmp.l 36(sp),d0
+    2058:	6c00 fd2e      	bge.w 1d88 <Zoom_ZoomIntoPicture+0xb0>
+  }
+}
+    205c:	4fef 0034      	lea 52(sp),sp
+    2060:	4e75           	rts
+
+00002062 <Zoom_SetBplPointers>:
+
+void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper) {
+    2062:	4fef fff0      	lea -16(sp),sp
+  ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
+    2066:	3039 0002 856c 	move.w 2856c <Zoom_LevelOf102Zoom>,d0
+    206c:	e248           	lsr.w #1,d0
+    206e:	3000           	move.w d0,d0
+    2070:	0280 0000 ffff 	andi.l #65535,d0
+    2076:	7208           	moveq #8,d1
+    2078:	9280           	sub.l d0,d1
+                                                         *ZMLINESIZE*ZMBPLDEPTH/4;
+    207a:	2001           	move.l d1,d0
+    207c:	e988           	lsl.l #4,d0
+    207e:	9081           	sub.l d1,d0
+    2080:	d080           	add.l d0,d0
+    2082:	d080           	add.l d0,d0
+  ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
+    2084:	5280           	addq.l #1,d0
+    2086:	d080           	add.l d0,d0
+    2088:	d080           	add.l d0,d0
+    208a:	d0af 0014      	add.l 20(sp),d0
+    208e:	2f40 000c      	move.l d0,12(sp)
+  UWORD *posofcopper = (UWORD *)copper + ZMCOPBPL1HIGH;
+    2092:	7072           	moveq #114,d0
+    2094:	d0af 0018      	add.l 24(sp),d0
+    2098:	2f40 0008      	move.l d0,8(sp)
+  
+  for(int i=0;i<ZMBPLDEPTH;i++) {
+    209c:	42af 0004      	clr.l 4(sp)
+    20a0:	6030           	bra.s 20d2 <Zoom_SetBplPointers+0x70>
+    UWORD highword = (ULONG)plane2set >> 16;
+    20a2:	202f 000c      	move.l 12(sp),d0
+    20a6:	4240           	clr.w d0
+    20a8:	4840           	swap d0
+    20aa:	3f40 0002      	move.w d0,2(sp)
+    UWORD lowword = (ULONG)plane2set & 0xffff;
+    20ae:	3eaf 000e      	move.w 14(sp),(sp)
+    *posofcopper = highword;
+    20b2:	206f 0008      	movea.l 8(sp),a0
+    20b6:	30af 0002      	move.w 2(sp),(a0)
+    posofcopper += 2;
+    20ba:	58af 0008      	addq.l #4,8(sp)
+    *posofcopper = lowword;
+    20be:	206f 0008      	movea.l 8(sp),a0
+    20c2:	3097           	move.w (sp),(a0)
+    posofcopper += 2;
+    20c4:	58af 0008      	addq.l #4,8(sp)
+    plane2set += ZMLINESIZE; //Next plane (interleaved)
+    20c8:	7030           	moveq #48,d0
+    20ca:	d1af 000c      	add.l d0,12(sp)
+  for(int i=0;i<ZMBPLDEPTH;i++) {
+    20ce:	52af 0004      	addq.l #1,4(sp)
+    20d2:	7004           	moveq #4,d0
+    20d4:	b0af 0004      	cmp.l 4(sp),d0
+    20d8:	6cc8           	bge.s 20a2 <Zoom_SetBplPointers+0x40>
+  }
+  
+}
+    20da:	4fef 0010      	lea 16(sp),sp
+    20de:	4e75           	rts
+
+000020e0 <Zoom_SwapBuffers>:
+
+void Zoom_SwapBuffers() {
+    20e0:	598f           	subq.l #4,sp
+  ULONG tmp = (ULONG) DrawBuffer;
+    20e2:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    20e8:	2e80           	move.l d0,(sp)
+  DrawBuffer = ViewBuffer;
+    20ea:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    20f0:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
+  ViewBuffer = (ULONG *) tmp;
+    20f6:	2017           	move.l (sp),d0
+    20f8:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
+}
+    20fe:	588f           	addq.l #4,sp
+    2100:	4e75           	rts
+
+00002102 <Zoom_ZoomIntoPicture2>:
+
+void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
+  UWORD levelofzoom, UWORD nrofplanes) {
+    2102:	4fef ffcc      	lea -52(sp),sp
+    2106:	2f02           	move.l d2,-(sp)
+    2108:	222f 0048      	move.l 72(sp),d1
+    210c:	202f 004c      	move.l 76(sp),d0
+    2110:	3201           	move.w d1,d1
+    2112:	3f41 0008      	move.w d1,8(sp)
+    2116:	3000           	move.w d0,d0
+    2118:	3f40 0006      	move.w d0,6(sp)
+
+  
+  UWORD posx4a = 320-7*(levelofzoom-1);
+    211c:	302f 0008      	move.w 8(sp),d0
+    2120:	3200           	move.w d0,d1
+    2122:	e748           	lsl.w #3,d0
+    2124:	9240           	sub.w d0,d1
+    2126:	3001           	move.w d1,d0
+    2128:	0640 0147      	addi.w #327,d0
+    212c:	3f40 0036      	move.w d0,54(sp)
+  UWORD posx4b = 640-14*( levelofzoom-1);
+    2130:	322f 0008      	move.w 8(sp),d1
+    2134:	3001           	move.w d1,d0
+    2136:	e749           	lsl.w #3,d1
+    2138:	9041           	sub.w d1,d0
+    213a:	d040           	add.w d0,d0
+    213c:	3200           	move.w d0,d1
+    213e:	0641 028e      	addi.w #654,d1
+    2142:	3f41 0034      	move.w d1,52(sp)
+  UWORD ystart = 8*levelofzoom;
+    2146:	302f 0008      	move.w 8(sp),d0
+    214a:	e748           	lsl.w #3,d0
+    214c:	3f40 001c      	move.w d0,28(sp)
+  target = target + 21;
+    2150:	742a           	moveq #42,d2
+    2152:	d5af 0044      	add.l d2,68(sp)
+  ULONG pos4astart = ( ULONG)source1 + ystart * 40;
+    2156:	7200           	moveq #0,d1
+    2158:	322f 001c      	move.w 28(sp),d1
+    215c:	2001           	move.l d1,d0
+    215e:	d080           	add.l d0,d0
+    2160:	d080           	add.l d0,d0
+    2162:	d081           	add.l d1,d0
+    2164:	e788           	lsl.l #3,d0
+    2166:	2200           	move.l d0,d1
+    2168:	202f 003c      	move.l 60(sp),d0
+    216c:	2401           	move.l d1,d2
+    216e:	d480           	add.l d0,d2
+    2170:	2f42 0018      	move.l d2,24(sp)
+  ULONG pos4bstart = ( ULONG)source2 + ystart * 80;
+    2174:	7200           	moveq #0,d1
+    2176:	322f 001c      	move.w 28(sp),d1
+    217a:	2001           	move.l d1,d0
+    217c:	d080           	add.l d0,d0
+    217e:	d080           	add.l d0,d0
+    2180:	d081           	add.l d1,d0
+    2182:	e988           	lsl.l #4,d0
+    2184:	2200           	move.l d0,d1
+    2186:	202f 0040      	move.l 64(sp),d0
+    218a:	2401           	move.l d1,d2
+    218c:	d480           	add.l d0,d2
+    218e:	2f42 0014      	move.l d2,20(sp)
+  UWORD *zl4word = Zoom_Zl4Words + 21 * (levelofzoom) - 1;
+    2192:	2079 0002 8548 	movea.l 28548 <Zoom_Zl4Words>,a0
+    2198:	7200           	moveq #0,d1
+    219a:	322f 0008      	move.w 8(sp),d1
+    219e:	2001           	move.l d1,d0
+    21a0:	d080           	add.l d0,d0
+    21a2:	d081           	add.l d1,d0
+    21a4:	2200           	move.l d0,d1
+    21a6:	e789           	lsl.l #3,d1
+    21a8:	9280           	sub.l d0,d1
+    21aa:	2001           	move.l d1,d0
+    21ac:	d081           	add.l d1,d0
+    21ae:	2200           	move.l d0,d1
+    21b0:	2001           	move.l d1,d0
+    21b2:	5580           	subq.l #2,d0
+    21b4:	d1c0           	adda.l d0,a0
+    21b6:	2f48 0030      	move.l a0,48(sp)
+  WaitBlt();
+    21ba:	4eba def8      	jsr b4 <WaitBlt>(pc)
+  hw->bltafwm = 0xffff;
+    21be:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    21c4:	317c ffff 0044 	move.w #-1,68(a0)
+  hw->bltalwm = 0xffff;
+    21ca:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    21d0:	317c ffff 0046 	move.w #-1,70(a0)
+  hw->bltdmod = ZMLINESIZE2 - 2;
+    21d6:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    21dc:	317c 002a 0066 	move.w #42,102(a0)
+  for(int i=1;i<=21;i++) {
+    21e2:	7001           	moveq #1,d0
+    21e4:	2f40 002c      	move.l d0,44(sp)
+    21e8:	6000 01f6      	bra.w 23e0 <Zoom_ZoomIntoPicture2+0x2de>
+    UWORD *targetpos = target - i;
+    21ec:	202f 002c      	move.l 44(sp),d0
+    21f0:	d080           	add.l d0,d0
+    21f2:	4480           	neg.l d0
+    21f4:	222f 0044      	move.l 68(sp),d1
+    21f8:	d280           	add.l d0,d1
+    21fa:	2f41 0028      	move.l d1,40(sp)
+    UWORD nrofpixels = 16 - *zl4word;
+    21fe:	206f 0030      	movea.l 48(sp),a0
+    2202:	3010           	move.w (a0),d0
+    2204:	7410           	moveq #16,d2
+    2206:	9440           	sub.w d0,d2
+    2208:	3f42 0012      	move.w d2,18(sp)
+    posx4a -= nrofpixels;
+    220c:	302f 0012      	move.w 18(sp),d0
+    2210:	916f 0036      	sub.w d0,54(sp)
+    posx4b -= nrofpixels*2;
+    2214:	302f 0012      	move.w 18(sp),d0
+    2218:	d040           	add.w d0,d0
+    221a:	916f 0034      	sub.w d0,52(sp)
+    ULONG pos4a = pos4astart + ( ( posx4a - 1) >> 4) * 2;
+    221e:	7000           	moveq #0,d0
+    2220:	302f 0036      	move.w 54(sp),d0
+    2224:	5380           	subq.l #1,d0
+    2226:	e880           	asr.l #4,d0
+    2228:	d080           	add.l d0,d0
+    222a:	222f 0018      	move.l 24(sp),d1
+    222e:	d280           	add.l d0,d1
+    2230:	2f41 0024      	move.l d1,36(sp)
+    ULONG pos4b = pos4bstart + ( ( posx4b - 1) >> 4) * 2;
+    2234:	7000           	moveq #0,d0
+    2236:	302f 0034      	move.w 52(sp),d0
+    223a:	5380           	subq.l #1,d0
+    223c:	e880           	asr.l #4,d0
+    223e:	d080           	add.l d0,d0
+    2240:	242f 0014      	move.l 20(sp),d2
+    2244:	d480           	add.l d0,d2
+    2246:	2f42 0020      	move.l d2,32(sp)
+    //shift channel a = R of (17 + zl - pos)/16
+    UWORD shifta = ( ( 16 + *zl4word - ( posx4a & 0xf)) & 0xf) << 12;
+    224a:	206f 0030      	movea.l 48(sp),a0
+    224e:	3010           	move.w (a0),d0
+    2250:	906f 0036      	sub.w 54(sp),d0
+    2254:	3000           	move.w d0,d0
+    2256:	0280 0000 ffff 	andi.l #65535,d0
+    225c:	720c           	moveq #12,d1
+    225e:	e3a8           	lsl.l d1,d0
+    2260:	3f40 0010      	move.w d0,16(sp)
+    //shift channel b = R of (17 - pos)/16 
+    UWORD shiftb = ( (16  - ( posx4b & 0xf)) & 0xf) << 12;
+    2264:	7000           	moveq #0,d0
+    2266:	302f 0034      	move.w 52(sp),d0
+    226a:	4480           	neg.l d0
+    226c:	740c           	moveq #12,d2
+    226e:	e5a8           	lsl.l d2,d0
+    2270:	3f40 000e      	move.w d0,14(sp)
+    UWORD bltcon0 = 0xde4 + shifta;
+    2274:	306f 0010      	movea.w 16(sp),a0
+    2278:	41e8 0de4      	lea 3556(a0),a0
+    227c:	3f48 000c      	move.w a0,12(sp)
+    UWORD linesleft = 271;
+    2280:	3f7c 010f 001e 	move.w #271,30(sp)
+    UWORD lines2write;
+    WaitBlt();
+    2286:	4eba de2c      	jsr b4 <WaitBlt>(pc)
+    hw->bltcon1 = shiftb; 
+    228a:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    2290:	316f 000e 0042 	move.w 14(sp),66(a0)
+    hw->bltcon0 = bltcon0;
+    2296:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    229c:	316f 000c 0040 	move.w 12(sp),64(a0)
+    hw->bltcdat = 0xffff >> (*zl4word--*2);
+    22a2:	202f 0030      	move.l 48(sp),d0
+    22a6:	2200           	move.l d0,d1
+    22a8:	5581           	subq.l #2,d1
+    22aa:	2f41 0030      	move.l d1,48(sp)
+    22ae:	2040           	movea.l d0,a0
+    22b0:	3010           	move.w (a0),d0
+    22b2:	3000           	move.w d0,d0
+    22b4:	0280 0000 ffff 	andi.l #65535,d0
+    22ba:	d080           	add.l d0,d0
+    22bc:	2200           	move.l d0,d1
+    22be:	7000           	moveq #0,d0
+    22c0:	4640           	not.w d0
+    22c2:	e2a0           	asr.l d1,d0
+    22c4:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    22ca:	2000           	move.l d0,d0
+    22cc:	3140 0070      	move.w d0,112(a0)
+    22d0:	6000 0102      	bra.w 23d4 <Zoom_ZoomIntoPicture2+0x2d2>
+    while (linesleft > 0) {
+      lines2write = 2*levelofzoom;
+    22d4:	302f 0008      	move.w 8(sp),d0
+    22d8:	d040           	add.w d0,d0
+    22da:	3f40 000a      	move.w d0,10(sp)
+      lines2write = linesleft > lines2write ? lines2write : linesleft;
+    22de:	322f 000a      	move.w 10(sp),d1
+    22e2:	302f 001e      	move.w 30(sp),d0
+    22e6:	b240           	cmp.w d0,d1
+    22e8:	6402           	bcc.s 22ec <Zoom_ZoomIntoPicture2+0x1ea>
+    22ea:	3001           	move.w d1,d0
+    22ec:	3f40 000a      	move.w d0,10(sp)
+      Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 36, 76);
+    22f0:	7000           	moveq #0,d0
+    22f2:	302f 000a      	move.w 10(sp),d0
+    22f6:	206f 0020      	movea.l 32(sp),a0
+    22fa:	222f 0024      	move.l 36(sp),d1
+    22fe:	4878 004c      	pea 4c <_start+0x4c>
+    2302:	4878 0024      	pea 24 <_start+0x24>
+    2306:	2f00           	move.l d0,-(sp)
+    2308:	2f2f 0034      	move.l 52(sp),-(sp)
+    230c:	2f08           	move.l a0,-(sp)
+    230e:	2f01           	move.l d1,-(sp)
+    2310:	4eba ef22      	jsr 1234 <Zoom_ZoomBlit2>(pc)
+    2314:	4fef 0018      	lea 24(sp),sp
+      pos4a += 40 * lines2write;
+    2318:	7200           	moveq #0,d1
+    231a:	322f 000a      	move.w 10(sp),d1
+    231e:	2001           	move.l d1,d0
+    2320:	d080           	add.l d0,d0
+    2322:	d080           	add.l d0,d0
+    2324:	d081           	add.l d1,d0
+    2326:	e788           	lsl.l #3,d0
+    2328:	d1af 0024      	add.l d0,36(sp)
+      pos4b += 80 * lines2write;
+    232c:	7200           	moveq #0,d1
+    232e:	322f 000a      	move.w 10(sp),d1
+    2332:	2001           	move.l d1,d0
+    2334:	d080           	add.l d0,d0
+    2336:	d080           	add.l d0,d0
+    2338:	d081           	add.l d1,d0
+    233a:	e988           	lsl.l #4,d0
+    233c:	d1af 0020      	add.l d0,32(sp)
+      targetpos += lines2write * ZMLINESIZE2/2;
+    2340:	7200           	moveq #0,d1
+    2342:	322f 000a      	move.w 10(sp),d1
+    2346:	2001           	move.l d1,d0
+    2348:	d080           	add.l d0,d0
+    234a:	d081           	add.l d1,d0
+    234c:	d080           	add.l d0,d0
+    234e:	d080           	add.l d0,d0
+    2350:	9081           	sub.l d1,d0
+    2352:	d080           	add.l d0,d0
+    2354:	d080           	add.l d0,d0
+    2356:	d1af 0028      	add.l d0,40(sp)
+      linesleft -= lines2write;
+    235a:	302f 000a      	move.w 10(sp),d0
+    235e:	916f 001e      	sub.w d0,30(sp)
+      if( linesleft == 0) break;
+    2362:	6778           	beq.s 23dc <Zoom_ZoomIntoPicture2+0x2da>
+      lines2write = 16 - levelofzoom * 2;
+    2364:	7000           	moveq #0,d0
+    2366:	302f 0008      	move.w 8(sp),d0
+    236a:	7208           	moveq #8,d1
+    236c:	9280           	sub.l d0,d1
+    236e:	2001           	move.l d1,d0
+    2370:	d040           	add.w d0,d0
+    2372:	3f40 000a      	move.w d0,10(sp)
+      lines2write = linesleft > lines2write ? lines2write : linesleft;
+    2376:	322f 000a      	move.w 10(sp),d1
+    237a:	302f 001e      	move.w 30(sp),d0
+    237e:	b240           	cmp.w d0,d1
+    2380:	6402           	bcc.s 2384 <Zoom_ZoomIntoPicture2+0x282>
+    2382:	3001           	move.w d1,d0
+    2384:	3f40 000a      	move.w d0,10(sp)
+      if( lines2write > 0) {
+    2388:	674a           	beq.s 23d4 <Zoom_ZoomIntoPicture2+0x2d2>
+        Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 76, 156);
+    238a:	7000           	moveq #0,d0
+    238c:	302f 000a      	move.w 10(sp),d0
+    2390:	206f 0020      	movea.l 32(sp),a0
+    2394:	222f 0024      	move.l 36(sp),d1
+    2398:	4878 009c      	pea 9c <_start+0x9c>
+    239c:	4878 004c      	pea 4c <_start+0x4c>
+    23a0:	2f00           	move.l d0,-(sp)
+    23a2:	2f2f 0034      	move.l 52(sp),-(sp)
+    23a6:	2f08           	move.l a0,-(sp)
+    23a8:	2f01           	move.l d1,-(sp)
+    23aa:	4eba ee88      	jsr 1234 <Zoom_ZoomBlit2>(pc)
+    23ae:	4fef 0018      	lea 24(sp),sp
+        targetpos += lines2write * ZMLINESIZE2/2;
+    23b2:	7200           	moveq #0,d1
+    23b4:	322f 000a      	move.w 10(sp),d1
+    23b8:	2001           	move.l d1,d0
+    23ba:	d080           	add.l d0,d0
+    23bc:	d081           	add.l d1,d0
+    23be:	d080           	add.l d0,d0
+    23c0:	d080           	add.l d0,d0
+    23c2:	9081           	sub.l d1,d0
+    23c4:	d080           	add.l d0,d0
+    23c6:	d080           	add.l d0,d0
+    23c8:	d1af 0028      	add.l d0,40(sp)
+        linesleft -= lines2write;
+    23cc:	322f 000a      	move.w 10(sp),d1
+    23d0:	936f 001e      	sub.w d1,30(sp)
+    while (linesleft > 0) {
+    23d4:	4a6f 001e      	tst.w 30(sp)
+    23d8:	6600 fefa      	bne.w 22d4 <Zoom_ZoomIntoPicture2+0x1d2>
+  for(int i=1;i<=21;i++) {
+    23dc:	52af 002c      	addq.l #1,44(sp)
+    23e0:	7415           	moveq #21,d2
+    23e2:	b4af 002c      	cmp.l 44(sp),d2
+    23e6:	6c00 fe04      	bge.w 21ec <Zoom_ZoomIntoPicture2+0xea>
+      }
+    }
+  }
+}
+    23ea:	241f           	move.l (sp)+,d2
+    23ec:	4fef 0034      	lea 52(sp),sp
+    23f0:	4e75           	rts
+
+000023f2 <Test_Zoom2>:
+#include "zoomtest2.h"
+#include "zoom.h"
+#include "utils.h"
+#include <string.h>
+
+void Test_Zoom2() {
+    23f2:	4fef fea0      	lea -352(sp),sp
+    23f6:	48e7 3032      	movem.l d2-d3/a2-a3/a6,-(sp)
+  UWORD size4buffer = 40*544*ZMBPLDEPTH;
+    23fa:	3f7c a900 0156 	move.w #-22272,342(sp)
+  UWORD size4target = 44*272*ZMBPLDEPTH;
+    2400:	3f7c e9c0 0154 	move.w #-5696,340(sp)
+  ULONG *pic1 = AllocMem( size4buffer, MEMF_CHIP);
+    2406:	7000           	moveq #0,d0
+    2408:	302f 0156      	move.w 342(sp),d0
+    240c:	2f40 0150      	move.l d0,336(sp)
+    2410:	7002           	moveq #2,d0
+    2412:	2f40 014c      	move.l d0,332(sp)
+    2416:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    241c:	2c40           	movea.l d0,a6
+    241e:	202f 0150      	move.l 336(sp),d0
+    2422:	222f 014c      	move.l 332(sp),d1
+    2426:	4eae ff3a      	jsr -198(a6)
+    242a:	2f40 0148      	move.l d0,328(sp)
+    242e:	202f 0148      	move.l 328(sp),d0
+    2432:	2f40 0144      	move.l d0,324(sp)
+  if( pic1 == 0) {
+    2436:	6646           	bne.s 247e <Test_Zoom2+0x8c>
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic1\n", 38);
+    2438:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    243e:	2c40           	movea.l d0,a6
+    2440:	4eae ffc4      	jsr -60(a6)
+    2444:	2f40 0094      	move.l d0,148(sp)
+    2448:	202f 0094      	move.l 148(sp),d0
+    244c:	2f40 0090      	move.l d0,144(sp)
+    2450:	2f7c 0001 7cad 	move.l #97453,140(sp)
+    2456:	008c 
+    2458:	7226           	moveq #38,d1
+    245a:	2f41 0088      	move.l d1,136(sp)
+    245e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2464:	2c40           	movea.l d0,a6
+    2466:	222f 0090      	move.l 144(sp),d1
+    246a:	242f 008c      	move.l 140(sp),d2
+    246e:	262f 0088      	move.l 136(sp),d3
+    2472:	4eae ffd0      	jsr -48(a6)
+    2476:	2f40 0084      	move.l d0,132(sp)
+    247a:	6000 0458      	bra.w 28d4 <Test_Zoom2+0x4e2>
+    return;
+  }
+  ULONG *pic2 = AllocMem( size4buffer*2,MEMF_CHIP);
+    247e:	7000           	moveq #0,d0
+    2480:	302f 0156      	move.w 342(sp),d0
+    2484:	d080           	add.l d0,d0
+    2486:	2f40 0140      	move.l d0,320(sp)
+    248a:	7002           	moveq #2,d0
+    248c:	2f40 013c      	move.l d0,316(sp)
+    2490:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    2496:	2c40           	movea.l d0,a6
+    2498:	202f 0140      	move.l 320(sp),d0
+    249c:	222f 013c      	move.l 316(sp),d1
+    24a0:	4eae ff3a      	jsr -198(a6)
+    24a4:	2f40 0138      	move.l d0,312(sp)
+    24a8:	202f 0138      	move.l 312(sp),d0
+    24ac:	2f40 0134      	move.l d0,308(sp)
+  if( pic2 == 0) {
+    24b0:	6646           	bne.s 24f8 <Test_Zoom2+0x106>
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic2\n", 38);
+    24b2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    24b8:	2c40           	movea.l d0,a6
+    24ba:	4eae ffc4      	jsr -60(a6)
+    24be:	2f40 00a8      	move.l d0,168(sp)
+    24c2:	202f 00a8      	move.l 168(sp),d0
+    24c6:	2f40 00a4      	move.l d0,164(sp)
+    24ca:	2f7c 0001 7cd4 	move.l #97492,160(sp)
+    24d0:	00a0 
+    24d2:	7226           	moveq #38,d1
+    24d4:	2f41 009c      	move.l d1,156(sp)
+    24d8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    24de:	2c40           	movea.l d0,a6
+    24e0:	222f 00a4      	move.l 164(sp),d1
+    24e4:	242f 00a0      	move.l 160(sp),d2
+    24e8:	262f 009c      	move.l 156(sp),d3
+    24ec:	4eae ffd0      	jsr -48(a6)
+    24f0:	2f40 0098      	move.l d0,152(sp)
+    24f4:	6000 03de      	bra.w 28d4 <Test_Zoom2+0x4e2>
+    return;
+  }
+  ULONG *target = AllocMem( size4target, MEMF_CHIP);
+    24f8:	7000           	moveq #0,d0
+    24fa:	302f 0154      	move.w 340(sp),d0
+    24fe:	2f40 0130      	move.l d0,304(sp)
+    2502:	7002           	moveq #2,d0
+    2504:	2f40 012c      	move.l d0,300(sp)
+    2508:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    250e:	2c40           	movea.l d0,a6
+    2510:	202f 0130      	move.l 304(sp),d0
+    2514:	222f 012c      	move.l 300(sp),d1
+    2518:	4eae ff3a      	jsr -198(a6)
+    251c:	2f40 0128      	move.l d0,296(sp)
+    2520:	202f 0128      	move.l 296(sp),d0
+    2524:	2f40 0124      	move.l d0,292(sp)
+  UWORD *bp = 0x200;
+    2528:	2f7c 0000 0200 	move.l #512,288(sp)
+    252e:	0120 
+  *bp = 0;
+    2530:	206f 0120      	movea.l 288(sp),a0
+    2534:	4250           	clr.w (a0)
+  if( target == 0) {
+    2536:	4aaf 0124      	tst.l 292(sp)
+    253a:	6646           	bne.s 2582 <Test_Zoom2+0x190>
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for target\n", 40);
+    253c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2542:	2c40           	movea.l d0,a6
+    2544:	4eae ffc4      	jsr -60(a6)
+    2548:	2f40 00bc      	move.l d0,188(sp)
+    254c:	202f 00bc      	move.l 188(sp),d0
+    2550:	2f40 00b8      	move.l d0,184(sp)
+    2554:	2f7c 0001 7cfb 	move.l #97531,180(sp)
+    255a:	00b4 
+    255c:	7228           	moveq #40,d1
+    255e:	2f41 00b0      	move.l d1,176(sp)
+    2562:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2568:	2c40           	movea.l d0,a6
+    256a:	222f 00b8      	move.l 184(sp),d1
+    256e:	242f 00b4      	move.l 180(sp),d2
+    2572:	262f 00b0      	move.l 176(sp),d3
+    2576:	4eae ffd0      	jsr -48(a6)
+    257a:	2f40 00ac      	move.l d0,172(sp)
+    257e:	6000 0354      	bra.w 28d4 <Test_Zoom2+0x4e2>
+    return;
+  }
+  Zoom_Zl4Words = AllocMem( 21*8, MEMF_ANY);
+    2582:	2f7c 0000 00a8 	move.l #168,284(sp)
+    2588:	011c 
+    258a:	42af 0118      	clr.l 280(sp)
+    258e:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    2594:	2c40           	movea.l d0,a6
+    2596:	202f 011c      	move.l 284(sp),d0
+    259a:	222f 0118      	move.l 280(sp),d1
+    259e:	4eae ff3a      	jsr -198(a6)
+    25a2:	2f40 0114      	move.l d0,276(sp)
+    25a6:	202f 0114      	move.l 276(sp),d0
+    25aa:	23c0 0002 8548 	move.l d0,28548 <Zoom_Zl4Words>
+  if( Zoom_Zl4Words == 0) {
+    25b0:	2039 0002 8548 	move.l 28548 <Zoom_Zl4Words>,d0
+    25b6:	6646           	bne.s 25fe <Test_Zoom2+0x20c>
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for Zoom_Zl4Words\n", 40);
+    25b8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    25be:	2c40           	movea.l d0,a6
+    25c0:	4eae ffc4      	jsr -60(a6)
+    25c4:	2f40 00d0      	move.l d0,208(sp)
+    25c8:	202f 00d0      	move.l 208(sp),d0
+    25cc:	2f40 00cc      	move.l d0,204(sp)
+    25d0:	2f7c 0001 7d24 	move.l #97572,200(sp)
+    25d6:	00c8 
+    25d8:	7028           	moveq #40,d0
+    25da:	2f40 00c4      	move.l d0,196(sp)
+    25de:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    25e4:	2c40           	movea.l d0,a6
+    25e6:	222f 00cc      	move.l 204(sp),d1
+    25ea:	242f 00c8      	move.l 200(sp),d2
+    25ee:	262f 00c4      	move.l 196(sp),d3
+    25f2:	4eae ffd0      	jsr -48(a6)
+    25f6:	2f40 00c0      	move.l d0,192(sp)
+    25fa:	6000 02d8      	bra.w 28d4 <Test_Zoom2+0x4e2>
+    return;
+  }
+  
+  UWORD *pos2write = Zoom_Zl4Words;
+    25fe:	2f79 0002 8548 	move.l 28548 <Zoom_Zl4Words>,368(sp)
+    2604:	0170 
+  for( int i=0;i<14;i++) {
+    2606:	42af 016c      	clr.l 364(sp)
+    260a:	603a           	bra.s 2646 <Test_Zoom2+0x254>
+    *pos2write++ = 4;
+    260c:	202f 0170      	move.l 368(sp),d0
+    2610:	2200           	move.l d0,d1
+    2612:	5481           	addq.l #2,d1
+    2614:	2f41 0170      	move.l d1,368(sp)
+    2618:	2040           	movea.l d0,a0
+    261a:	30bc 0004      	move.w #4,(a0)
+    *pos2write++ = 4;
+    261e:	202f 0170      	move.l 368(sp),d0
+    2622:	2200           	move.l d0,d1
+    2624:	5481           	addq.l #2,d1
+    2626:	2f41 0170      	move.l d1,368(sp)
+    262a:	2040           	movea.l d0,a0
+    262c:	30bc 0004      	move.w #4,(a0)
+    *pos2write++ = 8;
+    2630:	202f 0170      	move.l 368(sp),d0
+    2634:	2200           	move.l d0,d1
+    2636:	5481           	addq.l #2,d1
+    2638:	2f41 0170      	move.l d1,368(sp)
+    263c:	2040           	movea.l d0,a0
+    263e:	30bc 0008      	move.w #8,(a0)
+  for( int i=0;i<14;i++) {
+    2642:	52af 016c      	addq.l #1,364(sp)
+    2646:	700d           	moveq #13,d0
+    2648:	b0af 016c      	cmp.l 364(sp),d0
+    264c:	6cbe           	bge.s 260c <Test_Zoom2+0x21a>
+  }
+  //16   16 ffff
+  //8+16 40 ff00
+  //8+16 64 0000
+  Utils_FillLong( pic1, 0xfff00f00, 272, 10, 0 );
+    264e:	42a7           	clr.l -(sp)
+    2650:	4878 000a      	pea a <_start+0xa>
+    2654:	4878 0110      	pea 110 <FreeDisplay+0x30>
+    2658:	2f3c fff0 0f00 	move.l #-1044736,-(sp)
+    265e:	2f2f 0154      	move.l 340(sp),-(sp)
+    2662:	4eba dc0c      	jsr 270 <Utils_FillLong>(pc)
+    2666:	4fef 0014      	lea 20(sp),sp
+  Utils_FillLong( pic1+10*272, 0xfff00f00, 272, 10, 0 );
+    266a:	202f 0144      	move.l 324(sp),d0
+    266e:	0680 0000 2a80 	addi.l #10880,d0
+    2674:	42a7           	clr.l -(sp)
+    2676:	4878 000a      	pea a <_start+0xa>
+    267a:	4878 0110      	pea 110 <FreeDisplay+0x30>
+    267e:	2f3c fff0 0f00 	move.l #-1044736,-(sp)
+    2684:	2f00           	move.l d0,-(sp)
+    2686:	4eba dbe8      	jsr 270 <Utils_FillLong>(pc)
+    268a:	4fef 0014      	lea 20(sp),sp
+  Utils_FillLong( pic2, 0x0000ffff, 272, 20, 0);
+    268e:	42a7           	clr.l -(sp)
+    2690:	4878 0014      	pea 14 <_start+0x14>
+    2694:	4878 0110      	pea 110 <FreeDisplay+0x30>
+    2698:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    269e:	2f2f 0144      	move.l 324(sp),-(sp)
+    26a2:	4eba dbcc      	jsr 270 <Utils_FillLong>(pc)
+    26a6:	4fef 0014      	lea 20(sp),sp
+  Utils_FillLong( pic2+20*272, 0x0000ffff, 272, 20, 0);
+    26aa:	202f 0134      	move.l 308(sp),d0
+    26ae:	0680 0000 5500 	addi.l #21760,d0
+    26b4:	42a7           	clr.l -(sp)
+    26b6:	4878 0014      	pea 14 <_start+0x14>
+    26ba:	4878 0110      	pea 110 <FreeDisplay+0x30>
+    26be:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    26c4:	2f00           	move.l d0,-(sp)
+    26c6:	4eba dba8      	jsr 270 <Utils_FillLong>(pc)
+    26ca:	4fef 0014      	lea 20(sp),sp
+  //Utils_FillLong( pic2, 0x0000ffff, size4buffer*2);
+
+  
+  for( int i=1;i<=1;i++) {
+    26ce:	7201           	moveq #1,d1
+    26d0:	2f41 0168      	move.l d1,360(sp)
+    26d4:	6000 0186      	bra.w 285c <Test_Zoom2+0x46a>
+    Zoom_ZoomIntoPicture2( (UWORD *)pic1, (UWORD *) pic2,(UWORD *) target, i, 
+    26d8:	202f 0168      	move.l 360(sp),d0
+    26dc:	3000           	move.w d0,d0
+    26de:	0280 0000 ffff 	andi.l #65535,d0
+    26e4:	4878 0005      	pea 5 <_start+0x5>
+    26e8:	2f00           	move.l d0,-(sp)
+    26ea:	2f2f 012c      	move.l 300(sp),-(sp)
+    26ee:	2f2f 0140      	move.l 320(sp),-(sp)
+    26f2:	2f2f 0154      	move.l 340(sp),-(sp)
+    26f6:	4eba fa0a      	jsr 2102 <Zoom_ZoomIntoPicture2>(pc)
+    26fa:	4fef 0014      	lea 20(sp),sp
+                                                                             5);
+    UWORD *pos = (UWORD *) target + 1;
+    26fe:	202f 0124      	move.l 292(sp),d0
+    2702:	5480           	addq.l #2,d0
+    2704:	2f40 0164      	move.l d0,356(sp)
+    //ULONG pattern = 0xffff << (16 - i*2);
+    UWORD pattern[3] = { 0x00ff, 0xff0f, 0xffff };
+    2708:	3f7c 00ff 007e 	move.w #255,126(sp)
+    270e:	3f7c ff0f 0080 	move.w #-241,128(sp)
+    2714:	3f7c ffff 0082 	move.w #-1,130(sp)
+    for( int i2=0;i2<2;i2++) {
+    271a:	42af 0160      	clr.l 352(sp)
+    271e:	6000 012e      	bra.w 284e <Test_Zoom2+0x45c>
+      for( int i3=0;i3<7;i3++) {
+    2722:	42af 015c      	clr.l 348(sp)
+    2726:	6000 0114      	bra.w 283c <Test_Zoom2+0x44a>
+        for( int i4=0; i4<3;i4++) {
+    272a:	42af 0158      	clr.l 344(sp)
+    272e:	6000 00fe      	bra.w 282e <Test_Zoom2+0x43c>
+          if(*pos++ != pattern[i4])  {
+    2732:	202f 0164      	move.l 356(sp),d0
+    2736:	2200           	move.l d0,d1
+    2738:	5481           	addq.l #2,d1
+    273a:	2f41 0164      	move.l d1,356(sp)
+    273e:	2040           	movea.l d0,a0
+    2740:	3210           	move.w (a0),d1
+    2742:	202f 0158      	move.l 344(sp),d0
+    2746:	d080           	add.l d0,d0
+    2748:	41ef 0174      	lea 372(sp),a0
+    274c:	d088           	add.l a0,d0
+    274e:	2040           	movea.l d0,a0
+    2750:	41e8 ff0a      	lea -246(a0),a0
+    2754:	3010           	move.w (a0),d0
+    2756:	b041           	cmp.w d1,d0
+    2758:	6700 00d0      	beq.w 282a <Test_Zoom2+0x438>
+            pos--;
+    275c:	55af 0164      	subq.l #2,356(sp)
+            UWORD data[3];
+            char str[100];
+            data[0] = i;
+    2760:	202f 0168      	move.l 360(sp),d0
+    2764:	3f40 0078      	move.w d0,120(sp)
+            data[1] = i3*3+i4;
+    2768:	222f 015c      	move.l 348(sp),d1
+    276c:	3001           	move.w d1,d0
+    276e:	d040           	add.w d0,d0
+    2770:	d240           	add.w d0,d1
+    2772:	202f 0158      	move.l 344(sp),d0
+    2776:	d041           	add.w d1,d0
+    2778:	3f40 007a      	move.w d0,122(sp)
+            data[2] = *pos;
+    277c:	206f 0164      	movea.l 356(sp),a0
+    2780:	3010           	move.w (a0),d0
+    2782:	3f40 007c      	move.w d0,124(sp)
+            pos++;
+    2786:	54af 0164      	addq.l #2,356(sp)
+            
+            RawDoFmt( "Test_Zoom2: Pattern for zoomlevel %d, byte %d messed up."
+    278a:	2f7c 0001 7d54 	move.l #97620,248(sp)
+    2790:	00f8 
+    2792:	203c 0000 0174 	move.l #372,d0
+    2798:	d08f           	add.l sp,d0
+    279a:	0680 ffff ff04 	addi.l #-252,d0
+    27a0:	2f40 00f4      	move.l d0,244(sp)
+    27a4:	2f7c 0000 75f4 	move.l #30196,240(sp)
+    27aa:	00f0 
+    27ac:	223c 0000 0174 	move.l #372,d1
+    27b2:	d28f           	add.l sp,d1
+    27b4:	0681 ffff fea0 	addi.l #-352,d1
+    27ba:	2f41 00ec      	move.l d1,236(sp)
+    27be:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    27c4:	2c40           	movea.l d0,a6
+    27c6:	206f 00f8      	movea.l 248(sp),a0
+    27ca:	226f 00f4      	movea.l 244(sp),a1
+    27ce:	246f 00f0      	movea.l 240(sp),a2
+    27d2:	266f 00ec      	movea.l 236(sp),a3
+    27d6:	4eae fdf6      	jsr -522(a6)
+    27da:	2f40 00e8      	move.l d0,232(sp)
+                                        "Result was %x.\n", data, PutChar, str);
+            Write( Output(), str, 66);
+    27de:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    27e4:	2c40           	movea.l d0,a6
+    27e6:	4eae ffc4      	jsr -60(a6)
+    27ea:	2f40 00e4      	move.l d0,228(sp)
+    27ee:	202f 00e4      	move.l 228(sp),d0
+    27f2:	2f40 00e0      	move.l d0,224(sp)
+    27f6:	203c 0000 0174 	move.l #372,d0
+    27fc:	d08f           	add.l sp,d0
+    27fe:	0680 ffff fea0 	addi.l #-352,d0
+    2804:	2f40 00dc      	move.l d0,220(sp)
+    2808:	7242           	moveq #66,d1
+    280a:	2f41 00d8      	move.l d1,216(sp)
+    280e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2814:	2c40           	movea.l d0,a6
+    2816:	222f 00e0      	move.l 224(sp),d1
+    281a:	242f 00dc      	move.l 220(sp),d2
+    281e:	262f 00d8      	move.l 216(sp),d3
+    2822:	4eae ffd0      	jsr -48(a6)
+    2826:	2f40 00d4      	move.l d0,212(sp)
+        for( int i4=0; i4<3;i4++) {
+    282a:	52af 0158      	addq.l #1,344(sp)
+    282e:	7002           	moveq #2,d0
+    2830:	b0af 0158      	cmp.l 344(sp),d0
+    2834:	6c00 fefc      	bge.w 2732 <Test_Zoom2+0x340>
+      for( int i3=0;i3<7;i3++) {
+    2838:	52af 015c      	addq.l #1,348(sp)
+    283c:	7206           	moveq #6,d1
+    283e:	b2af 015c      	cmp.l 348(sp),d1
+    2842:	6c00 fee6      	bge.w 272a <Test_Zoom2+0x338>
+          }
+        }
+      } 
+      pos+=2;
+    2846:	58af 0164      	addq.l #4,356(sp)
+    for( int i2=0;i2<2;i2++) {
+    284a:	52af 0160      	addq.l #1,352(sp)
+    284e:	7001           	moveq #1,d0
+    2850:	b0af 0160      	cmp.l 352(sp),d0
+    2854:	6c00 fecc      	bge.w 2722 <Test_Zoom2+0x330>
+  for( int i=1;i<=1;i++) {
+    2858:	52af 0168      	addq.l #1,360(sp)
+    285c:	7201           	moveq #1,d1
+    285e:	b2af 0168      	cmp.l 360(sp),d1
+    2862:	6c00 fe74      	bge.w 26d8 <Test_Zoom2+0x2e6>
+    }
+  }
+  FreeMem( pic1, size4buffer);
+    2866:	2f6f 0144 0110 	move.l 324(sp),272(sp)
+    286c:	7000           	moveq #0,d0
+    286e:	302f 0156      	move.w 342(sp),d0
+    2872:	2f40 010c      	move.l d0,268(sp)
+    2876:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    287c:	2c40           	movea.l d0,a6
+    287e:	226f 0110      	movea.l 272(sp),a1
+    2882:	202f 010c      	move.l 268(sp),d0
+    2886:	4eae ff2e      	jsr -210(a6)
+  FreeMem( pic2, size4buffer*2);
+    288a:	2f6f 0134 0108 	move.l 308(sp),264(sp)
+    2890:	7000           	moveq #0,d0
+    2892:	302f 0156      	move.w 342(sp),d0
+    2896:	d080           	add.l d0,d0
+    2898:	2f40 0104      	move.l d0,260(sp)
+    289c:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    28a2:	2c40           	movea.l d0,a6
+    28a4:	226f 0108      	movea.l 264(sp),a1
+    28a8:	202f 0104      	move.l 260(sp),d0
+    28ac:	4eae ff2e      	jsr -210(a6)
+  FreeMem( target, size4target);
+    28b0:	2f6f 0124 0100 	move.l 292(sp),256(sp)
+    28b6:	7000           	moveq #0,d0
+    28b8:	302f 0154      	move.w 340(sp),d0
+    28bc:	2f40 00fc      	move.l d0,252(sp)
+    28c0:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    28c6:	2c40           	movea.l d0,a6
+    28c8:	226f 0100      	movea.l 256(sp),a1
+    28cc:	202f 00fc      	move.l 252(sp),d0
+    28d0:	4eae ff2e      	jsr -210(a6)
+    28d4:	4cdf 4c0c      	movem.l (sp)+,d2-d3/a2-a3/a6
+    28d8:	4fef 0160      	lea 352(sp),sp
+    28dc:	4e75           	rts
+
+000028de <ClBuild>:
 #include "utils.h"
 
 
 
 
 ULONG * ClBuild() {
-    2740:	4fef ffc4      	lea -60(sp),sp
-    2744:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    28de:	4fef ffc4      	lea -60(sp),sp
+    28e2:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   ULONG *retval = AllocMem(  33*4, MEMF_CHIP);
-    2748:	2f7c 0000 0084 	move.l #132,48(sp)
-    274e:	0030 
-    2750:	7002           	moveq #2,d0
-    2752:	2f40 002c      	move.l d0,44(sp)
-    2756:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    275c:	2c40           	movea.l d0,a6
-    275e:	202f 0030      	move.l 48(sp),d0
-    2762:	222f 002c      	move.l 44(sp),d1
-    2766:	4eae ff3a      	jsr -198(a6)
-    276a:	2f40 0028      	move.l d0,40(sp)
-    276e:	202f 0028      	move.l 40(sp),d0
-    2772:	2f40 0024      	move.l d0,36(sp)
+    28e6:	2f7c 0000 0084 	move.l #132,48(sp)
+    28ec:	0030 
+    28ee:	7002           	moveq #2,d0
+    28f0:	2f40 002c      	move.l d0,44(sp)
+    28f4:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    28fa:	2c40           	movea.l d0,a6
+    28fc:	202f 0030      	move.l 48(sp),d0
+    2900:	222f 002c      	move.l 44(sp),d1
+    2904:	4eae ff3a      	jsr -198(a6)
+    2908:	2f40 0028      	move.l d0,40(sp)
+    290c:	202f 0028      	move.l 40(sp),d0
+    2910:	2f40 0024      	move.l d0,36(sp)
   if( retval == 0) {
-    2776:	4aaf 0024      	tst.l 36(sp)
-    277a:	6658           	bne.s 27d4 <ClBuild+0x94>
+    2914:	6658           	bne.s 296e <ClBuild+0x90>
     Write( Output(), "Allocation of Ram for Copper failed.\n", 40);
-    277c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2782:	2c40           	movea.l d0,a6
-    2784:	4eae ffc4      	jsr -60(a6)
-    2788:	2f40 0020      	move.l d0,32(sp)
-    278c:	202f 0020      	move.l 32(sp),d0
-    2790:	2f40 001c      	move.l d0,28(sp)
-    2794:	2f7c 0001 751b 	move.l #95515,24(sp)
-    279a:	0018 
-    279c:	7228           	moveq #40,d1
-    279e:	2f41 0014      	move.l d1,20(sp)
-    27a2:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    27a8:	2c40           	movea.l d0,a6
-    27aa:	222f 001c      	move.l 28(sp),d1
-    27ae:	242f 0018      	move.l 24(sp),d2
-    27b2:	262f 0014      	move.l 20(sp),d3
-    27b6:	4eae ffd0      	jsr -48(a6)
-    27ba:	2f40 0010      	move.l d0,16(sp)
+    2916:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    291c:	2c40           	movea.l d0,a6
+    291e:	4eae ffc4      	jsr -60(a6)
+    2922:	2f40 0020      	move.l d0,32(sp)
+    2926:	202f 0020      	move.l 32(sp),d0
+    292a:	2f40 001c      	move.l d0,28(sp)
+    292e:	2f7c 0000 7d77 	move.l #32119,24(sp)
+    2934:	0018 
+    2936:	7228           	moveq #40,d1
+    2938:	2f41 0014      	move.l d1,20(sp)
+    293c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2942:	2c40           	movea.l d0,a6
+    2944:	222f 001c      	move.l 28(sp),d1
+    2948:	242f 0018      	move.l 24(sp),d2
+    294c:	262f 0014      	move.l 20(sp),d3
+    2950:	4eae ffd0      	jsr -48(a6)
+    2954:	2f40 0010      	move.l d0,16(sp)
     Exit(1);
-    27be:	7401           	moveq #1,d2
-    27c0:	2f42 000c      	move.l d2,12(sp)
-    27c4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    27ca:	2c40           	movea.l d0,a6
-    27cc:	222f 000c      	move.l 12(sp),d1
-    27d0:	4eae ff70      	jsr -144(a6)
+    2958:	7401           	moveq #1,d2
+    295a:	2f42 000c      	move.l d2,12(sp)
+    295e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2964:	2c40           	movea.l d0,a6
+    2966:	222f 000c      	move.l 12(sp),d1
+    296a:	4eae ff70      	jsr -144(a6)
   }
     
   ULONG *cl = retval;
-    27d4:	2f6f 0024 0044 	move.l 36(sp),68(sp)
+    296e:	2f6f 0024 0044 	move.l 36(sp),68(sp)
   //clinstruction = DrawCopper;
   ULONG *clpartinstruction;
   clpartinstruction = ClsSprites;
-    27da:	2f7c 0001 a328 	move.l #107304,64(sp)
-    27e0:	0040 
+    2974:	2f7c 0001 a5a0 	move.l #107936,64(sp)
+    297a:	0040 
   for(int i=0; i<16;i++)
-    27e2:	42af 003c      	clr.l 60(sp)
-    27e6:	6024           	bra.s 280c <ClBuild+0xcc>
+    297c:	42af 003c      	clr.l 60(sp)
+    2980:	6024           	bra.s 29a6 <ClBuild+0xc8>
     *cl++ = *clpartinstruction++;
-    27e8:	222f 0040      	move.l 64(sp),d1
-    27ec:	2001           	move.l d1,d0
-    27ee:	5880           	addq.l #4,d0
-    27f0:	2f40 0040      	move.l d0,64(sp)
-    27f4:	202f 0044      	move.l 68(sp),d0
-    27f8:	2400           	move.l d0,d2
-    27fa:	5882           	addq.l #4,d2
-    27fc:	2f42 0044      	move.l d2,68(sp)
-    2800:	2041           	movea.l d1,a0
-    2802:	2210           	move.l (a0),d1
-    2804:	2040           	movea.l d0,a0
-    2806:	2081           	move.l d1,(a0)
+    2982:	222f 0040      	move.l 64(sp),d1
+    2986:	2001           	move.l d1,d0
+    2988:	5880           	addq.l #4,d0
+    298a:	2f40 0040      	move.l d0,64(sp)
+    298e:	202f 0044      	move.l 68(sp),d0
+    2992:	2400           	move.l d0,d2
+    2994:	5882           	addq.l #4,d2
+    2996:	2f42 0044      	move.l d2,68(sp)
+    299a:	2041           	movea.l d1,a0
+    299c:	2210           	move.l (a0),d1
+    299e:	2040           	movea.l d0,a0
+    29a0:	2081           	move.l d1,(a0)
   for(int i=0; i<16;i++)
-    2808:	52af 003c      	addq.l #1,60(sp)
-    280c:	700f           	moveq #15,d0
-    280e:	b0af 003c      	cmp.l 60(sp),d0
-    2812:	6cd4           	bge.s 27e8 <ClBuild+0xa8>
+    29a2:	52af 003c      	addq.l #1,60(sp)
+    29a6:	700f           	moveq #15,d0
+    29a8:	b0af 003c      	cmp.l 60(sp),d0
+    29ac:	6cd4           	bge.s 2982 <ClBuild+0xa4>
   clpartinstruction = ClScreen;
-    2814:	2f7c 0001 a368 	move.l #107368,64(sp)
-    281a:	0040 
+    29ae:	2f7c 0001 a5e0 	move.l #108000,64(sp)
+    29b4:	0040 
   for(int i=0; i<12;i++)
-    281c:	42af 0038      	clr.l 56(sp)
-    2820:	6024           	bra.s 2846 <ClBuild+0x106>
+    29b6:	42af 0038      	clr.l 56(sp)
+    29ba:	6024           	bra.s 29e0 <ClBuild+0x102>
     *cl++ = *clpartinstruction++;
-    2822:	222f 0040      	move.l 64(sp),d1
-    2826:	2401           	move.l d1,d2
-    2828:	5882           	addq.l #4,d2
-    282a:	2f42 0040      	move.l d2,64(sp)
-    282e:	202f 0044      	move.l 68(sp),d0
-    2832:	2400           	move.l d0,d2
-    2834:	5882           	addq.l #4,d2
-    2836:	2f42 0044      	move.l d2,68(sp)
-    283a:	2041           	movea.l d1,a0
-    283c:	2210           	move.l (a0),d1
-    283e:	2040           	movea.l d0,a0
-    2840:	2081           	move.l d1,(a0)
+    29bc:	222f 0040      	move.l 64(sp),d1
+    29c0:	2401           	move.l d1,d2
+    29c2:	5882           	addq.l #4,d2
+    29c4:	2f42 0040      	move.l d2,64(sp)
+    29c8:	202f 0044      	move.l 68(sp),d0
+    29cc:	2400           	move.l d0,d2
+    29ce:	5882           	addq.l #4,d2
+    29d0:	2f42 0044      	move.l d2,68(sp)
+    29d4:	2041           	movea.l d1,a0
+    29d6:	2210           	move.l (a0),d1
+    29d8:	2040           	movea.l d0,a0
+    29da:	2081           	move.l d1,(a0)
   for(int i=0; i<12;i++)
-    2842:	52af 0038      	addq.l #1,56(sp)
-    2846:	700b           	moveq #11,d0
-    2848:	b0af 0038      	cmp.l 56(sp),d0
-    284c:	6cd4           	bge.s 2822 <ClBuild+0xe2>
+    29dc:	52af 0038      	addq.l #1,56(sp)
+    29e0:	700b           	moveq #11,d0
+    29e2:	b0af 0038      	cmp.l 56(sp),d0
+    29e6:	6cd4           	bge.s 29bc <ClBuild+0xde>
   //cl[CopBpl1High] = (long) cl + 2;
   *cl++ = 0x00e00000;
-    284e:	202f 0044      	move.l 68(sp),d0
-    2852:	2200           	move.l d0,d1
-    2854:	5881           	addq.l #4,d1
-    2856:	2f41 0044      	move.l d1,68(sp)
-    285a:	2040           	movea.l d0,a0
-    285c:	20bc 00e0 0000 	move.l #14680064,(a0)
+    29e8:	202f 0044      	move.l 68(sp),d0
+    29ec:	2200           	move.l d0,d1
+    29ee:	5881           	addq.l #4,d1
+    29f0:	2f41 0044      	move.l d1,68(sp)
+    29f4:	2040           	movea.l d0,a0
+    29f6:	20bc 00e0 0000 	move.l #14680064,(a0)
   //cl[CopBpl1Low] = (long) cl + 2;
   *cl++ = 0x00e20000;
-    2862:	202f 0044      	move.l 68(sp),d0
-    2866:	2200           	move.l d0,d1
-    2868:	5881           	addq.l #4,d1
-    286a:	2f41 0044      	move.l d1,68(sp)
-    286e:	2040           	movea.l d0,a0
-    2870:	20bc 00e2 0000 	move.l #14811136,(a0)
+    29fc:	202f 0044      	move.l 68(sp),d0
+    2a00:	2200           	move.l d0,d1
+    2a02:	5881           	addq.l #4,d1
+    2a04:	2f41 0044      	move.l d1,68(sp)
+    2a08:	2040           	movea.l d0,a0
+    2a0a:	20bc 00e2 0000 	move.l #14811136,(a0)
 
   clpartinstruction = ClColor;
-    2876:	2f7c 0001 a2a8 	move.l #107176,64(sp)
-    287c:	0040 
+    2a10:	2f7c 0001 a520 	move.l #107808,64(sp)
+    2a16:	0040 
   for(int i=0; i<2;i++)
-    287e:	42af 0034      	clr.l 52(sp)
-    2882:	6024           	bra.s 28a8 <ClBuild+0x168>
+    2a18:	42af 0034      	clr.l 52(sp)
+    2a1c:	6024           	bra.s 2a42 <ClBuild+0x164>
     *cl++ = *clpartinstruction++;
-    2884:	222f 0040      	move.l 64(sp),d1
-    2888:	2001           	move.l d1,d0
-    288a:	5880           	addq.l #4,d0
-    288c:	2f40 0040      	move.l d0,64(sp)
-    2890:	202f 0044      	move.l 68(sp),d0
-    2894:	2400           	move.l d0,d2
-    2896:	5882           	addq.l #4,d2
-    2898:	2f42 0044      	move.l d2,68(sp)
-    289c:	2041           	movea.l d1,a0
-    289e:	2210           	move.l (a0),d1
-    28a0:	2040           	movea.l d0,a0
-    28a2:	2081           	move.l d1,(a0)
+    2a1e:	222f 0040      	move.l 64(sp),d1
+    2a22:	2001           	move.l d1,d0
+    2a24:	5880           	addq.l #4,d0
+    2a26:	2f40 0040      	move.l d0,64(sp)
+    2a2a:	202f 0044      	move.l 68(sp),d0
+    2a2e:	2400           	move.l d0,d2
+    2a30:	5882           	addq.l #4,d2
+    2a32:	2f42 0044      	move.l d2,68(sp)
+    2a36:	2041           	movea.l d1,a0
+    2a38:	2210           	move.l (a0),d1
+    2a3a:	2040           	movea.l d0,a0
+    2a3c:	2081           	move.l d1,(a0)
   for(int i=0; i<2;i++)
-    28a4:	52af 0034      	addq.l #1,52(sp)
-    28a8:	7001           	moveq #1,d0
-    28aa:	b0af 0034      	cmp.l 52(sp),d0
-    28ae:	6cd4           	bge.s 2884 <ClBuild+0x144>
+    2a3e:	52af 0034      	addq.l #1,52(sp)
+    2a42:	7001           	moveq #1,d0
+    2a44:	b0af 0034      	cmp.l 52(sp),d0
+    2a48:	6cd4           	bge.s 2a1e <ClBuild+0x140>
   *cl = 0xfffffffe;
-    28b0:	206f 0044      	movea.l 68(sp),a0
-    28b4:	72fe           	moveq #-2,d1
-    28b6:	2081           	move.l d1,(a0)
+    2a4a:	206f 0044      	movea.l 68(sp),a0
+    2a4e:	72fe           	moveq #-2,d1
+    2a50:	2081           	move.l d1,(a0)
 
   return retval;
-    28b8:	202f 0024      	move.l 36(sp),d0
+    2a52:	202f 0024      	move.l 36(sp),d0
 }
-    28bc:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    28c0:	4fef 003c      	lea 60(sp),sp
-    28c4:	4e75           	rts
+    2a56:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    2a5a:	4fef 003c      	lea 60(sp),sp
+    2a5e:	4e75           	rts
 
-000028c6 <PrepareDisplay>:
+00002a60 <PrepareDisplay>:
 
 int PrepareDisplay() {
-    28c6:	4fef ffb8      	lea -72(sp),sp
-    28ca:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    2a60:	4fef ffb8      	lea -72(sp),sp
+    2a64:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   Copperlist1 = ClBuild( );
-    28ce:	4eba fe70      	jsr 2740 <ClBuild>(pc)
-    28d2:	23c0 0001 ba90 	move.l d0,1ba90 <Copperlist1>
+    2a68:	4eba fe74      	jsr 28de <ClBuild>(pc)
+    2a6c:	23c0 0002 8508 	move.l d0,28508 <Copperlist1>
   Copperlist2 = ClBuild( );
-    28d8:	4eba fe66      	jsr 2740 <ClBuild>(pc)
-    28dc:	23c0 0001 ba94 	move.l d0,1ba94 <Copperlist2>
+    2a72:	4eba fe6a      	jsr 28de <ClBuild>(pc)
+    2a76:	23c0 0002 850c 	move.l d0,2850c <Copperlist2>
   Bitplane1 = AllocMem(80*640, MEMF_CHIP);
-    28e2:	2f7c 0000 c800 	move.l #51200,80(sp)
-    28e8:	0050 
-    28ea:	7002           	moveq #2,d0
-    28ec:	2f40 004c      	move.l d0,76(sp)
-    28f0:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    28f6:	2c40           	movea.l d0,a6
-    28f8:	202f 0050      	move.l 80(sp),d0
-    28fc:	222f 004c      	move.l 76(sp),d1
-    2900:	4eae ff3a      	jsr -198(a6)
-    2904:	2f40 0048      	move.l d0,72(sp)
-    2908:	202f 0048      	move.l 72(sp),d0
-    290c:	23c0 0001 ba88 	move.l d0,1ba88 <Bitplane1>
+    2a7c:	2f7c 0000 c800 	move.l #51200,80(sp)
+    2a82:	0050 
+    2a84:	7002           	moveq #2,d0
+    2a86:	2f40 004c      	move.l d0,76(sp)
+    2a8a:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    2a90:	2c40           	movea.l d0,a6
+    2a92:	202f 0050      	move.l 80(sp),d0
+    2a96:	222f 004c      	move.l 76(sp),d1
+    2a9a:	4eae ff3a      	jsr -198(a6)
+    2a9e:	2f40 0048      	move.l d0,72(sp)
+    2aa2:	202f 0048      	move.l 72(sp),d0
+    2aa6:	23c0 0002 8500 	move.l d0,28500 <Bitplane1>
   if(Bitplane1 == 0) {
-    2912:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    2918:	4a80           	tst.l d0
-    291a:	6658           	bne.s 2974 <PrepareDisplay+0xae>
+    2aac:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    2ab2:	6658           	bne.s 2b0c <PrepareDisplay+0xac>
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    291c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2922:	2c40           	movea.l d0,a6
-    2924:	4eae ffc4      	jsr -60(a6)
-    2928:	2f40 0044      	move.l d0,68(sp)
-    292c:	202f 0044      	move.l 68(sp),d0
-    2930:	2f40 0040      	move.l d0,64(sp)
-    2934:	2f7c 0001 74cd 	move.l #95437,60(sp)
-    293a:	003c 
-    293c:	7026           	moveq #38,d0
-    293e:	2f40 0038      	move.l d0,56(sp)
-    2942:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2948:	2c40           	movea.l d0,a6
-    294a:	222f 0040      	move.l 64(sp),d1
-    294e:	242f 003c      	move.l 60(sp),d2
-    2952:	262f 0038      	move.l 56(sp),d3
-    2956:	4eae ffd0      	jsr -48(a6)
-    295a:	2f40 0034      	move.l d0,52(sp)
+    2ab4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2aba:	2c40           	movea.l d0,a6
+    2abc:	4eae ffc4      	jsr -60(a6)
+    2ac0:	2f40 0044      	move.l d0,68(sp)
+    2ac4:	202f 0044      	move.l 68(sp),d0
+    2ac8:	2f40 0040      	move.l d0,64(sp)
+    2acc:	2f7c 0000 7d29 	move.l #32041,60(sp)
+    2ad2:	003c 
+    2ad4:	7026           	moveq #38,d0
+    2ad6:	2f40 0038      	move.l d0,56(sp)
+    2ada:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2ae0:	2c40           	movea.l d0,a6
+    2ae2:	222f 0040      	move.l 64(sp),d1
+    2ae6:	242f 003c      	move.l 60(sp),d2
+    2aea:	262f 0038      	move.l 56(sp),d3
+    2aee:	4eae ffd0      	jsr -48(a6)
+    2af2:	2f40 0034      	move.l d0,52(sp)
     Exit(1);
-    295e:	7001           	moveq #1,d0
-    2960:	2f40 0030      	move.l d0,48(sp)
-    2964:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    296a:	2c40           	movea.l d0,a6
-    296c:	222f 0030      	move.l 48(sp),d1
-    2970:	4eae ff70      	jsr -144(a6)
+    2af6:	7001           	moveq #1,d0
+    2af8:	2f40 0030      	move.l d0,48(sp)
+    2afc:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2b02:	2c40           	movea.l d0,a6
+    2b04:	222f 0030      	move.l 48(sp),d1
+    2b08:	4eae ff70      	jsr -144(a6)
   }
   ViewBuffer = Bitplane1;
-    2974:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    297a:	23c0 0001 ba9c 	move.l d0,1ba9c <ViewBuffer>
+    2b0c:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    2b12:	23c0 0002 8514 	move.l d0,28514 <ViewBuffer>
   ViewCopper = Copperlist1;
-    2980:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2986:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
+    2b18:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2b1e:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
   Bitplane2 = AllocMem(80*640, MEMF_CHIP);
-    298c:	2f7c 0000 c800 	move.l #51200,44(sp)
-    2992:	002c 
-    2994:	7002           	moveq #2,d0
-    2996:	2f40 0028      	move.l d0,40(sp)
-    299a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    29a0:	2c40           	movea.l d0,a6
-    29a2:	202f 002c      	move.l 44(sp),d0
-    29a6:	222f 0028      	move.l 40(sp),d1
-    29aa:	4eae ff3a      	jsr -198(a6)
-    29ae:	2f40 0024      	move.l d0,36(sp)
-    29b2:	202f 0024      	move.l 36(sp),d0
-    29b6:	23c0 0001 ba8c 	move.l d0,1ba8c <Bitplane2>
+    2b24:	2f7c 0000 c800 	move.l #51200,44(sp)
+    2b2a:	002c 
+    2b2c:	7002           	moveq #2,d0
+    2b2e:	2f40 0028      	move.l d0,40(sp)
+    2b32:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    2b38:	2c40           	movea.l d0,a6
+    2b3a:	202f 002c      	move.l 44(sp),d0
+    2b3e:	222f 0028      	move.l 40(sp),d1
+    2b42:	4eae ff3a      	jsr -198(a6)
+    2b46:	2f40 0024      	move.l d0,36(sp)
+    2b4a:	202f 0024      	move.l 36(sp),d0
+    2b4e:	23c0 0002 8504 	move.l d0,28504 <Bitplane2>
   if(Bitplane2 == 0) {
-    29bc:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    29c2:	4a80           	tst.l d0
-    29c4:	6658           	bne.s 2a1e <PrepareDisplay+0x158>
+    2b54:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    2b5a:	6658           	bne.s 2bb4 <PrepareDisplay+0x154>
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    29c6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    29cc:	2c40           	movea.l d0,a6
-    29ce:	4eae ffc4      	jsr -60(a6)
-    29d2:	2f40 0020      	move.l d0,32(sp)
-    29d6:	202f 0020      	move.l 32(sp),d0
-    29da:	2f40 001c      	move.l d0,28(sp)
-    29de:	2f7c 0001 74f4 	move.l #95476,24(sp)
-    29e4:	0018 
-    29e6:	7026           	moveq #38,d0
-    29e8:	2f40 0014      	move.l d0,20(sp)
-    29ec:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    29f2:	2c40           	movea.l d0,a6
-    29f4:	222f 001c      	move.l 28(sp),d1
-    29f8:	242f 0018      	move.l 24(sp),d2
-    29fc:	262f 0014      	move.l 20(sp),d3
-    2a00:	4eae ffd0      	jsr -48(a6)
-    2a04:	2f40 0010      	move.l d0,16(sp)
+    2b5c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2b62:	2c40           	movea.l d0,a6
+    2b64:	4eae ffc4      	jsr -60(a6)
+    2b68:	2f40 0020      	move.l d0,32(sp)
+    2b6c:	202f 0020      	move.l 32(sp),d0
+    2b70:	2f40 001c      	move.l d0,28(sp)
+    2b74:	2f7c 0000 7d50 	move.l #32080,24(sp)
+    2b7a:	0018 
+    2b7c:	7026           	moveq #38,d0
+    2b7e:	2f40 0014      	move.l d0,20(sp)
+    2b82:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2b88:	2c40           	movea.l d0,a6
+    2b8a:	222f 001c      	move.l 28(sp),d1
+    2b8e:	242f 0018      	move.l 24(sp),d2
+    2b92:	262f 0014      	move.l 20(sp),d3
+    2b96:	4eae ffd0      	jsr -48(a6)
+    2b9a:	2f40 0010      	move.l d0,16(sp)
     Exit(1);
-    2a08:	7001           	moveq #1,d0
-    2a0a:	2f40 000c      	move.l d0,12(sp)
-    2a0e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2a14:	2c40           	movea.l d0,a6
-    2a16:	222f 000c      	move.l 12(sp),d1
-    2a1a:	4eae ff70      	jsr -144(a6)
+    2b9e:	7001           	moveq #1,d0
+    2ba0:	2f40 000c      	move.l d0,12(sp)
+    2ba4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2baa:	2c40           	movea.l d0,a6
+    2bac:	222f 000c      	move.l 12(sp),d1
+    2bb0:	4eae ff70      	jsr -144(a6)
   }
   DrawBuffer = Bitplane2;
-    2a1e:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    2a24:	23c0 0001 ba98 	move.l d0,1ba98 <DrawBuffer>
+    2bb4:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    2bba:	23c0 0002 8510 	move.l d0,28510 <DrawBuffer>
   DrawCopper = Copperlist2;
-    2a2a:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    2a30:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
+    2bc0:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    2bc6:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
   /*SwapCl();
   SetBplPointers();
   SwapCl();
   SetBplPointers();*/
   return 0;
-    2a36:	7000           	moveq #0,d0
+    2bcc:	7000           	moveq #0,d0
 }
-    2a38:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    2a3c:	4fef 0048      	lea 72(sp),sp
-    2a40:	4e75           	rts
+    2bce:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    2bd2:	4fef 0048      	lea 72(sp),sp
+    2bd6:	4e75           	rts
 
-00002a42 <TestCopperlistBatch>:
+00002bd8 <TestCopperlistBatch>:
 
 //Test a batch of copperlist instructions against a certain position
 int TestCopperlistBatch(  long *instructions, int pos, long *batch, 
                                                                   long length) {
-    2a42:	598f           	subq.l #4,sp
+    2bd8:	598f           	subq.l #4,sp
   for( int i=0;i<length;i++)
-    2a44:	4297           	clr.l (sp)
-    2a46:	602a           	bra.s 2a72 <TestCopperlistBatch+0x30>
+    2bda:	4297           	clr.l (sp)
+    2bdc:	602a           	bra.s 2c08 <TestCopperlistBatch+0x30>
     if( instructions[ pos+i] != batch[ i])
-    2a48:	202f 000c      	move.l 12(sp),d0
-    2a4c:	d097           	add.l (sp),d0
-    2a4e:	d080           	add.l d0,d0
-    2a50:	d080           	add.l d0,d0
-    2a52:	206f 0008      	movea.l 8(sp),a0
-    2a56:	d1c0           	adda.l d0,a0
-    2a58:	2210           	move.l (a0),d1
-    2a5a:	2017           	move.l (sp),d0
-    2a5c:	d080           	add.l d0,d0
-    2a5e:	d080           	add.l d0,d0
-    2a60:	206f 0010      	movea.l 16(sp),a0
-    2a64:	d1c0           	adda.l d0,a0
-    2a66:	2010           	move.l (a0),d0
-    2a68:	b081           	cmp.l d1,d0
-    2a6a:	6704           	beq.s 2a70 <TestCopperlistBatch+0x2e>
+    2bde:	202f 000c      	move.l 12(sp),d0
+    2be2:	d097           	add.l (sp),d0
+    2be4:	d080           	add.l d0,d0
+    2be6:	d080           	add.l d0,d0
+    2be8:	206f 0008      	movea.l 8(sp),a0
+    2bec:	d1c0           	adda.l d0,a0
+    2bee:	2210           	move.l (a0),d1
+    2bf0:	2017           	move.l (sp),d0
+    2bf2:	d080           	add.l d0,d0
+    2bf4:	d080           	add.l d0,d0
+    2bf6:	206f 0010      	movea.l 16(sp),a0
+    2bfa:	d1c0           	adda.l d0,a0
+    2bfc:	2010           	move.l (a0),d0
+    2bfe:	b081           	cmp.l d1,d0
+    2c00:	6704           	beq.s 2c06 <TestCopperlistBatch+0x2e>
       return 0;
-    2a6c:	7000           	moveq #0,d0
-    2a6e:	600c           	bra.s 2a7c <TestCopperlistBatch+0x3a>
+    2c02:	7000           	moveq #0,d0
+    2c04:	600c           	bra.s 2c12 <TestCopperlistBatch+0x3a>
   for( int i=0;i<length;i++)
-    2a70:	5297           	addq.l #1,(sp)
-    2a72:	2017           	move.l (sp),d0
-    2a74:	b0af 0014      	cmp.l 20(sp),d0
-    2a78:	6dce           	blt.s 2a48 <TestCopperlistBatch+0x6>
+    2c06:	5297           	addq.l #1,(sp)
+    2c08:	2017           	move.l (sp),d0
+    2c0a:	b0af 0014      	cmp.l 20(sp),d0
+    2c0e:	6dce           	blt.s 2bde <TestCopperlistBatch+0x6>
   return 1;
-    2a7a:	7001           	moveq #1,d0
+    2c10:	7001           	moveq #1,d0
 }
-    2a7c:	588f           	addq.l #4,sp
-    2a7e:	4e75           	rts
+    2c12:	588f           	addq.l #4,sp
+    2c14:	4e75           	rts
 
-00002a80 <TestCopperlistPos>:
+00002c16 <TestCopperlistPos>:
 
 //Check if a certain position in a copperlist has the expected value
 int TestCopperlistPos(  long *instructions, int pos, long value) {
   if( instructions[pos] == value ) 
-    2a80:	202f 0008      	move.l 8(sp),d0
-    2a84:	d080           	add.l d0,d0
-    2a86:	d080           	add.l d0,d0
-    2a88:	206f 0004      	movea.l 4(sp),a0
-    2a8c:	d1c0           	adda.l d0,a0
-    2a8e:	2010           	move.l (a0),d0
-    2a90:	b0af 000c      	cmp.l 12(sp),d0
-    2a94:	6604           	bne.s 2a9a <TestCopperlistPos+0x1a>
+    2c16:	202f 0008      	move.l 8(sp),d0
+    2c1a:	d080           	add.l d0,d0
+    2c1c:	d080           	add.l d0,d0
+    2c1e:	206f 0004      	movea.l 4(sp),a0
+    2c22:	d1c0           	adda.l d0,a0
+    2c24:	2010           	move.l (a0),d0
+    2c26:	b0af 000c      	cmp.l 12(sp),d0
+    2c2a:	6604           	bne.s 2c30 <TestCopperlistPos+0x1a>
     return 1;
-    2a96:	7001           	moveq #1,d0
-    2a98:	6002           	bra.s 2a9c <TestCopperlistPos+0x1c>
+    2c2c:	7001           	moveq #1,d0
+    2c2e:	6002           	bra.s 2c32 <TestCopperlistPos+0x1c>
   else 
     return 0;
-    2a9a:	7000           	moveq #0,d0
+    2c30:	7000           	moveq #0,d0
 }
-    2a9c:	4e75           	rts
+    2c32:	4e75           	rts
 
-00002a9e <TestCopperList>:
+00002c34 <TestCopperList>:
 
 void TestCopperList() {
-    2a9e:	4fef feb8      	lea -328(sp),sp
-    2aa2:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    2c34:	4fef feb8      	lea -328(sp),sp
+    2c38:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   Write( Output(), "%d", hw->cop1lc);
-    2aa6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2aac:	2c40           	movea.l d0,a6
-    2aae:	4eae ffc4      	jsr -60(a6)
-    2ab2:	2f40 0150      	move.l d0,336(sp)
-    2ab6:	202f 0150      	move.l 336(sp),d0
-    2aba:	2f40 014c      	move.l d0,332(sp)
-    2abe:	2f7c 0001 7be7 	move.l #97255,328(sp)
-    2ac4:	0148 
-    2ac6:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    2acc:	2028 0080      	move.l 128(a0),d0
-    2ad0:	2f40 0144      	move.l d0,324(sp)
-    2ad4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2ada:	2c40           	movea.l d0,a6
-    2adc:	222f 014c      	move.l 332(sp),d1
-    2ae0:	242f 0148      	move.l 328(sp),d2
-    2ae4:	262f 0144      	move.l 324(sp),d3
-    2ae8:	4eae ffd0      	jsr -48(a6)
-    2aec:	2f40 0140      	move.l d0,320(sp)
+    2c3c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2c42:	2c40           	movea.l d0,a6
+    2c44:	4eae ffc4      	jsr -60(a6)
+    2c48:	2f40 0150      	move.l d0,336(sp)
+    2c4c:	202f 0150      	move.l 336(sp),d0
+    2c50:	2f40 014c      	move.l d0,332(sp)
+    2c54:	2f7c 0001 7d9c 	move.l #97692,328(sp)
+    2c5a:	0148 
+    2c5c:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    2c62:	2028 0080      	move.l 128(a0),d0
+    2c66:	2f40 0144      	move.l d0,324(sp)
+    2c6a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2c70:	2c40           	movea.l d0,a6
+    2c72:	222f 014c      	move.l 332(sp),d1
+    2c76:	242f 0148      	move.l 328(sp),d2
+    2c7a:	262f 0144      	move.l 324(sp),d3
+    2c7e:	4eae ffd0      	jsr -48(a6)
+    2c82:	2f40 0140      	move.l d0,320(sp)
   Copperlist1 = ClBuild();
-    2af0:	4eba fc4e      	jsr 2740 <ClBuild>(pc)
-    2af4:	23c0 0001 ba90 	move.l d0,1ba90 <Copperlist1>
+    2c86:	4eba fc56      	jsr 28de <ClBuild>(pc)
+    2c8a:	23c0 0002 8508 	move.l d0,28508 <Copperlist1>
   DrawCopper = Copperlist1;
-    2afa:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2b00:	23c0 0001 baa0 	move.l d0,1baa0 <DrawCopper>
+    2c90:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2c96:	23c0 0002 8518 	move.l d0,28518 <DrawCopper>
   Copperlist2 = ClBuild();
-    2b06:	4eba fc38      	jsr 2740 <ClBuild>(pc)
-    2b0a:	23c0 0001 ba94 	move.l d0,1ba94 <Copperlist2>
+    2c9c:	4eba fc40      	jsr 28de <ClBuild>(pc)
+    2ca0:	23c0 0002 850c 	move.l d0,2850c <Copperlist2>
   ViewCopper = Copperlist2;
-    2b10:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    2b16:	23c0 0001 baa4 	move.l d0,1baa4 <ViewCopper>
+    2ca6:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    2cac:	23c0 0002 851c 	move.l d0,2851c <ViewCopper>
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
-    2b1c:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2b22:	4878 0010      	pea 10 <GetVBR+0x8>
-    2b26:	4879 0001 a328 	pea 1a328 <ClsSprites>
-    2b2c:	42a7           	clr.l -(sp)
-    2b2e:	2f00           	move.l d0,-(sp)
-    2b30:	4eba ff10      	jsr 2a42 <TestCopperlistBatch>(pc)
-    2b34:	4fef 0010      	lea 16(sp),sp
-    2b38:	4a80           	tst.l d0
-    2b3a:	6642           	bne.s 2b7e <TestCopperList+0xe0>
+    2cb2:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2cb8:	4878 0010      	pea 10 <_start+0x10>
+    2cbc:	4879 0001 a5a0 	pea 1a5a0 <ClsSprites>
+    2cc2:	42a7           	clr.l -(sp)
+    2cc4:	2f00           	move.l d0,-(sp)
+    2cc6:	4eba ff10      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    2cca:	4fef 0010      	lea 16(sp),sp
+    2cce:	4a80           	tst.l d0
+    2cd0:	6642           	bne.s 2d14 <TestCopperList+0xe0>
     Write(Output(), "Sprite section of copper starting on pos 0 messed up\n", 
-    2b3c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2b42:	2c40           	movea.l d0,a6
-    2b44:	4eae ffc4      	jsr -60(a6)
-    2b48:	2f40 013c      	move.l d0,316(sp)
-    2b4c:	202f 013c      	move.l 316(sp),d0
-    2b50:	2f40 0138      	move.l d0,312(sp)
-    2b54:	2f7c 0001 7552 	move.l #95570,308(sp)
-    2b5a:	0134 
-    2b5c:	702c           	moveq #44,d0
-    2b5e:	2f40 0130      	move.l d0,304(sp)
-    2b62:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2b68:	2c40           	movea.l d0,a6
-    2b6a:	222f 0138      	move.l 312(sp),d1
-    2b6e:	242f 0134      	move.l 308(sp),d2
-    2b72:	262f 0130      	move.l 304(sp),d3
-    2b76:	4eae ffd0      	jsr -48(a6)
-    2b7a:	2f40 012c      	move.l d0,300(sp)
+    2cd2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2cd8:	2c40           	movea.l d0,a6
+    2cda:	4eae ffc4      	jsr -60(a6)
+    2cde:	2f40 013c      	move.l d0,316(sp)
+    2ce2:	202f 013c      	move.l 316(sp),d0
+    2ce6:	2f40 0138      	move.l d0,312(sp)
+    2cea:	2f7c 0000 7693 	move.l #30355,308(sp)
+    2cf0:	0134 
+    2cf2:	702c           	moveq #44,d0
+    2cf4:	2f40 0130      	move.l d0,304(sp)
+    2cf8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2cfe:	2c40           	movea.l d0,a6
+    2d00:	222f 0138      	move.l 312(sp),d1
+    2d04:	242f 0134      	move.l 308(sp),d2
+    2d08:	262f 0130      	move.l 304(sp),d3
+    2d0c:	4eae ffd0      	jsr -48(a6)
+    2d10:	2f40 012c      	move.l d0,300(sp)
                                                                             44);
   if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
-    2b7e:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2b84:	4878 000c      	pea c <GetVBR+0x4>
-    2b88:	4879 0001 a368 	pea 1a368 <ClScreen>
-    2b8e:	4878 0010      	pea 10 <GetVBR+0x8>
-    2b92:	2f00           	move.l d0,-(sp)
-    2b94:	4eba feac      	jsr 2a42 <TestCopperlistBatch>(pc)
-    2b98:	4fef 0010      	lea 16(sp),sp
-    2b9c:	4a80           	tst.l d0
-    2b9e:	6642           	bne.s 2be2 <TestCopperList+0x144>
+    2d14:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2d1a:	4878 000c      	pea c <_start+0xc>
+    2d1e:	4879 0001 a5e0 	pea 1a5e0 <ClScreen>
+    2d24:	4878 0010      	pea 10 <_start+0x10>
+    2d28:	2f00           	move.l d0,-(sp)
+    2d2a:	4eba feac      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    2d2e:	4fef 0010      	lea 16(sp),sp
+    2d32:	4a80           	tst.l d0
+    2d34:	6642           	bne.s 2d78 <TestCopperList+0x144>
     Write(Output(), "Screen section of copper starting on pos 16 messed up\n",
-    2ba0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2ba6:	2c40           	movea.l d0,a6
-    2ba8:	4eae ffc4      	jsr -60(a6)
-    2bac:	2f40 0128      	move.l d0,296(sp)
-    2bb0:	202f 0128      	move.l 296(sp),d0
-    2bb4:	2f40 0124      	move.l d0,292(sp)
-    2bb8:	2f7c 0001 7588 	move.l #95624,288(sp)
-    2bbe:	0120 
-    2bc0:	7036           	moveq #54,d0
-    2bc2:	2f40 011c      	move.l d0,284(sp)
-    2bc6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2bcc:	2c40           	movea.l d0,a6
-    2bce:	222f 0124      	move.l 292(sp),d1
-    2bd2:	242f 0120      	move.l 288(sp),d2
-    2bd6:	262f 011c      	move.l 284(sp),d3
-    2bda:	4eae ffd0      	jsr -48(a6)
-    2bde:	2f40 0118      	move.l d0,280(sp)
+    2d36:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2d3c:	2c40           	movea.l d0,a6
+    2d3e:	4eae ffc4      	jsr -60(a6)
+    2d42:	2f40 0128      	move.l d0,296(sp)
+    2d46:	202f 0128      	move.l 296(sp),d0
+    2d4a:	2f40 0124      	move.l d0,292(sp)
+    2d4e:	2f7c 0000 76c9 	move.l #30409,288(sp)
+    2d54:	0120 
+    2d56:	7036           	moveq #54,d0
+    2d58:	2f40 011c      	move.l d0,284(sp)
+    2d5c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2d62:	2c40           	movea.l d0,a6
+    2d64:	222f 0124      	move.l 292(sp),d1
+    2d68:	242f 0120      	move.l 288(sp),d2
+    2d6c:	262f 011c      	move.l 284(sp),d3
+    2d70:	4eae ffd0      	jsr -48(a6)
+    2d74:	2f40 0118      	move.l d0,280(sp)
                                                                             54);   
   
   DrawBuffer = (ULONG *)0x40000;
-    2be2:	23fc 0004 0000 	move.l #262144,1ba98 <DrawBuffer>
-    2be8:	0001 ba98 
+    2d78:	23fc 0004 0000 	move.l #262144,28510 <DrawBuffer>
+    2d7e:	0002 8510 
   ViewBuffer = (ULONG *)0x50000;
-    2bec:	23fc 0005 0000 	move.l #327680,1ba9c <ViewBuffer>
-    2bf2:	0001 ba9c 
+    2d82:	23fc 0005 0000 	move.l #327680,28514 <ViewBuffer>
+    2d88:	0002 8514 
   
   SetBplPointers();
-    2bf6:	4eba d5d4      	jsr 1cc <SetBplPointers>(pc)
+    2d8c:	4eba d408      	jsr 196 <SetBplPointers>(pc)
   
   if( DrawBuffer != 0x50000 || ViewBuffer != 0x40000)
-    2bfa:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    2c00:	0c80 0005 0000 	cmpi.l #327680,d0
-    2c06:	660e           	bne.s 2c16 <TestCopperList+0x178>
-    2c08:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-    2c0e:	0c80 0004 0000 	cmpi.l #262144,d0
-    2c14:	6742           	beq.s 2c58 <TestCopperList+0x1ba>
+    2d90:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    2d96:	0c80 0005 0000 	cmpi.l #327680,d0
+    2d9c:	660e           	bne.s 2dac <TestCopperList+0x178>
+    2d9e:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    2da4:	0c80 0004 0000 	cmpi.l #262144,d0
+    2daa:	6742           	beq.s 2dee <TestCopperList+0x1ba>
     Write( Output(), 
-    2c16:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2c1c:	2c40           	movea.l d0,a6
-    2c1e:	4eae ffc4      	jsr -60(a6)
-    2c22:	2f40 0114      	move.l d0,276(sp)
-    2c26:	202f 0114      	move.l 276(sp),d0
-    2c2a:	2f40 0110      	move.l d0,272(sp)
-    2c2e:	2f7c 0001 7bea 	move.l #97258,268(sp)
-    2c34:	010c 
-    2c36:	703b           	moveq #59,d0
-    2c38:	2f40 0108      	move.l d0,264(sp)
-    2c3c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2c42:	2c40           	movea.l d0,a6
-    2c44:	222f 0110      	move.l 272(sp),d1
-    2c48:	242f 010c      	move.l 268(sp),d2
-    2c4c:	262f 0108      	move.l 264(sp),d3
-    2c50:	4eae ffd0      	jsr -48(a6)
-    2c54:	2f40 0104      	move.l d0,260(sp)
+    2dac:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2db2:	2c40           	movea.l d0,a6
+    2db4:	4eae ffc4      	jsr -60(a6)
+    2db8:	2f40 0114      	move.l d0,276(sp)
+    2dbc:	202f 0114      	move.l 276(sp),d0
+    2dc0:	2f40 0110      	move.l d0,272(sp)
+    2dc4:	2f7c 0001 7d9f 	move.l #97695,268(sp)
+    2dca:	010c 
+    2dcc:	703b           	moveq #59,d0
+    2dce:	2f40 0108      	move.l d0,264(sp)
+    2dd2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2dd8:	2c40           	movea.l d0,a6
+    2dda:	222f 0110      	move.l 272(sp),d1
+    2dde:	242f 010c      	move.l 268(sp),d2
+    2de2:	262f 0108      	move.l 264(sp),d3
+    2de6:	4eae ffd0      	jsr -48(a6)
+    2dea:	2f40 0104      	move.l d0,260(sp)
             "SetBplPointers: Draw and ViewBuffer not proberly switched.\n", 59);
     
   if(  TestCopperlistPos(  Copperlist1, 28, 0x00e00004) == 0)
-    2c58:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2c5e:	2f3c 00e0 0004 	move.l #14680068,-(sp)
-    2c64:	4878 001c      	pea 1c <GetVBR+0x14>
-    2c68:	2f00           	move.l d0,-(sp)
-    2c6a:	4eba fe14      	jsr 2a80 <TestCopperlistPos>(pc)
-    2c6e:	4fef 000c      	lea 12(sp),sp
-    2c72:	4a80           	tst.l d0
-    2c74:	6642           	bne.s 2cb8 <TestCopperList+0x21a>
+    2dee:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2df4:	2f3c 00e0 0004 	move.l #14680068,-(sp)
+    2dfa:	4878 001c      	pea 1c <_start+0x1c>
+    2dfe:	2f00           	move.l d0,-(sp)
+    2e00:	4eba fe14      	jsr 2c16 <TestCopperlistPos>(pc)
+    2e04:	4fef 000c      	lea 12(sp),sp
+    2e08:	4a80           	tst.l d0
+    2e0a:	6642           	bne.s 2e4e <TestCopperList+0x21a>
     Write(Output(), 
-    2c76:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2c7c:	2c40           	movea.l d0,a6
-    2c7e:	4eae ffc4      	jsr -60(a6)
-    2c82:	2f40 0100      	move.l d0,256(sp)
-    2c86:	202f 0100      	move.l 256(sp),d0
-    2c8a:	2f40 00fc      	move.l d0,252(sp)
-    2c8e:	2f7c 0001 7c26 	move.l #97318,248(sp)
-    2c94:	00f8 
-    2c96:	703c           	moveq #60,d0
-    2c98:	2f40 00f4      	move.l d0,244(sp)
-    2c9c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2ca2:	2c40           	movea.l d0,a6
-    2ca4:	222f 00fc      	move.l 252(sp),d1
-    2ca8:	242f 00f8      	move.l 248(sp),d2
-    2cac:	262f 00f4      	move.l 244(sp),d3
-    2cb0:	4eae ffd0      	jsr -48(a6)
-    2cb4:	2f40 00f0      	move.l d0,240(sp)
+    2e0c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2e12:	2c40           	movea.l d0,a6
+    2e14:	4eae ffc4      	jsr -60(a6)
+    2e18:	2f40 0100      	move.l d0,256(sp)
+    2e1c:	202f 0100      	move.l 256(sp),d0
+    2e20:	2f40 00fc      	move.l d0,252(sp)
+    2e24:	2f7c 0001 7ddb 	move.l #97755,248(sp)
+    2e2a:	00f8 
+    2e2c:	703c           	moveq #60,d0
+    2e2e:	2f40 00f4      	move.l d0,244(sp)
+    2e32:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2e38:	2c40           	movea.l d0,a6
+    2e3a:	222f 00fc      	move.l 252(sp),d1
+    2e3e:	242f 00f8      	move.l 248(sp),d2
+    2e42:	262f 00f4      	move.l 244(sp),d3
+    2e46:	4eae ffd0      	jsr -48(a6)
+    2e4a:	2f40 00f0      	move.l d0,240(sp)
            "SetBplPointers: Problem in Copperlist bpl1ph should be 0004\n", 60);
   
   if(  TestCopperlistPos(  Copperlist1, 29, 0x00e20000) == 0)
-    2cb8:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2cbe:	2f3c 00e2 0000 	move.l #14811136,-(sp)
-    2cc4:	4878 001d      	pea 1d <GetVBR+0x15>
-    2cc8:	2f00           	move.l d0,-(sp)
-    2cca:	4eba fdb4      	jsr 2a80 <TestCopperlistPos>(pc)
-    2cce:	4fef 000c      	lea 12(sp),sp
-    2cd2:	4a80           	tst.l d0
-    2cd4:	6642           	bne.s 2d18 <TestCopperList+0x27a>
+    2e4e:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2e54:	2f3c 00e2 0000 	move.l #14811136,-(sp)
+    2e5a:	4878 001d      	pea 1d <_start+0x1d>
+    2e5e:	2f00           	move.l d0,-(sp)
+    2e60:	4eba fdb4      	jsr 2c16 <TestCopperlistPos>(pc)
+    2e64:	4fef 000c      	lea 12(sp),sp
+    2e68:	4a80           	tst.l d0
+    2e6a:	6642           	bne.s 2eae <TestCopperList+0x27a>
     Write(Output(), 
-    2cd6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2cdc:	2c40           	movea.l d0,a6
-    2cde:	4eae ffc4      	jsr -60(a6)
-    2ce2:	2f40 00ec      	move.l d0,236(sp)
-    2ce6:	202f 00ec      	move.l 236(sp),d0
-    2cea:	2f40 00e8      	move.l d0,232(sp)
-    2cee:	2f7c 0001 7c63 	move.l #97379,228(sp)
-    2cf4:	00e4 
-    2cf6:	703c           	moveq #60,d0
-    2cf8:	2f40 00e0      	move.l d0,224(sp)
-    2cfc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2d02:	2c40           	movea.l d0,a6
-    2d04:	222f 00e8      	move.l 232(sp),d1
-    2d08:	242f 00e4      	move.l 228(sp),d2
-    2d0c:	262f 00e0      	move.l 224(sp),d3
-    2d10:	4eae ffd0      	jsr -48(a6)
-    2d14:	2f40 00dc      	move.l d0,220(sp)
+    2e6c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2e72:	2c40           	movea.l d0,a6
+    2e74:	4eae ffc4      	jsr -60(a6)
+    2e78:	2f40 00ec      	move.l d0,236(sp)
+    2e7c:	202f 00ec      	move.l 236(sp),d0
+    2e80:	2f40 00e8      	move.l d0,232(sp)
+    2e84:	2f7c 0001 7e18 	move.l #97816,228(sp)
+    2e8a:	00e4 
+    2e8c:	703c           	moveq #60,d0
+    2e8e:	2f40 00e0      	move.l d0,224(sp)
+    2e92:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2e98:	2c40           	movea.l d0,a6
+    2e9a:	222f 00e8      	move.l 232(sp),d1
+    2e9e:	242f 00e4      	move.l 228(sp),d2
+    2ea2:	262f 00e0      	move.l 224(sp),d3
+    2ea6:	4eae ffd0      	jsr -48(a6)
+    2eaa:	2f40 00dc      	move.l d0,220(sp)
            "SetBplpointers: Problem in Copperlist bpl1pl should be 0000\n", 60);
 
   if(  TestCopperlistBatch(  Copperlist1, 30, ClColor, 2) == 0)
-    2d18:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2d1e:	4878 0002      	pea 2 <_start+0x2>
-    2d22:	4879 0001 a2a8 	pea 1a2a8 <ClColor>
-    2d28:	4878 001e      	pea 1e <GetVBR+0x16>
-    2d2c:	2f00           	move.l d0,-(sp)
-    2d2e:	4eba fd12      	jsr 2a42 <TestCopperlistBatch>(pc)
-    2d32:	4fef 0010      	lea 16(sp),sp
-    2d36:	4a80           	tst.l d0
-    2d38:	6642           	bne.s 2d7c <TestCopperList+0x2de>
+    2eae:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2eb4:	4878 0002      	pea 2 <_start+0x2>
+    2eb8:	4879 0001 a520 	pea 1a520 <ClColor>
+    2ebe:	4878 001e      	pea 1e <_start+0x1e>
+    2ec2:	2f00           	move.l d0,-(sp)
+    2ec4:	4eba fd12      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    2ec8:	4fef 0010      	lea 16(sp),sp
+    2ecc:	4a80           	tst.l d0
+    2ece:	6642           	bne.s 2f12 <TestCopperList+0x2de>
     Write(Output(), "Copperlist: Colorpart messed up.\n", 33);
-    2d3a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2d40:	2c40           	movea.l d0,a6
-    2d42:	4eae ffc4      	jsr -60(a6)
-    2d46:	2f40 00d8      	move.l d0,216(sp)
-    2d4a:	202f 00d8      	move.l 216(sp),d0
-    2d4e:	2f40 00d4      	move.l d0,212(sp)
-    2d52:	2f7c 0001 75bf 	move.l #95679,208(sp)
-    2d58:	00d0 
-    2d5a:	7021           	moveq #33,d0
-    2d5c:	2f40 00cc      	move.l d0,204(sp)
-    2d60:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2d66:	2c40           	movea.l d0,a6
-    2d68:	222f 00d4      	move.l 212(sp),d1
-    2d6c:	242f 00d0      	move.l 208(sp),d2
-    2d70:	262f 00cc      	move.l 204(sp),d3
-    2d74:	4eae ffd0      	jsr -48(a6)
-    2d78:	2f40 00c8      	move.l d0,200(sp)
+    2ed0:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2ed6:	2c40           	movea.l d0,a6
+    2ed8:	4eae ffc4      	jsr -60(a6)
+    2edc:	2f40 00d8      	move.l d0,216(sp)
+    2ee0:	202f 00d8      	move.l 216(sp),d0
+    2ee4:	2f40 00d4      	move.l d0,212(sp)
+    2ee8:	2f7c 0000 7700 	move.l #30464,208(sp)
+    2eee:	00d0 
+    2ef0:	7021           	moveq #33,d0
+    2ef2:	2f40 00cc      	move.l d0,204(sp)
+    2ef6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2efc:	2c40           	movea.l d0,a6
+    2efe:	222f 00d4      	move.l 212(sp),d1
+    2f02:	242f 00d0      	move.l 208(sp),d2
+    2f06:	262f 00cc      	move.l 204(sp),d3
+    2f0a:	4eae ffd0      	jsr -48(a6)
+    2f0e:	2f40 00c8      	move.l d0,200(sp)
 
   
   if( TestCopperlistPos( Copperlist1, 32, 0xfffffffe) == 0)
-    2d7c:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2d82:	4878 fffe      	pea fffffffe <gcc8_c_support.c.e9862530+0xfffd3e2d>
-    2d86:	4878 0020      	pea 20 <GetVBR+0x18>
-    2d8a:	2f00           	move.l d0,-(sp)
-    2d8c:	4eba fcf2      	jsr 2a80 <TestCopperlistPos>(pc)
-    2d90:	4fef 000c      	lea 12(sp),sp
-    2d94:	4a80           	tst.l d0
-    2d96:	6642           	bne.s 2dda <TestCopperList+0x33c>
+    2f12:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    2f18:	4878 fffe      	pea fffffffe <_end+0xfffd7a86>
+    2f1c:	4878 0020      	pea 20 <_start+0x20>
+    2f20:	2f00           	move.l d0,-(sp)
+    2f22:	4eba fcf2      	jsr 2c16 <TestCopperlistPos>(pc)
+    2f26:	4fef 000c      	lea 12(sp),sp
+    2f2a:	4a80           	tst.l d0
+    2f2c:	6642           	bne.s 2f70 <TestCopperList+0x33c>
     Write(Output(), "Copperlist End not correctly set.\n", 34);
-    2d98:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2d9e:	2c40           	movea.l d0,a6
-    2da0:	4eae ffc4      	jsr -60(a6)
-    2da4:	2f40 00c4      	move.l d0,196(sp)
-    2da8:	202f 00c4      	move.l 196(sp),d0
-    2dac:	2f40 00c0      	move.l d0,192(sp)
-    2db0:	2f7c 0001 75e1 	move.l #95713,188(sp)
-    2db6:	00bc 
-    2db8:	7022           	moveq #34,d0
-    2dba:	2f40 00b8      	move.l d0,184(sp)
-    2dbe:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2dc4:	2c40           	movea.l d0,a6
-    2dc6:	222f 00c0      	move.l 192(sp),d1
-    2dca:	242f 00bc      	move.l 188(sp),d2
-    2dce:	262f 00b8      	move.l 184(sp),d3
-    2dd2:	4eae ffd0      	jsr -48(a6)
-    2dd6:	2f40 00b4      	move.l d0,180(sp)
+    2f2e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2f34:	2c40           	movea.l d0,a6
+    2f36:	4eae ffc4      	jsr -60(a6)
+    2f3a:	2f40 00c4      	move.l d0,196(sp)
+    2f3e:	202f 00c4      	move.l 196(sp),d0
+    2f42:	2f40 00c0      	move.l d0,192(sp)
+    2f46:	2f7c 0000 7722 	move.l #30498,188(sp)
+    2f4c:	00bc 
+    2f4e:	7022           	moveq #34,d0
+    2f50:	2f40 00b8      	move.l d0,184(sp)
+    2f54:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2f5a:	2c40           	movea.l d0,a6
+    2f5c:	222f 00c0      	move.l 192(sp),d1
+    2f60:	242f 00bc      	move.l 188(sp),d2
+    2f64:	262f 00b8      	move.l 184(sp),d3
+    2f68:	4eae ffd0      	jsr -48(a6)
+    2f6c:	2f40 00b4      	move.l d0,180(sp)
   
   SwapCl();
-    2dda:	4eba d44e      	jsr 22a <SwapCl>(pc)
+    2f70:	4eba d282      	jsr 1f4 <SwapCl>(pc)
   
   if( DrawCopper != Copperlist2)
-    2dde:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-    2de4:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    2dea:	b081           	cmp.l d1,d0
-    2dec:	6742           	beq.s 2e30 <TestCopperList+0x392>
+    2f74:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    2f7a:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    2f80:	b081           	cmp.l d1,d0
+    2f82:	6742           	beq.s 2fc6 <TestCopperList+0x392>
     Write(  Output(), "SwapCl doesn't work.\n", 21);
-    2dee:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2df4:	2c40           	movea.l d0,a6
-    2df6:	4eae ffc4      	jsr -60(a6)
-    2dfa:	2f40 00b0      	move.l d0,176(sp)
-    2dfe:	202f 00b0      	move.l 176(sp),d0
-    2e02:	2f40 00ac      	move.l d0,172(sp)
-    2e06:	2f7c 0001 7ca0 	move.l #97440,168(sp)
-    2e0c:	00a8 
-    2e0e:	7015           	moveq #21,d0
-    2e10:	2f40 00a4      	move.l d0,164(sp)
-    2e14:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2e1a:	2c40           	movea.l d0,a6
-    2e1c:	222f 00ac      	move.l 172(sp),d1
-    2e20:	242f 00a8      	move.l 168(sp),d2
-    2e24:	262f 00a4      	move.l 164(sp),d3
-    2e28:	4eae ffd0      	jsr -48(a6)
-    2e2c:	2f40 00a0      	move.l d0,160(sp)
+    2f84:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2f8a:	2c40           	movea.l d0,a6
+    2f8c:	4eae ffc4      	jsr -60(a6)
+    2f90:	2f40 00b0      	move.l d0,176(sp)
+    2f94:	202f 00b0      	move.l 176(sp),d0
+    2f98:	2f40 00ac      	move.l d0,172(sp)
+    2f9c:	2f7c 0001 7e55 	move.l #97877,168(sp)
+    2fa2:	00a8 
+    2fa4:	7015           	moveq #21,d0
+    2fa6:	2f40 00a4      	move.l d0,164(sp)
+    2faa:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2fb0:	2c40           	movea.l d0,a6
+    2fb2:	222f 00ac      	move.l 172(sp),d1
+    2fb6:	242f 00a8      	move.l 168(sp),d2
+    2fba:	262f 00a4      	move.l 164(sp),d3
+    2fbe:	4eae ffd0      	jsr -48(a6)
+    2fc2:	2f40 00a0      	move.l d0,160(sp)
 
   
   PrepareDisplay();
-    2e30:	4eba fa94      	jsr 28c6 <PrepareDisplay>(pc)
+    2fc6:	4eba fa98      	jsr 2a60 <PrepareDisplay>(pc)
   if( DrawBuffer != Bitplane2) 
-    2e34:	2239 0001 ba98 	move.l 1ba98 <DrawBuffer>,d1
-    2e3a:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    2e40:	b081           	cmp.l d1,d0
-    2e42:	6742           	beq.s 2e86 <TestCopperList+0x3e8>
+    2fca:	2239 0002 8510 	move.l 28510 <DrawBuffer>,d1
+    2fd0:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    2fd6:	b081           	cmp.l d1,d0
+    2fd8:	6742           	beq.s 301c <TestCopperList+0x3e8>
     Write( Output(), "DrawBuffer should be set to Bitplane 2 on first frame.\n",
-    2e44:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2e4a:	2c40           	movea.l d0,a6
-    2e4c:	4eae ffc4      	jsr -60(a6)
-    2e50:	2f40 009c      	move.l d0,156(sp)
-    2e54:	202f 009c      	move.l 156(sp),d0
-    2e58:	2f40 0098      	move.l d0,152(sp)
-    2e5c:	2f7c 0001 7cb6 	move.l #97462,148(sp)
-    2e62:	0094 
-    2e64:	7037           	moveq #55,d0
-    2e66:	2f40 0090      	move.l d0,144(sp)
-    2e6a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2e70:	2c40           	movea.l d0,a6
-    2e72:	222f 0098      	move.l 152(sp),d1
-    2e76:	242f 0094      	move.l 148(sp),d2
-    2e7a:	262f 0090      	move.l 144(sp),d3
-    2e7e:	4eae ffd0      	jsr -48(a6)
-    2e82:	2f40 008c      	move.l d0,140(sp)
+    2fda:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    2fe0:	2c40           	movea.l d0,a6
+    2fe2:	4eae ffc4      	jsr -60(a6)
+    2fe6:	2f40 009c      	move.l d0,156(sp)
+    2fea:	202f 009c      	move.l 156(sp),d0
+    2fee:	2f40 0098      	move.l d0,152(sp)
+    2ff2:	2f7c 0001 7e6b 	move.l #97899,148(sp)
+    2ff8:	0094 
+    2ffa:	7037           	moveq #55,d0
+    2ffc:	2f40 0090      	move.l d0,144(sp)
+    3000:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3006:	2c40           	movea.l d0,a6
+    3008:	222f 0098      	move.l 152(sp),d1
+    300c:	242f 0094      	move.l 148(sp),d2
+    3010:	262f 0090      	move.l 144(sp),d3
+    3014:	4eae ffd0      	jsr -48(a6)
+    3018:	2f40 008c      	move.l d0,140(sp)
                                                                             55);
   if( DrawCopper != Copperlist2) 
-    2e86:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-    2e8c:	2039 0001 ba94 	move.l 1ba94 <Copperlist2>,d0
-    2e92:	b081           	cmp.l d1,d0
-    2e94:	6742           	beq.s 2ed8 <TestCopperList+0x43a>
+    301c:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    3022:	2039 0002 850c 	move.l 2850c <Copperlist2>,d0
+    3028:	b081           	cmp.l d1,d0
+    302a:	6742           	beq.s 306e <TestCopperList+0x43a>
     Write( Output(), 
-    2e96:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2e9c:	2c40           	movea.l d0,a6
-    2e9e:	4eae ffc4      	jsr -60(a6)
-    2ea2:	2f40 0088      	move.l d0,136(sp)
-    2ea6:	202f 0088      	move.l 136(sp),d0
-    2eaa:	2f40 0084      	move.l d0,132(sp)
-    2eae:	2f7c 0001 7cee 	move.l #97518,128(sp)
-    2eb4:	0080 
-    2eb6:	7039           	moveq #57,d0
-    2eb8:	2f40 007c      	move.l d0,124(sp)
-    2ebc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2ec2:	2c40           	movea.l d0,a6
-    2ec4:	222f 0084      	move.l 132(sp),d1
-    2ec8:	242f 0080      	move.l 128(sp),d2
-    2ecc:	262f 007c      	move.l 124(sp),d3
-    2ed0:	4eae ffd0      	jsr -48(a6)
-    2ed4:	2f40 0078      	move.l d0,120(sp)
+    302c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3032:	2c40           	movea.l d0,a6
+    3034:	4eae ffc4      	jsr -60(a6)
+    3038:	2f40 0088      	move.l d0,136(sp)
+    303c:	202f 0088      	move.l 136(sp),d0
+    3040:	2f40 0084      	move.l d0,132(sp)
+    3044:	2f7c 0001 7ea3 	move.l #97955,128(sp)
+    304a:	0080 
+    304c:	7039           	moveq #57,d0
+    304e:	2f40 007c      	move.l d0,124(sp)
+    3052:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3058:	2c40           	movea.l d0,a6
+    305a:	222f 0084      	move.l 132(sp),d1
+    305e:	242f 0080      	move.l 128(sp),d2
+    3062:	262f 007c      	move.l 124(sp),d3
+    3066:	4eae ffd0      	jsr -48(a6)
+    306a:	2f40 0078      	move.l d0,120(sp)
               "DrawCopper should be set to Copperlist 2 on first frame.\n", 57);
 
   //PrepareDisplay();
 
   if( ViewBuffer != Bitplane1) 
-    2ed8:	2239 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d1
-    2ede:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    2ee4:	b081           	cmp.l d1,d0
-    2ee6:	6742           	beq.s 2f2a <TestCopperList+0x48c>
+    306e:	2239 0002 8514 	move.l 28514 <ViewBuffer>,d1
+    3074:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    307a:	b081           	cmp.l d1,d0
+    307c:	6742           	beq.s 30c0 <TestCopperList+0x48c>
     Write( Output(), 
-    2ee8:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2eee:	2c40           	movea.l d0,a6
-    2ef0:	4eae ffc4      	jsr -60(a6)
-    2ef4:	2f40 0074      	move.l d0,116(sp)
-    2ef8:	202f 0074      	move.l 116(sp),d0
-    2efc:	2f40 0070      	move.l d0,112(sp)
-    2f00:	2f7c 0001 7d28 	move.l #97576,108(sp)
-    2f06:	006c 
-    2f08:	7038           	moveq #56,d0
-    2f0a:	2f40 0068      	move.l d0,104(sp)
-    2f0e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2f14:	2c40           	movea.l d0,a6
-    2f16:	222f 0070      	move.l 112(sp),d1
-    2f1a:	242f 006c      	move.l 108(sp),d2
-    2f1e:	262f 0068      	move.l 104(sp),d3
-    2f22:	4eae ffd0      	jsr -48(a6)
-    2f26:	2f40 0064      	move.l d0,100(sp)
+    307e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3084:	2c40           	movea.l d0,a6
+    3086:	4eae ffc4      	jsr -60(a6)
+    308a:	2f40 0074      	move.l d0,116(sp)
+    308e:	202f 0074      	move.l 116(sp),d0
+    3092:	2f40 0070      	move.l d0,112(sp)
+    3096:	2f7c 0001 7edd 	move.l #98013,108(sp)
+    309c:	006c 
+    309e:	7038           	moveq #56,d0
+    30a0:	2f40 0068      	move.l d0,104(sp)
+    30a4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    30aa:	2c40           	movea.l d0,a6
+    30ac:	222f 0070      	move.l 112(sp),d1
+    30b0:	242f 006c      	move.l 108(sp),d2
+    30b4:	262f 0068      	move.l 104(sp),d3
+    30b8:	4eae ffd0      	jsr -48(a6)
+    30bc:	2f40 0064      	move.l d0,100(sp)
                "Preparedisplay: ViewBuffer should be set to Bitplane 1.\n", 56);
 
   if( ViewCopper != Copperlist1) 
-    2f2a:	2239 0001 baa4 	move.l 1baa4 <ViewCopper>,d1
-    2f30:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    2f36:	b081           	cmp.l d1,d0
-    2f38:	6742           	beq.s 2f7c <TestCopperList+0x4de>
+    30c0:	2239 0002 851c 	move.l 2851c <ViewCopper>,d1
+    30c6:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    30cc:	b081           	cmp.l d1,d0
+    30ce:	6742           	beq.s 3112 <TestCopperList+0x4de>
     Write( Output(), 
-    2f3a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2f40:	2c40           	movea.l d0,a6
-    2f42:	4eae ffc4      	jsr -60(a6)
-    2f46:	2f40 0060      	move.l d0,96(sp)
-    2f4a:	202f 0060      	move.l 96(sp),d0
-    2f4e:	2f40 005c      	move.l d0,92(sp)
-    2f52:	2f7c 0001 7d61 	move.l #97633,88(sp)
-    2f58:	0058 
-    2f5a:	703a           	moveq #58,d0
-    2f5c:	2f40 0054      	move.l d0,84(sp)
-    2f60:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2f66:	2c40           	movea.l d0,a6
-    2f68:	222f 005c      	move.l 92(sp),d1
-    2f6c:	242f 0058      	move.l 88(sp),d2
-    2f70:	262f 0054      	move.l 84(sp),d3
-    2f74:	4eae ffd0      	jsr -48(a6)
-    2f78:	2f40 0050      	move.l d0,80(sp)
+    30d0:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    30d6:	2c40           	movea.l d0,a6
+    30d8:	4eae ffc4      	jsr -60(a6)
+    30dc:	2f40 0060      	move.l d0,96(sp)
+    30e0:	202f 0060      	move.l 96(sp),d0
+    30e4:	2f40 005c      	move.l d0,92(sp)
+    30e8:	2f7c 0001 7f16 	move.l #98070,88(sp)
+    30ee:	0058 
+    30f0:	703a           	moveq #58,d0
+    30f2:	2f40 0054      	move.l d0,84(sp)
+    30f6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    30fc:	2c40           	movea.l d0,a6
+    30fe:	222f 005c      	move.l 92(sp),d1
+    3102:	242f 0058      	move.l 88(sp),d2
+    3106:	262f 0054      	move.l 84(sp),d3
+    310a:	4eae ffd0      	jsr -48(a6)
+    310e:	2f40 0050      	move.l d0,80(sp)
              "PrepareDisplay: ViewCopper should be set to Copperlist 1.\n", 58);
   
   SetBplPointers();
-    2f7c:	4eba d24e      	jsr 1cc <SetBplPointers>(pc)
+    3112:	4eba d082      	jsr 196 <SetBplPointers>(pc)
   SwapCl();
-    2f80:	4eba d2a8      	jsr 22a <SwapCl>(pc)
+    3116:	4eba d0dc      	jsr 1f4 <SwapCl>(pc)
   UWORD *copword = ViewCopper;
-    2f84:	2f79 0001 baa4 	move.l 1baa4 <ViewCopper>,76(sp)
-    2f8a:	004c 
+    311a:	2f79 0002 851c 	move.l 2851c <ViewCopper>,76(sp)
+    3120:	004c 
   ULONG pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
-    2f8c:	307c 0076      	movea.w #118,a0
-    2f90:	d1ef 004c      	adda.l 76(sp),a0
-    2f94:	3010           	move.w (a0),d0
-    2f96:	7200           	moveq #0,d1
-    2f98:	3200           	move.w d0,d1
-    2f9a:	307c 0072      	movea.w #114,a0
-    2f9e:	d1ef 004c      	adda.l 76(sp),a0
-    2fa2:	3010           	move.w (a0),d0
-    2fa4:	3000           	move.w d0,d0
-    2fa6:	0280 0000 ffff 	andi.l #65535,d0
-    2fac:	4840           	swap d0
-    2fae:	4240           	clr.w d0
-    2fb0:	d081           	add.l d1,d0
-    2fb2:	2f40 0048      	move.l d0,72(sp)
+    3122:	307c 0076      	movea.w #118,a0
+    3126:	d1ef 004c      	adda.l 76(sp),a0
+    312a:	3010           	move.w (a0),d0
+    312c:	7200           	moveq #0,d1
+    312e:	3200           	move.w d0,d1
+    3130:	307c 0072      	movea.w #114,a0
+    3134:	d1ef 004c      	adda.l 76(sp),a0
+    3138:	3010           	move.w (a0),d0
+    313a:	3000           	move.w d0,d0
+    313c:	0280 0000 ffff 	andi.l #65535,d0
+    3142:	4840           	swap d0
+    3144:	4240           	clr.w d0
+    3146:	d081           	add.l d1,d0
+    3148:	2f40 0048      	move.l d0,72(sp)
   if( pointer != (ULONG) Bitplane2) 
-    2fb6:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    2fbc:	b0af 0048      	cmp.l 72(sp),d0
-    2fc0:	6742           	beq.s 3004 <TestCopperList+0x566>
+    314c:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    3152:	b0af 0048      	cmp.l 72(sp),d0
+    3156:	6742           	beq.s 319a <TestCopperList+0x566>
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
-    2fc2:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2fc8:	2c40           	movea.l d0,a6
-    2fca:	4eae ffc4      	jsr -60(a6)
-    2fce:	2f40 0044      	move.l d0,68(sp)
-    2fd2:	202f 0044      	move.l 68(sp),d0
-    2fd6:	2f40 0040      	move.l d0,64(sp)
-    2fda:	2f7c 0001 7d9c 	move.l #97692,60(sp)
-    2fe0:	003c 
-    2fe2:	7048           	moveq #72,d0
-    2fe4:	2f40 0038      	move.l d0,56(sp)
-    2fe8:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    2fee:	2c40           	movea.l d0,a6
-    2ff0:	222f 0040      	move.l 64(sp),d1
-    2ff4:	242f 003c      	move.l 60(sp),d2
-    2ff8:	262f 0038      	move.l 56(sp),d3
-    2ffc:	4eae ffd0      	jsr -48(a6)
-    3000:	2f40 0034      	move.l d0,52(sp)
+    3158:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    315e:	2c40           	movea.l d0,a6
+    3160:	4eae ffc4      	jsr -60(a6)
+    3164:	2f40 0044      	move.l d0,68(sp)
+    3168:	202f 0044      	move.l 68(sp),d0
+    316c:	2f40 0040      	move.l d0,64(sp)
+    3170:	2f7c 0001 7f51 	move.l #98129,60(sp)
+    3176:	003c 
+    3178:	7048           	moveq #72,d0
+    317a:	2f40 0038      	move.l d0,56(sp)
+    317e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3184:	2c40           	movea.l d0,a6
+    3186:	222f 0040      	move.l 64(sp),d1
+    318a:	242f 003c      	move.l 60(sp),d2
+    318e:	262f 0038      	move.l 56(sp),d3
+    3192:	4eae ffd0      	jsr -48(a6)
+    3196:	2f40 0034      	move.l d0,52(sp)
                                                    " after first frame.\n", 72);
   SetBplPointers();
-    3004:	4eba d1c6      	jsr 1cc <SetBplPointers>(pc)
+    319a:	4eba cffa      	jsr 196 <SetBplPointers>(pc)
   SwapCl();
-    3008:	4eba d220      	jsr 22a <SwapCl>(pc)
+    319e:	4eba d054      	jsr 1f4 <SwapCl>(pc)
 
   copword = (UWORD *) ViewCopper;
-    300c:	2f79 0001 baa4 	move.l 1baa4 <ViewCopper>,76(sp)
-    3012:	004c 
+    31a2:	2f79 0002 851c 	move.l 2851c <ViewCopper>,76(sp)
+    31a8:	004c 
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
-    3014:	307c 0076      	movea.w #118,a0
-    3018:	d1ef 004c      	adda.l 76(sp),a0
-    301c:	3010           	move.w (a0),d0
-    301e:	7200           	moveq #0,d1
-    3020:	3200           	move.w d0,d1
-    3022:	307c 0072      	movea.w #114,a0
-    3026:	d1ef 004c      	adda.l 76(sp),a0
-    302a:	3010           	move.w (a0),d0
-    302c:	3000           	move.w d0,d0
-    302e:	0280 0000 ffff 	andi.l #65535,d0
-    3034:	4840           	swap d0
-    3036:	4240           	clr.w d0
-    3038:	d081           	add.l d1,d0
-    303a:	2f40 0048      	move.l d0,72(sp)
+    31aa:	307c 0076      	movea.w #118,a0
+    31ae:	d1ef 004c      	adda.l 76(sp),a0
+    31b2:	3010           	move.w (a0),d0
+    31b4:	7200           	moveq #0,d1
+    31b6:	3200           	move.w d0,d1
+    31b8:	307c 0072      	movea.w #114,a0
+    31bc:	d1ef 004c      	adda.l 76(sp),a0
+    31c0:	3010           	move.w (a0),d0
+    31c2:	3000           	move.w d0,d0
+    31c4:	0280 0000 ffff 	andi.l #65535,d0
+    31ca:	4840           	swap d0
+    31cc:	4240           	clr.w d0
+    31ce:	d081           	add.l d1,d0
+    31d0:	2f40 0048      	move.l d0,72(sp)
   if( pointer != (ULONG) Bitplane1) 
-    303e:	2039 0001 ba88 	move.l 1ba88 <Bitplane1>,d0
-    3044:	b0af 0048      	cmp.l 72(sp),d0
-    3048:	6742           	beq.s 308c <TestCopperList+0x5ee>
+    31d4:	2039 0002 8500 	move.l 28500 <Bitplane1>,d0
+    31da:	b0af 0048      	cmp.l 72(sp),d0
+    31de:	6742           	beq.s 3222 <TestCopperList+0x5ee>
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 1"
-    304a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3050:	2c40           	movea.l d0,a6
-    3052:	4eae ffc4      	jsr -60(a6)
-    3056:	2f40 0030      	move.l d0,48(sp)
-    305a:	202f 0030      	move.l 48(sp),d0
-    305e:	2f40 002c      	move.l d0,44(sp)
-    3062:	2f7c 0001 7de5 	move.l #97765,40(sp)
-    3068:	0028 
-    306a:	7049           	moveq #73,d0
-    306c:	2f40 0024      	move.l d0,36(sp)
-    3070:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3076:	2c40           	movea.l d0,a6
-    3078:	222f 002c      	move.l 44(sp),d1
-    307c:	242f 0028      	move.l 40(sp),d2
-    3080:	262f 0024      	move.l 36(sp),d3
-    3084:	4eae ffd0      	jsr -48(a6)
-    3088:	2f40 0020      	move.l d0,32(sp)
+    31e0:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    31e6:	2c40           	movea.l d0,a6
+    31e8:	4eae ffc4      	jsr -60(a6)
+    31ec:	2f40 0030      	move.l d0,48(sp)
+    31f0:	202f 0030      	move.l 48(sp),d0
+    31f4:	2f40 002c      	move.l d0,44(sp)
+    31f8:	2f7c 0001 7f9a 	move.l #98202,40(sp)
+    31fe:	0028 
+    3200:	7049           	moveq #73,d0
+    3202:	2f40 0024      	move.l d0,36(sp)
+    3206:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    320c:	2c40           	movea.l d0,a6
+    320e:	222f 002c      	move.l 44(sp),d1
+    3212:	242f 0028      	move.l 40(sp),d2
+    3216:	262f 0024      	move.l 36(sp),d3
+    321a:	4eae ffd0      	jsr -48(a6)
+    321e:	2f40 0020      	move.l d0,32(sp)
                                                   " after second frame.\n", 73);
   
   SetBplPointers();
-    308c:	4eba d13e      	jsr 1cc <SetBplPointers>(pc)
+    3222:	4eba cf72      	jsr 196 <SetBplPointers>(pc)
   SwapCl();
-    3090:	4eba d198      	jsr 22a <SwapCl>(pc)
+    3226:	4eba cfcc      	jsr 1f4 <SwapCl>(pc)
 
   copword = (UWORD *) ViewCopper;
-    3094:	2f79 0001 baa4 	move.l 1baa4 <ViewCopper>,76(sp)
-    309a:	004c 
+    322a:	2f79 0002 851c 	move.l 2851c <ViewCopper>,76(sp)
+    3230:	004c 
   pointer = copword[COPBPL1LOW] + (copword[COPBPL1HIGH] << 16);
-    309c:	307c 0076      	movea.w #118,a0
-    30a0:	d1ef 004c      	adda.l 76(sp),a0
-    30a4:	3010           	move.w (a0),d0
-    30a6:	7200           	moveq #0,d1
-    30a8:	3200           	move.w d0,d1
-    30aa:	307c 0072      	movea.w #114,a0
-    30ae:	d1ef 004c      	adda.l 76(sp),a0
-    30b2:	3010           	move.w (a0),d0
-    30b4:	3000           	move.w d0,d0
-    30b6:	0280 0000 ffff 	andi.l #65535,d0
-    30bc:	4840           	swap d0
-    30be:	4240           	clr.w d0
-    30c0:	d081           	add.l d1,d0
-    30c2:	2f40 0048      	move.l d0,72(sp)
+    3232:	307c 0076      	movea.w #118,a0
+    3236:	d1ef 004c      	adda.l 76(sp),a0
+    323a:	3010           	move.w (a0),d0
+    323c:	7200           	moveq #0,d1
+    323e:	3200           	move.w d0,d1
+    3240:	307c 0072      	movea.w #114,a0
+    3244:	d1ef 004c      	adda.l 76(sp),a0
+    3248:	3010           	move.w (a0),d0
+    324a:	3000           	move.w d0,d0
+    324c:	0280 0000 ffff 	andi.l #65535,d0
+    3252:	4840           	swap d0
+    3254:	4240           	clr.w d0
+    3256:	d081           	add.l d1,d0
+    3258:	2f40 0048      	move.l d0,72(sp)
   if( pointer != (ULONG) Bitplane2) 
-    30c6:	2039 0001 ba8c 	move.l 1ba8c <Bitplane2>,d0
-    30cc:	b0af 0048      	cmp.l 72(sp),d0
-    30d0:	6742           	beq.s 3114 <TestCopperList+0x676>
+    325c:	2039 0002 8504 	move.l 28504 <Bitplane2>,d0
+    3262:	b0af 0048      	cmp.l 72(sp),d0
+    3266:	6742           	beq.s 32aa <TestCopperList+0x676>
     Write( Output(), "ViewBuffer in Copperlist should be set to Bitplane 2"
-    30d2:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    30d8:	2c40           	movea.l d0,a6
-    30da:	4eae ffc4      	jsr -60(a6)
-    30de:	2f40 001c      	move.l d0,28(sp)
-    30e2:	202f 001c      	move.l 28(sp),d0
-    30e6:	2f40 0018      	move.l d0,24(sp)
-    30ea:	2f7c 0001 7e2f 	move.l #97839,20(sp)
-    30f0:	0014 
-    30f2:	7048           	moveq #72,d0
-    30f4:	2f40 0010      	move.l d0,16(sp)
-    30f8:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    30fe:	2c40           	movea.l d0,a6
-    3100:	222f 0018      	move.l 24(sp),d1
-    3104:	242f 0014      	move.l 20(sp),d2
-    3108:	262f 0010      	move.l 16(sp),d3
-    310c:	4eae ffd0      	jsr -48(a6)
-    3110:	2f40 000c      	move.l d0,12(sp)
+    3268:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    326e:	2c40           	movea.l d0,a6
+    3270:	4eae ffc4      	jsr -60(a6)
+    3274:	2f40 001c      	move.l d0,28(sp)
+    3278:	202f 001c      	move.l 28(sp),d0
+    327c:	2f40 0018      	move.l d0,24(sp)
+    3280:	2f7c 0001 7fe4 	move.l #98276,20(sp)
+    3286:	0014 
+    3288:	7048           	moveq #72,d0
+    328a:	2f40 0010      	move.l d0,16(sp)
+    328e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3294:	2c40           	movea.l d0,a6
+    3296:	222f 0018      	move.l 24(sp),d1
+    329a:	242f 0014      	move.l 20(sp),d2
+    329e:	262f 0010      	move.l 16(sp),d3
+    32a2:	4eae ffd0      	jsr -48(a6)
+    32a6:	2f40 000c      	move.l d0,12(sp)
                                                    " after third frame.\n", 72);
 
   FreeDisplay(  33*4, 80*640);
-    3114:	2f3c 0000 c800 	move.l #51200,-(sp)
-    311a:	4878 0084      	pea 84 <SetInterruptHandler+0xa>
-    311e:	4eba cfee      	jsr 10e <FreeDisplay>(pc)
-    3122:	508f           	addq.l #8,sp
-    3124:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    3128:	4fef 0148      	lea 328(sp),sp
-    312c:	4e75           	rts
+    32aa:	2f3c 0000 c800 	move.l #51200,-(sp)
+    32b0:	4878 0084      	pea 84 <_start+0x84>
+    32b4:	4eba ce2a      	jsr e0 <FreeDisplay>(pc)
+    32b8:	508f           	addq.l #8,sp
+    32ba:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    32be:	4fef 0148      	lea 328(sp),sp
+    32c2:	4e75           	rts
 
-0000312e <ZoomTest>:
-#include "utilsasm.h"
-#include <string.h>
+000032c4 <RunTests>:
+#include "runtests.h"
+#include "coppertests.h"
+#include "swscrollertest.h"
+
+void RunTests() {
+    TestCopperList();
+    32c4:	4eba f96e      	jsr 2c34 <TestCopperList>(pc)
+    ZoomTest();
+    32c8:	4eba 0004      	jsr 32ce <ZoomTest>(pc)
+    //SwScrollerTest();
+    32cc:	4e75           	rts
+
+000032ce <ZoomTest>:
 #include "zoomtest2.h"
+
+ULONG Cl102ZoomTest[137];
 
 void ZoomTest() {
   TestZoomSpeed();
-    312e:	4eba 001c      	jsr 314c <TestZoomSpeed>(pc)
+    32ce:	4eba 001c      	jsr 32ec <TestZoomSpeed>(pc)
   ZoomTestDisplay();
-    3132:	4eba 00ac      	jsr 31e0 <ZoomTestDisplay>(pc)
+    32d2:	4eba 00b8      	jsr 338c <ZoomTestDisplay>(pc)
   TestBlitleftOfZoom();
-    3136:	4eba 056e      	jsr 36a6 <TestBlitleftOfZoom>(pc)
+    32d6:	4eba 057a      	jsr 3852 <TestBlitleftOfZoom>(pc)
   TestCopyWord();
-    313a:	4eba 0800      	jsr 393c <TestCopyWord>(pc)
+    32da:	4eba 080a      	jsr 3ae6 <TestCopyWord>(pc)
   TestZoom4Picture();
-    313e:	4eba 0dea      	jsr 3f2a <TestZoom4Picture>(pc)
+    32de:	4eba 0de4      	jsr 40c4 <TestZoom4Picture>(pc)
   TestZoom4PictureOn5Planes();
-    3142:	4eba 0af2      	jsr 3c36 <TestZoom4PictureOn5Planes>(pc)
+    32e2:	4eba 0af4      	jsr 3dd8 <TestZoom4PictureOn5Planes>(pc)
   Test_Zoom2();
-    3146:	4eba d6b8      	jsr 800 <Test_Zoom2>(pc)
+    32e6:	4eba f10a      	jsr 23f2 <Test_Zoom2>(pc)
 }
-    314a:	4e75           	rts
+    32ea:	4e75           	rts
 
-0000314c <TestZoomSpeed>:
+000032ec <TestZoomSpeed>:
 
 int Counter4Frames;
 
 void TestZoomSpeed() {
-    314c:	4fef ffe8      	lea -24(sp),sp
-    3150:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    32ec:	4fef ffe8      	lea -24(sp),sp
+    32f0:	48e7 3002      	movem.l d2-d3/a6,-(sp)
 
  	TakeSystem();
-    3154:	4eba d112      	jsr 268 <TakeSystem>(pc)
+    32f4:	4eba d3d2      	jsr 6c8 <TakeSystem>(pc)
 	WaitVbl();
-    3158:	4eba cf3c      	jsr 96 <WaitVbl>(pc)
-  //               fedcba9876543210
-  hw->dmacon = 0b1000011111100000;
-    315c:	2079 0001 baba 	movea.l 1baba <hw>,a0
-    3162:	317c 87e0 0096 	move.w #-30752,150(a0)
+    32f8:	4eba d384      	jsr 67e <WaitVbl>(pc)
+  //             fedcba9876543210
+  //hw->dmacon = 0x8def;
+
+  hw->dmacon = DMAF_SETCLR | DMAF_AUDIO | DMAF_BLITTER | DMAF_RASTER 
+    32fc:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    3302:	317c 87cf 0096 	move.w #-30769,150(a0)
+                                    | DMAF_COPPER | DMAF_MASTER | DMAF_BLITHOG;
+   //0b1000011111100000;
+  
+  //hw->dmacon = 0b1000011111111111;
+	hw->intena = (1 << INTB_SETCLR) | (1 << INTB_INTEN) | (1 << INTB_VERTB);
+    3308:	2079 0002 8520 	movea.l 28520 <hw>,a0
+    330e:	317c c020 009a 	move.w #-16352,154(a0)
+  
   Zoom_InitRun(); 
-    3168:	4eba ded2      	jsr 103c <Zoom_InitRun>(pc)
+    3314:	4eba dfb0      	jsr 12c6 <Zoom_InitRun>(pc)
 
   int success = 1;
-    316c:	7001           	moveq #1,d0
-    316e:	2f40 0020      	move.l d0,32(sp)
+    3318:	7001           	moveq #1,d0
+    331a:	2f40 0020      	move.l d0,32(sp)
   RunFrame();
-    3172:	4eba d44e      	jsr 5c2 <RunFrame>(pc)
+    331e:	4eba d096      	jsr 3b6 <RunFrame>(pc)
   if( Zoom_Counter >= 9) success = 0;
-    3176:	3039 0001 bae2 	move.w 1bae2 <Zoom_Counter>,d0
-    317c:	0c40 0008      	cmpi.w #8,d0
-    3180:	6304           	bls.s 3186 <TestZoomSpeed+0x3a>
-    3182:	42af 0020      	clr.l 32(sp)
+    3322:	3039 0002 855e 	move.w 2855e <Zoom_Counter>,d0
+    3328:	0c40 0008      	cmpi.w #8,d0
+    332c:	6304           	bls.s 3332 <TestZoomSpeed+0x46>
+    332e:	42af 0020      	clr.l 32(sp)
     
   Zoom_Dealloc();
-    3186:	4eba e0a0      	jsr 1228 <Zoom_Dealloc>(pc)
+    3332:	4eba e17c      	jsr 14b0 <Zoom_Dealloc>(pc)
   FreeSystem();
-    318a:	4eba d1be      	jsr 34a <FreeSystem>(pc)
+    3336:	4eba d49c      	jsr 7d4 <FreeSystem>(pc)
 
   if(success == 0) Write( Output(), "Testzoomspeed takes too long.\n", 28);
-    318e:	4aaf 0020      	tst.l 32(sp)
-    3192:	6642           	bne.s 31d6 <TestZoomSpeed+0x8a>
-    3194:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    319a:	2c40           	movea.l d0,a6
-    319c:	4eae ffc4      	jsr -60(a6)
-    31a0:	2f40 001c      	move.l d0,28(sp)
-    31a4:	202f 001c      	move.l 28(sp),d0
-    31a8:	2f40 0018      	move.l d0,24(sp)
-    31ac:	2f7c 0001 7e78 	move.l #97912,20(sp)
-    31b2:	0014 
-    31b4:	701c           	moveq #28,d0
-    31b6:	2f40 0010      	move.l d0,16(sp)
-    31ba:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    31c0:	2c40           	movea.l d0,a6
-    31c2:	222f 0018      	move.l 24(sp),d1
-    31c6:	242f 0014      	move.l 20(sp),d2
-    31ca:	262f 0010      	move.l 16(sp),d3
-    31ce:	4eae ffd0      	jsr -48(a6)
-    31d2:	2f40 000c      	move.l d0,12(sp)
+    333a:	4aaf 0020      	tst.l 32(sp)
+    333e:	6642           	bne.s 3382 <TestZoomSpeed+0x96>
+    3340:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3346:	2c40           	movea.l d0,a6
+    3348:	4eae ffc4      	jsr -60(a6)
+    334c:	2f40 001c      	move.l d0,28(sp)
+    3350:	202f 001c      	move.l 28(sp),d0
+    3354:	2f40 0018      	move.l d0,24(sp)
+    3358:	2f7c 0001 802d 	move.l #98349,20(sp)
+    335e:	0014 
+    3360:	701c           	moveq #28,d0
+    3362:	2f40 0010      	move.l d0,16(sp)
+    3366:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    336c:	2c40           	movea.l d0,a6
+    336e:	222f 0018      	move.l 24(sp),d1
+    3372:	242f 0014      	move.l 20(sp),d2
+    3376:	262f 0010      	move.l 16(sp),d3
+    337a:	4eae ffd0      	jsr -48(a6)
+    337e:	2f40 000c      	move.l d0,12(sp)
 
   //AddIntServer(INTB_VERTB, vbint);
   //RemIntServer(INTB_VERTB, vbint);
   
 }
-    31d6:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    31da:	4fef 0018      	lea 24(sp),sp
-    31de:	4e75           	rts
+    3382:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    3386:	4fef 0018      	lea 24(sp),sp
+    338a:	4e75           	rts
 
-000031e0 <ZoomTestDisplay>:
+0000338c <ZoomTestDisplay>:
 
 void ZoomTestDisplay() {
-    31e0:	4fef ff38      	lea -200(sp),sp
-    31e4:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    338c:	4fef ff38      	lea -200(sp),sp
+    3390:	48e7 3002      	movem.l d2-d3/a6,-(sp)
 
   Zoom_Init();
-    31e8:	4eba e1f6      	jsr 13e0 <Zoom_Init>(pc)
+    3394:	4eba e2ce      	jsr 1664 <Zoom_Init>(pc)
   PrepareDisplayZoom();
-    31ec:	4eba e598      	jsr 1786 <PrepareDisplayZoom>(pc)
+    3398:	4eba e66c      	jsr 1a06 <PrepareDisplayZoom>(pc)
 
   if( TestCopperlistBatch(  Copperlist1, 0, ClsSprites, 16) == 0)
-    31f0:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    31f6:	4878 0010      	pea 10 <GetVBR+0x8>
-    31fa:	4879 0001 a328 	pea 1a328 <ClsSprites>
-    3200:	42a7           	clr.l -(sp)
-    3202:	2f00           	move.l d0,-(sp)
-    3204:	4eba f83c      	jsr 2a42 <TestCopperlistBatch>(pc)
-    3208:	4fef 0010      	lea 16(sp),sp
-    320c:	4a80           	tst.l d0
-    320e:	6642           	bne.s 3252 <ZoomTestDisplay+0x72>
+    339c:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    33a2:	4878 0010      	pea 10 <_start+0x10>
+    33a6:	4879 0001 a5a0 	pea 1a5a0 <ClsSprites>
+    33ac:	42a7           	clr.l -(sp)
+    33ae:	2f00           	move.l d0,-(sp)
+    33b0:	4eba f826      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    33b4:	4fef 0010      	lea 16(sp),sp
+    33b8:	4a80           	tst.l d0
+    33ba:	6642           	bne.s 33fe <ZoomTestDisplay+0x72>
     Write( Output(), 
-    3210:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3216:	2c40           	movea.l d0,a6
-    3218:	4eae ffc4      	jsr -60(a6)
-    321c:	2f40 00d0      	move.l d0,208(sp)
-    3220:	202f 00d0      	move.l 208(sp),d0
-    3224:	2f40 00cc      	move.l d0,204(sp)
-    3228:	2f7c 0001 7e97 	move.l #97943,200(sp)
-    322e:	00c8 
-    3230:	7045           	moveq #69,d0
-    3232:	2f40 00c4      	move.l d0,196(sp)
-    3236:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    323c:	2c40           	movea.l d0,a6
-    323e:	222f 00cc      	move.l 204(sp),d1
-    3242:	242f 00c8      	move.l 200(sp),d2
-    3246:	262f 00c4      	move.l 196(sp),d3
-    324a:	4eae ffd0      	jsr -48(a6)
-    324e:	2f40 00c0      	move.l d0,192(sp)
+    33bc:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    33c2:	2c40           	movea.l d0,a6
+    33c4:	4eae ffc4      	jsr -60(a6)
+    33c8:	2f40 00d0      	move.l d0,208(sp)
+    33cc:	202f 00d0      	move.l 208(sp),d0
+    33d0:	2f40 00cc      	move.l d0,204(sp)
+    33d4:	2f7c 0001 804c 	move.l #98380,200(sp)
+    33da:	00c8 
+    33dc:	7045           	moveq #69,d0
+    33de:	2f40 00c4      	move.l d0,196(sp)
+    33e2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    33e8:	2c40           	movea.l d0,a6
+    33ea:	222f 00cc      	move.l 204(sp),d1
+    33ee:	242f 00c8      	move.l 200(sp),d2
+    33f2:	262f 00c4      	move.l 196(sp),d3
+    33f6:	4eae ffd0      	jsr -48(a6)
+    33fa:	2f40 00c0      	move.l d0,192(sp)
        "ZoomCopperlist: Sprite section of copper starting on pos 0 messed up\n", 
                                                                             69);
   if(  TestCopperlistBatch(  Copperlist1, 16, ClScreen, 12) == 0)
-    3252:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    3258:	4878 000c      	pea c <GetVBR+0x4>
-    325c:	4879 0001 a368 	pea 1a368 <ClScreen>
-    3262:	4878 0010      	pea 10 <GetVBR+0x8>
-    3266:	2f00           	move.l d0,-(sp)
-    3268:	4eba f7d8      	jsr 2a42 <TestCopperlistBatch>(pc)
-    326c:	4fef 0010      	lea 16(sp),sp
-    3270:	4a80           	tst.l d0
-    3272:	6642           	bne.s 32b6 <ZoomTestDisplay+0xd6>
+    33fe:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    3404:	4878 000c      	pea c <_start+0xc>
+    3408:	4879 0001 a5e0 	pea 1a5e0 <ClScreen>
+    340e:	4878 0010      	pea 10 <_start+0x10>
+    3412:	2f00           	move.l d0,-(sp)
+    3414:	4eba f7c2      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    3418:	4fef 0010      	lea 16(sp),sp
+    341c:	4a80           	tst.l d0
+    341e:	6642           	bne.s 3462 <ZoomTestDisplay+0xd6>
     Write( Output(), 
-    3274:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    327a:	2c40           	movea.l d0,a6
-    327c:	4eae ffc4      	jsr -60(a6)
-    3280:	2f40 00bc      	move.l d0,188(sp)
-    3284:	202f 00bc      	move.l 188(sp),d0
-    3288:	2f40 00b8      	move.l d0,184(sp)
-    328c:	2f7c 0001 7edd 	move.l #98013,180(sp)
-    3292:	00b4 
-    3294:	7046           	moveq #70,d0
-    3296:	2f40 00b0      	move.l d0,176(sp)
-    329a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    32a0:	2c40           	movea.l d0,a6
-    32a2:	222f 00b8      	move.l 184(sp),d1
-    32a6:	242f 00b4      	move.l 180(sp),d2
-    32aa:	262f 00b0      	move.l 176(sp),d3
-    32ae:	4eae ffd0      	jsr -48(a6)
-    32b2:	2f40 00ac      	move.l d0,172(sp)
+    3420:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3426:	2c40           	movea.l d0,a6
+    3428:	4eae ffc4      	jsr -60(a6)
+    342c:	2f40 00bc      	move.l d0,188(sp)
+    3430:	202f 00bc      	move.l 188(sp),d0
+    3434:	2f40 00b8      	move.l d0,184(sp)
+    3438:	2f7c 0001 8092 	move.l #98450,180(sp)
+    343e:	00b4 
+    3440:	7046           	moveq #70,d0
+    3442:	2f40 00b0      	move.l d0,176(sp)
+    3446:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    344c:	2c40           	movea.l d0,a6
+    344e:	222f 00b8      	move.l 184(sp),d1
+    3452:	242f 00b4      	move.l 180(sp),d2
+    3456:	262f 00b0      	move.l 176(sp),d3
+    345a:	4eae ffd0      	jsr -48(a6)
+    345e:	2f40 00ac      	move.l d0,172(sp)
       "ZoomCopperlist: Screen section of copper starting on pos 16 messed up\n",
                                                                             70);
   DrawBuffer = (ULONG *) 0x40000;
-    32b6:	23fc 0004 0000 	move.l #262144,1ba98 <DrawBuffer>
-    32bc:	0001 ba98 
+    3462:	23fc 0004 0000 	move.l #262144,28510 <DrawBuffer>
+    3468:	0002 8510 
   ViewBuffer = (ULONG *) 0x50000;
-    32c0:	23fc 0005 0000 	move.l #327680,1ba9c <ViewBuffer>
-    32c6:	0001 ba9c 
+    346c:	23fc 0005 0000 	move.l #327680,28514 <ViewBuffer>
+    3472:	0002 8514 
   Zoom_SetBplPointers( DrawBuffer, DrawCopper);
-    32ca:	2239 0001 baa0 	move.l 1baa0 <DrawCopper>,d1
-    32d0:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    32d6:	2f01           	move.l d1,-(sp)
-    32d8:	2f00           	move.l d0,-(sp)
-    32da:	4eba eb1a      	jsr 1df6 <Zoom_SetBplPointers>(pc)
-    32de:	508f           	addq.l #8,sp
+    3476:	2239 0002 8518 	move.l 28518 <DrawCopper>,d1
+    347c:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    3482:	2f01           	move.l d1,-(sp)
+    3484:	2f00           	move.l d0,-(sp)
+    3486:	4eba ebda      	jsr 2062 <Zoom_SetBplPointers>(pc)
+    348a:	508f           	addq.l #8,sp
   Zoom_SwapBuffers();
-    32e0:	4eba eb90      	jsr 1e72 <Zoom_SwapBuffers>(pc)
+    348c:	4eba ec52      	jsr 20e0 <Zoom_SwapBuffers>(pc)
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
-    32e4:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    32ea:	0c80 0005 0000 	cmpi.l #327680,d0
-    32f0:	660e           	bne.s 3300 <ZoomTestDisplay+0x120>
-    32f2:	2039 0001 ba9c 	move.l 1ba9c <ViewBuffer>,d0
-    32f8:	0c80 0004 0000 	cmpi.l #262144,d0
-    32fe:	6742           	beq.s 3342 <ZoomTestDisplay+0x162>
+    3490:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    3496:	0c80 0005 0000 	cmpi.l #327680,d0
+    349c:	660e           	bne.s 34ac <ZoomTestDisplay+0x120>
+    349e:	2039 0002 8514 	move.l 28514 <ViewBuffer>,d0
+    34a4:	0c80 0004 0000 	cmpi.l #262144,d0
+    34aa:	6742           	beq.s 34ee <ZoomTestDisplay+0x162>
     Write( Output(), 
-    3300:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3306:	2c40           	movea.l d0,a6
-    3308:	4eae ffc4      	jsr -60(a6)
-    330c:	2f40 00a8      	move.l d0,168(sp)
-    3310:	202f 00a8      	move.l 168(sp),d0
-    3314:	2f40 00a4      	move.l d0,164(sp)
-    3318:	2f7c 0001 7f24 	move.l #98084,160(sp)
-    331e:	00a0 
-    3320:	703b           	moveq #59,d0
-    3322:	2f40 009c      	move.l d0,156(sp)
-    3326:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    332c:	2c40           	movea.l d0,a6
-    332e:	222f 00a4      	move.l 164(sp),d1
-    3332:	242f 00a0      	move.l 160(sp),d2
-    3336:	262f 009c      	move.l 156(sp),d3
-    333a:	4eae ffd0      	jsr -48(a6)
-    333e:	2f40 0098      	move.l d0,152(sp)
+    34ac:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    34b2:	2c40           	movea.l d0,a6
+    34b4:	4eae ffc4      	jsr -60(a6)
+    34b8:	2f40 00a8      	move.l d0,168(sp)
+    34bc:	202f 00a8      	move.l 168(sp),d0
+    34c0:	2f40 00a4      	move.l d0,164(sp)
+    34c4:	2f7c 0001 80d9 	move.l #98521,160(sp)
+    34ca:	00a0 
+    34cc:	703b           	moveq #59,d0
+    34ce:	2f40 009c      	move.l d0,156(sp)
+    34d2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    34d8:	2c40           	movea.l d0,a6
+    34da:	222f 00a4      	move.l 164(sp),d1
+    34de:	242f 00a0      	move.l 160(sp),d2
+    34e2:	262f 009c      	move.l 156(sp),d3
+    34e6:	4eae ffd0      	jsr -48(a6)
+    34ea:	2f40 0098      	move.l d0,152(sp)
             "ZoomCopperlist: Draw and ViewBuffer not proberly switched.\n", 59);
     
   if(  TestCopperlistPos(  Copperlist1, 28, 0x00e00004) == 0)
-    3342:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    3348:	2f3c 00e0 0004 	move.l #14680068,-(sp)
-    334e:	4878 001c      	pea 1c <GetVBR+0x14>
-    3352:	2f00           	move.l d0,-(sp)
-    3354:	4eba f72a      	jsr 2a80 <TestCopperlistPos>(pc)
-    3358:	4fef 000c      	lea 12(sp),sp
-    335c:	4a80           	tst.l d0
-    335e:	6642           	bne.s 33a2 <ZoomTestDisplay+0x1c2>
+    34ee:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    34f4:	2f3c 00e0 0004 	move.l #14680068,-(sp)
+    34fa:	4878 001c      	pea 1c <_start+0x1c>
+    34fe:	2f00           	move.l d0,-(sp)
+    3500:	4eba f714      	jsr 2c16 <TestCopperlistPos>(pc)
+    3504:	4fef 000c      	lea 12(sp),sp
+    3508:	4a80           	tst.l d0
+    350a:	6642           	bne.s 354e <ZoomTestDisplay+0x1c2>
     Write(Output(), 
-    3360:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3366:	2c40           	movea.l d0,a6
-    3368:	4eae ffc4      	jsr -60(a6)
-    336c:	2f40 0094      	move.l d0,148(sp)
-    3370:	202f 0094      	move.l 148(sp),d0
-    3374:	2f40 0090      	move.l d0,144(sp)
-    3378:	2f7c 0001 7f60 	move.l #98144,140(sp)
-    337e:	008c 
-    3380:	703c           	moveq #60,d0
-    3382:	2f40 0088      	move.l d0,136(sp)
-    3386:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    338c:	2c40           	movea.l d0,a6
-    338e:	222f 0090      	move.l 144(sp),d1
-    3392:	242f 008c      	move.l 140(sp),d2
-    3396:	262f 0088      	move.l 136(sp),d3
-    339a:	4eae ffd0      	jsr -48(a6)
-    339e:	2f40 0084      	move.l d0,132(sp)
+    350c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3512:	2c40           	movea.l d0,a6
+    3514:	4eae ffc4      	jsr -60(a6)
+    3518:	2f40 0094      	move.l d0,148(sp)
+    351c:	202f 0094      	move.l 148(sp),d0
+    3520:	2f40 0090      	move.l d0,144(sp)
+    3524:	2f7c 0001 8115 	move.l #98581,140(sp)
+    352a:	008c 
+    352c:	703c           	moveq #60,d0
+    352e:	2f40 0088      	move.l d0,136(sp)
+    3532:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3538:	2c40           	movea.l d0,a6
+    353a:	222f 0090      	move.l 144(sp),d1
+    353e:	242f 008c      	move.l 140(sp),d2
+    3542:	262f 0088      	move.l 136(sp),d3
+    3546:	4eae ffd0      	jsr -48(a6)
+    354a:	2f40 0084      	move.l d0,132(sp)
            "ZoomCopperlist: Problem in Copperlist bpl1ph should be 0004\n", 60);
   
   if(  TestCopperlistPos(  Copperlist1, 29, 0x00e200f4) == 0)
-    33a2:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    33a8:	2f3c 00e2 00f4 	move.l #14811380,-(sp)
-    33ae:	4878 001d      	pea 1d <GetVBR+0x15>
-    33b2:	2f00           	move.l d0,-(sp)
-    33b4:	4eba f6ca      	jsr 2a80 <TestCopperlistPos>(pc)
-    33b8:	4fef 000c      	lea 12(sp),sp
-    33bc:	4a80           	tst.l d0
-    33be:	6642           	bne.s 3402 <ZoomTestDisplay+0x222>
+    354e:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    3554:	2f3c 00e2 00f4 	move.l #14811380,-(sp)
+    355a:	4878 001d      	pea 1d <_start+0x1d>
+    355e:	2f00           	move.l d0,-(sp)
+    3560:	4eba f6b4      	jsr 2c16 <TestCopperlistPos>(pc)
+    3564:	4fef 000c      	lea 12(sp),sp
+    3568:	4a80           	tst.l d0
+    356a:	6642           	bne.s 35ae <ZoomTestDisplay+0x222>
     Write(Output(), 
-    33c0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    33c6:	2c40           	movea.l d0,a6
-    33c8:	4eae ffc4      	jsr -60(a6)
-    33cc:	2f40 0080      	move.l d0,128(sp)
-    33d0:	202f 0080      	move.l 128(sp),d0
-    33d4:	2f40 007c      	move.l d0,124(sp)
-    33d8:	2f7c 0001 7f9d 	move.l #98205,120(sp)
-    33de:	0078 
-    33e0:	703c           	moveq #60,d0
-    33e2:	2f40 0074      	move.l d0,116(sp)
-    33e6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    33ec:	2c40           	movea.l d0,a6
-    33ee:	222f 007c      	move.l 124(sp),d1
-    33f2:	242f 0078      	move.l 120(sp),d2
-    33f6:	262f 0074      	move.l 116(sp),d3
-    33fa:	4eae ffd0      	jsr -48(a6)
-    33fe:	2f40 0070      	move.l d0,112(sp)
+    356c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3572:	2c40           	movea.l d0,a6
+    3574:	4eae ffc4      	jsr -60(a6)
+    3578:	2f40 0080      	move.l d0,128(sp)
+    357c:	202f 0080      	move.l 128(sp),d0
+    3580:	2f40 007c      	move.l d0,124(sp)
+    3584:	2f7c 0001 8152 	move.l #98642,120(sp)
+    358a:	0078 
+    358c:	703c           	moveq #60,d0
+    358e:	2f40 0074      	move.l d0,116(sp)
+    3592:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3598:	2c40           	movea.l d0,a6
+    359a:	222f 007c      	move.l 124(sp),d1
+    359e:	242f 0078      	move.l 120(sp),d2
+    35a2:	262f 0074      	move.l 116(sp),d3
+    35a6:	4eae ffd0      	jsr -48(a6)
+    35aa:	2f40 0070      	move.l d0,112(sp)
            "ZoomCopperlist: Problem in Copperlist bpl1pl should be 00f4\n", 60);
 
   if(  TestCopperlistPos(  Copperlist1, 30, 0x00e40004) == 0)
-    3402:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    3408:	2f3c 00e4 0004 	move.l #14942212,-(sp)
-    340e:	4878 001e      	pea 1e <GetVBR+0x16>
-    3412:	2f00           	move.l d0,-(sp)
-    3414:	4eba f66a      	jsr 2a80 <TestCopperlistPos>(pc)
-    3418:	4fef 000c      	lea 12(sp),sp
-    341c:	4a80           	tst.l d0
-    341e:	6642           	bne.s 3462 <ZoomTestDisplay+0x282>
+    35ae:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    35b4:	2f3c 00e4 0004 	move.l #14942212,-(sp)
+    35ba:	4878 001e      	pea 1e <_start+0x1e>
+    35be:	2f00           	move.l d0,-(sp)
+    35c0:	4eba f654      	jsr 2c16 <TestCopperlistPos>(pc)
+    35c4:	4fef 000c      	lea 12(sp),sp
+    35c8:	4a80           	tst.l d0
+    35ca:	6642           	bne.s 360e <ZoomTestDisplay+0x282>
     Write(Output(), 
-    3420:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3426:	2c40           	movea.l d0,a6
-    3428:	4eae ffc4      	jsr -60(a6)
-    342c:	2f40 006c      	move.l d0,108(sp)
-    3430:	202f 006c      	move.l 108(sp),d0
-    3434:	2f40 0068      	move.l d0,104(sp)
-    3438:	2f7c 0001 7fda 	move.l #98266,100(sp)
-    343e:	0064 
-    3440:	703c           	moveq #60,d0
-    3442:	2f40 0060      	move.l d0,96(sp)
-    3446:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    344c:	2c40           	movea.l d0,a6
-    344e:	222f 0068      	move.l 104(sp),d1
-    3452:	242f 0064      	move.l 100(sp),d2
-    3456:	262f 0060      	move.l 96(sp),d3
-    345a:	4eae ffd0      	jsr -48(a6)
-    345e:	2f40 005c      	move.l d0,92(sp)
+    35cc:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    35d2:	2c40           	movea.l d0,a6
+    35d4:	4eae ffc4      	jsr -60(a6)
+    35d8:	2f40 006c      	move.l d0,108(sp)
+    35dc:	202f 006c      	move.l 108(sp),d0
+    35e0:	2f40 0068      	move.l d0,104(sp)
+    35e4:	2f7c 0001 818f 	move.l #98703,100(sp)
+    35ea:	0064 
+    35ec:	703c           	moveq #60,d0
+    35ee:	2f40 0060      	move.l d0,96(sp)
+    35f2:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    35f8:	2c40           	movea.l d0,a6
+    35fa:	222f 0068      	move.l 104(sp),d1
+    35fe:	242f 0064      	move.l 100(sp),d2
+    3602:	262f 0060      	move.l 96(sp),d3
+    3606:	4eae ffd0      	jsr -48(a6)
+    360a:	2f40 005c      	move.l d0,92(sp)
            "ZoomCopperlist: Problem in Copperlist bpl2ph should be 0004\n", 60);
   
   if(  TestCopperlistPos(  Copperlist1, 31, 0x00e60124) == 0)
-    3462:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    3468:	2f3c 00e6 0124 	move.l #15073572,-(sp)
-    346e:	4878 001f      	pea 1f <GetVBR+0x17>
-    3472:	2f00           	move.l d0,-(sp)
-    3474:	4eba f60a      	jsr 2a80 <TestCopperlistPos>(pc)
-    3478:	4fef 000c      	lea 12(sp),sp
-    347c:	4a80           	tst.l d0
-    347e:	6642           	bne.s 34c2 <ZoomTestDisplay+0x2e2>
+    360e:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    3614:	2f3c 00e6 0124 	move.l #15073572,-(sp)
+    361a:	4878 001f      	pea 1f <_start+0x1f>
+    361e:	2f00           	move.l d0,-(sp)
+    3620:	4eba f5f4      	jsr 2c16 <TestCopperlistPos>(pc)
+    3624:	4fef 000c      	lea 12(sp),sp
+    3628:	4a80           	tst.l d0
+    362a:	6642           	bne.s 366e <ZoomTestDisplay+0x2e2>
     Write(Output(), 
-    3480:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3486:	2c40           	movea.l d0,a6
-    3488:	4eae ffc4      	jsr -60(a6)
-    348c:	2f40 0058      	move.l d0,88(sp)
-    3490:	202f 0058      	move.l 88(sp),d0
-    3494:	2f40 0054      	move.l d0,84(sp)
-    3498:	2f7c 0001 8017 	move.l #98327,80(sp)
-    349e:	0050 
-    34a0:	703c           	moveq #60,d0
-    34a2:	2f40 004c      	move.l d0,76(sp)
-    34a6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    34ac:	2c40           	movea.l d0,a6
-    34ae:	222f 0054      	move.l 84(sp),d1
-    34b2:	242f 0050      	move.l 80(sp),d2
-    34b6:	262f 004c      	move.l 76(sp),d3
-    34ba:	4eae ffd0      	jsr -48(a6)
-    34be:	2f40 0048      	move.l d0,72(sp)
+    362c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3632:	2c40           	movea.l d0,a6
+    3634:	4eae ffc4      	jsr -60(a6)
+    3638:	2f40 0058      	move.l d0,88(sp)
+    363c:	202f 0058      	move.l 88(sp),d0
+    3640:	2f40 0054      	move.l d0,84(sp)
+    3644:	2f7c 0001 81cc 	move.l #98764,80(sp)
+    364a:	0050 
+    364c:	703c           	moveq #60,d0
+    364e:	2f40 004c      	move.l d0,76(sp)
+    3652:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3658:	2c40           	movea.l d0,a6
+    365a:	222f 0054      	move.l 84(sp),d1
+    365e:	242f 0050      	move.l 80(sp),d2
+    3662:	262f 004c      	move.l 76(sp),d3
+    3666:	4eae ffd0      	jsr -48(a6)
+    366a:	2f40 0048      	move.l d0,72(sp)
            "ZoomCopperlist: Problem in Copperlist bpl2pl should be 0034\n", 60);
 
 
   if(  TestCopperlistBatch(  Copperlist1, 38, ClColor, 32) == 0)
-    34c2:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    34c8:	4878 0020      	pea 20 <GetVBR+0x18>
-    34cc:	4879 0001 a2a8 	pea 1a2a8 <ClColor>
-    34d2:	4878 0026      	pea 26 <GetVBR+0x1e>
-    34d6:	2f00           	move.l d0,-(sp)
-    34d8:	4eba f568      	jsr 2a42 <TestCopperlistBatch>(pc)
-    34dc:	4fef 0010      	lea 16(sp),sp
-    34e0:	4a80           	tst.l d0
-    34e2:	6642           	bne.s 3526 <ZoomTestDisplay+0x346>
+    366e:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    3674:	4878 0020      	pea 20 <_start+0x20>
+    3678:	4879 0001 a520 	pea 1a520 <ClColor>
+    367e:	4878 0026      	pea 26 <_start+0x26>
+    3682:	2f00           	move.l d0,-(sp)
+    3684:	4eba f552      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    3688:	4fef 0010      	lea 16(sp),sp
+    368c:	4a80           	tst.l d0
+    368e:	6642           	bne.s 36d2 <ZoomTestDisplay+0x346>
     Write(Output(), "ZoomCopperlist: Colorpart messed up.\n", 37);
-    34e4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    34ea:	2c40           	movea.l d0,a6
-    34ec:	4eae ffc4      	jsr -60(a6)
-    34f0:	2f40 0044      	move.l d0,68(sp)
-    34f4:	202f 0044      	move.l 68(sp),d0
-    34f8:	2f40 0040      	move.l d0,64(sp)
-    34fc:	2f7c 0001 8054 	move.l #98388,60(sp)
-    3502:	003c 
-    3504:	7025           	moveq #37,d0
-    3506:	2f40 0038      	move.l d0,56(sp)
-    350a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3510:	2c40           	movea.l d0,a6
-    3512:	222f 0040      	move.l 64(sp),d1
-    3516:	242f 003c      	move.l 60(sp),d2
-    351a:	262f 0038      	move.l 56(sp),d3
-    351e:	4eae ffd0      	jsr -48(a6)
-    3522:	2f40 0034      	move.l d0,52(sp)
+    3690:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3696:	2c40           	movea.l d0,a6
+    3698:	4eae ffc4      	jsr -60(a6)
+    369c:	2f40 0044      	move.l d0,68(sp)
+    36a0:	202f 0044      	move.l 68(sp),d0
+    36a4:	2f40 0040      	move.l d0,64(sp)
+    36a8:	2f7c 0001 8209 	move.l #98825,60(sp)
+    36ae:	003c 
+    36b0:	7025           	moveq #37,d0
+    36b2:	2f40 0038      	move.l d0,56(sp)
+    36b6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    36bc:	2c40           	movea.l d0,a6
+    36be:	222f 0040      	move.l 64(sp),d1
+    36c2:	242f 003c      	move.l 60(sp),d2
+    36c6:	262f 0038      	move.l 56(sp),d3
+    36ca:	4eae ffd0      	jsr -48(a6)
+    36ce:	2f40 0034      	move.l d0,52(sp)
 
   /*if(  TestCopperlistBatch(  Copperlist1, 71, Cl102ZoomRepeat, 21) == 0)
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 36); */
   
   Zoom_Shrink102( 15, (UWORD *) Copperlist1);
-    3526:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    352c:	2f00           	move.l d0,-(sp)
-    352e:	4878 000f      	pea f <GetVBR+0x7>
-    3532:	4eba d234      	jsr 768 <Zoom_Shrink102>(pc)
-    3536:	508f           	addq.l #8,sp
+    36d2:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    36d8:	2f00           	move.l d0,-(sp)
+    36da:	4878 000f      	pea f <_start+0xf>
+    36de:	4eba ce7a      	jsr 55a <Zoom_Shrink102>(pc)
+    36e2:	508f           	addq.l #8,sp
   if( TestCopperListZoom102( Copperlist1, 73, Cl102ZoomTest) == 0)
-    3538:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    353e:	4879 0001 b540 	pea 1b540 <Cl102ZoomTest>
-    3544:	4878 0049      	pea 49 <GetVBR+0x41>
-    3548:	2f00           	move.l d0,-(sp)
-    354a:	4eba 00c4      	jsr 3610 <TestCopperListZoom102>(pc)
-    354e:	4fef 000c      	lea 12(sp),sp
-    3552:	4a80           	tst.l d0
-    3554:	6642           	bne.s 3598 <ZoomTestDisplay+0x3b8>
+    36e4:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    36ea:	4879 0001 b7c0 	pea 1b7c0 <Cl102ZoomTest>
+    36f0:	4878 0049      	pea 49 <_start+0x49>
+    36f4:	2f00           	move.l d0,-(sp)
+    36f6:	4eba 00c4      	jsr 37bc <TestCopperListZoom102>(pc)
+    36fa:	4fef 000c      	lea 12(sp),sp
+    36fe:	4a80           	tst.l d0
+    3700:	6642           	bne.s 3744 <ZoomTestDisplay+0x3b8>
     Write(Output(), "ZoomCopperlist: Zoompart messed up.\n", 37);
-    3556:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    355c:	2c40           	movea.l d0,a6
-    355e:	4eae ffc4      	jsr -60(a6)
-    3562:	2f40 0030      	move.l d0,48(sp)
-    3566:	202f 0030      	move.l 48(sp),d0
-    356a:	2f40 002c      	move.l d0,44(sp)
-    356e:	2f7c 0001 807a 	move.l #98426,40(sp)
-    3574:	0028 
-    3576:	7025           	moveq #37,d0
-    3578:	2f40 0024      	move.l d0,36(sp)
-    357c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3582:	2c40           	movea.l d0,a6
-    3584:	222f 002c      	move.l 44(sp),d1
-    3588:	242f 0028      	move.l 40(sp),d2
-    358c:	262f 0024      	move.l 36(sp),d3
-    3590:	4eae ffd0      	jsr -48(a6)
-    3594:	2f40 0020      	move.l d0,32(sp)
+    3702:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3708:	2c40           	movea.l d0,a6
+    370a:	4eae ffc4      	jsr -60(a6)
+    370e:	2f40 0030      	move.l d0,48(sp)
+    3712:	202f 0030      	move.l 48(sp),d0
+    3716:	2f40 002c      	move.l d0,44(sp)
+    371a:	2f7c 0001 822f 	move.l #98863,40(sp)
+    3720:	0028 
+    3722:	7025           	moveq #37,d0
+    3724:	2f40 0024      	move.l d0,36(sp)
+    3728:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    372e:	2c40           	movea.l d0,a6
+    3730:	222f 002c      	move.l 44(sp),d1
+    3734:	242f 0028      	move.l 40(sp),d2
+    3738:	262f 0024      	move.l 36(sp),d3
+    373c:	4eae ffd0      	jsr -48(a6)
+    3740:	2f40 0020      	move.l d0,32(sp)
 
   if( TestCopperlistPos( Copperlist1, 73+114, 0xfffffffe) == 0)
-    3598:	2039 0001 ba90 	move.l 1ba90 <Copperlist1>,d0
-    359e:	4878 fffe      	pea fffffffe <gcc8_c_support.c.e9862530+0xfffd3e2d>
-    35a2:	4878 00bb      	pea bb <WaitVbl+0x25>
-    35a6:	2f00           	move.l d0,-(sp)
-    35a8:	4eba f4d6      	jsr 2a80 <TestCopperlistPos>(pc)
-    35ac:	4fef 000c      	lea 12(sp),sp
-    35b0:	4a80           	tst.l d0
-    35b2:	6642           	bne.s 35f6 <ZoomTestDisplay+0x416>
+    3744:	2039 0002 8508 	move.l 28508 <Copperlist1>,d0
+    374a:	4878 fffe      	pea fffffffe <_end+0xfffd7a86>
+    374e:	4878 00bb      	pea bb <WaitBlt+0x7>
+    3752:	2f00           	move.l d0,-(sp)
+    3754:	4eba f4c0      	jsr 2c16 <TestCopperlistPos>(pc)
+    3758:	4fef 000c      	lea 12(sp),sp
+    375c:	4a80           	tst.l d0
+    375e:	6642           	bne.s 37a2 <ZoomTestDisplay+0x416>
     Write( Output(), "ZoomCopperlist: Copperlist End not correctly set.\n", 50);
-    35b4:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    35ba:	2c40           	movea.l d0,a6
-    35bc:	4eae ffc4      	jsr -60(a6)
-    35c0:	2f40 001c      	move.l d0,28(sp)
-    35c4:	202f 001c      	move.l 28(sp),d0
-    35c8:	2f40 0018      	move.l d0,24(sp)
-    35cc:	2f7c 0001 809f 	move.l #98463,20(sp)
-    35d2:	0014 
-    35d4:	7032           	moveq #50,d0
-    35d6:	2f40 0010      	move.l d0,16(sp)
-    35da:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    35e0:	2c40           	movea.l d0,a6
-    35e2:	222f 0018      	move.l 24(sp),d1
-    35e6:	242f 0014      	move.l 20(sp),d2
-    35ea:	262f 0010      	move.l 16(sp),d3
-    35ee:	4eae ffd0      	jsr -48(a6)
-    35f2:	2f40 000c      	move.l d0,12(sp)
+    3760:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3766:	2c40           	movea.l d0,a6
+    3768:	4eae ffc4      	jsr -60(a6)
+    376c:	2f40 001c      	move.l d0,28(sp)
+    3770:	202f 001c      	move.l 28(sp),d0
+    3774:	2f40 0018      	move.l d0,24(sp)
+    3778:	2f7c 0001 8254 	move.l #98900,20(sp)
+    377e:	0014 
+    3780:	7032           	moveq #50,d0
+    3782:	2f40 0010      	move.l d0,16(sp)
+    3786:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    378c:	2c40           	movea.l d0,a6
+    378e:	222f 0018      	move.l 24(sp),d1
+    3792:	242f 0014      	move.l 20(sp),d2
+    3796:	262f 0010      	move.l 16(sp),d3
+    379a:	4eae ffd0      	jsr -48(a6)
+    379e:	2f40 000c      	move.l d0,12(sp)
 
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
-    35f6:	2f3c 0000 ff00 	move.l #65280,-(sp)
-    35fc:	4878 031c      	pea 31c <TakeSystem+0xb4>
-    3600:	4eba cb0c      	jsr 10e <FreeDisplay>(pc)
-    3604:	508f           	addq.l #8,sp
+    37a2:	2f3c 0000 ff00 	move.l #65280,-(sp)
+    37a8:	4878 031c      	pea 31c <RunDemo+0x6>
+    37ac:	4eba c932      	jsr e0 <FreeDisplay>(pc)
+    37b0:	508f           	addq.l #8,sp
 
 }
-    3606:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    360a:	4fef 00c8      	lea 200(sp),sp
-    360e:	4e75           	rts
+    37b2:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    37b6:	4fef 00c8      	lea 200(sp),sp
+    37ba:	4e75           	rts
 
-00003610 <TestCopperListZoom102>:
+000037bc <TestCopperListZoom102>:
 
 int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
                                                            ULONG *template4cl) {
-    3610:	598f           	subq.l #4,sp
-    3612:	202f 000c      	move.l 12(sp),d0
-    3616:	3000           	move.w d0,d0
-    3618:	3f40 0002      	move.w d0,2(sp)
+    37bc:	598f           	subq.l #4,sp
+    37be:	202f 000c      	move.l 12(sp),d0
+    37c2:	3000           	move.w d0,d0
+    37c4:	3f40 0002      	move.w d0,2(sp)
   if( TestCopperlistBatch( cl2test, position, template4cl, 28) == 0)
-    361c:	7000           	moveq #0,d0
-    361e:	302f 0002      	move.w 2(sp),d0
-    3622:	4878 001c      	pea 1c <GetVBR+0x14>
-    3626:	2f2f 0014      	move.l 20(sp),-(sp)
-    362a:	2f00           	move.l d0,-(sp)
-    362c:	2f2f 0014      	move.l 20(sp),-(sp)
-    3630:	4eba f410      	jsr 2a42 <TestCopperlistBatch>(pc)
-    3634:	4fef 0010      	lea 16(sp),sp
-    3638:	4a80           	tst.l d0
-    363a:	6604           	bne.s 3640 <TestCopperListZoom102+0x30>
+    37c8:	7000           	moveq #0,d0
+    37ca:	302f 0002      	move.w 2(sp),d0
+    37ce:	4878 001c      	pea 1c <_start+0x1c>
+    37d2:	2f2f 0014      	move.l 20(sp),-(sp)
+    37d6:	2f00           	move.l d0,-(sp)
+    37d8:	2f2f 0014      	move.l 20(sp),-(sp)
+    37dc:	4eba f3fa      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    37e0:	4fef 0010      	lea 16(sp),sp
+    37e4:	4a80           	tst.l d0
+    37e6:	6604           	bne.s 37ec <TestCopperListZoom102+0x30>
     return 0;
-    363c:	7000           	moveq #0,d0
-    363e:	6062           	bra.s 36a2 <TestCopperListZoom102+0x92>
+    37e8:	7000           	moveq #0,d0
+    37ea:	6062           	bra.s 384e <TestCopperListZoom102+0x92>
   if( TestCopperlistBatch( cl2test, position+30, template4cl+30, 54) == 0)
-    3640:	7078           	moveq #120,d0
-    3642:	d0af 0010      	add.l 16(sp),d0
-    3646:	7200           	moveq #0,d1
-    3648:	322f 0002      	move.w 2(sp),d1
-    364c:	307c 001e      	movea.w #30,a0
-    3650:	d1c1           	adda.l d1,a0
-    3652:	4878 0036      	pea 36 <GetVBR+0x2e>
-    3656:	2f00           	move.l d0,-(sp)
-    3658:	2f08           	move.l a0,-(sp)
-    365a:	2f2f 0014      	move.l 20(sp),-(sp)
-    365e:	4eba f3e2      	jsr 2a42 <TestCopperlistBatch>(pc)
-    3662:	4fef 0010      	lea 16(sp),sp
-    3666:	4a80           	tst.l d0
-    3668:	6604           	bne.s 366e <TestCopperListZoom102+0x5e>
+    37ec:	7078           	moveq #120,d0
+    37ee:	d0af 0010      	add.l 16(sp),d0
+    37f2:	7200           	moveq #0,d1
+    37f4:	322f 0002      	move.w 2(sp),d1
+    37f8:	307c 001e      	movea.w #30,a0
+    37fc:	d1c1           	adda.l d1,a0
+    37fe:	4878 0036      	pea 36 <_start+0x36>
+    3802:	2f00           	move.l d0,-(sp)
+    3804:	2f08           	move.l a0,-(sp)
+    3806:	2f2f 0014      	move.l 20(sp),-(sp)
+    380a:	4eba f3cc      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    380e:	4fef 0010      	lea 16(sp),sp
+    3812:	4a80           	tst.l d0
+    3814:	6604           	bne.s 381a <TestCopperListZoom102+0x5e>
     return 0;
-    366a:	7000           	moveq #0,d0
-    366c:	6034           	bra.s 36a2 <TestCopperListZoom102+0x92>
+    3816:	7000           	moveq #0,d0
+    3818:	6034           	bra.s 384e <TestCopperListZoom102+0x92>
   if( TestCopperlistBatch( cl2test, position+86, template4cl+86, 28) == 0)
-    366e:	202f 0010      	move.l 16(sp),d0
-    3672:	0680 0000 0158 	addi.l #344,d0
-    3678:	7200           	moveq #0,d1
-    367a:	322f 0002      	move.w 2(sp),d1
-    367e:	307c 0056      	movea.w #86,a0
-    3682:	d1c1           	adda.l d1,a0
-    3684:	4878 001c      	pea 1c <GetVBR+0x14>
-    3688:	2f00           	move.l d0,-(sp)
-    368a:	2f08           	move.l a0,-(sp)
-    368c:	2f2f 0014      	move.l 20(sp),-(sp)
-    3690:	4eba f3b0      	jsr 2a42 <TestCopperlistBatch>(pc)
-    3694:	4fef 0010      	lea 16(sp),sp
-    3698:	4a80           	tst.l d0
-    369a:	6604           	bne.s 36a0 <TestCopperListZoom102+0x90>
+    381a:	202f 0010      	move.l 16(sp),d0
+    381e:	0680 0000 0158 	addi.l #344,d0
+    3824:	7200           	moveq #0,d1
+    3826:	322f 0002      	move.w 2(sp),d1
+    382a:	307c 0056      	movea.w #86,a0
+    382e:	d1c1           	adda.l d1,a0
+    3830:	4878 001c      	pea 1c <_start+0x1c>
+    3834:	2f00           	move.l d0,-(sp)
+    3836:	2f08           	move.l a0,-(sp)
+    3838:	2f2f 0014      	move.l 20(sp),-(sp)
+    383c:	4eba f39a      	jsr 2bd8 <TestCopperlistBatch>(pc)
+    3840:	4fef 0010      	lea 16(sp),sp
+    3844:	4a80           	tst.l d0
+    3846:	6604           	bne.s 384c <TestCopperListZoom102+0x90>
     return 0;
-    369c:	7000           	moveq #0,d0
-    369e:	6002           	bra.s 36a2 <TestCopperListZoom102+0x92>
+    3848:	7000           	moveq #0,d0
+    384a:	6002           	bra.s 384e <TestCopperListZoom102+0x92>
  
   return 1;
-    36a0:	7001           	moveq #1,d0
+    384c:	7001           	moveq #1,d0
 }
-    36a2:	588f           	addq.l #4,sp
-    36a4:	4e75           	rts
+    384e:	588f           	addq.l #4,sp
+    3850:	4e75           	rts
 
-000036a6 <TestBlitleftOfZoom>:
+00003852 <TestBlitleftOfZoom>:
 
 void TestBlitleftOfZoom() {
-    36a6:	4fef ff94      	lea -108(sp),sp
-    36aa:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    3852:	4fef ff94      	lea -108(sp),sp
+    3856:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   Zoom_Init();
-    36ae:	4eba dd30      	jsr 13e0 <Zoom_Init>(pc)
+    385a:	4eba de08      	jsr 1664 <Zoom_Init>(pc)
   PrepareDisplayZoom();
-    36b2:	4eba e0d2      	jsr 1786 <PrepareDisplayZoom>(pc)
+    385e:	4eba e1a6      	jsr 1a06 <PrepareDisplayZoom>(pc)
 
   Zoom_Source = AllocMem(40*256*5, MEMF_CHIP);
-    36b6:	2f7c 0000 c800 	move.l #51200,116(sp)
-    36bc:	0074 
-    36be:	7002           	moveq #2,d0
-    36c0:	2f40 0070      	move.l d0,112(sp)
-    36c4:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    36ca:	2c40           	movea.l d0,a6
-    36cc:	202f 0074      	move.l 116(sp),d0
-    36d0:	222f 0070      	move.l 112(sp),d1
-    36d4:	4eae ff3a      	jsr -198(a6)
-    36d8:	2f40 006c      	move.l d0,108(sp)
-    36dc:	202f 006c      	move.l 108(sp),d0
-    36e0:	23c0 0001 bad8 	move.l d0,1bad8 <Zoom_Source>
+    3862:	2f7c 0000 c800 	move.l #51200,116(sp)
+    3868:	0074 
+    386a:	7002           	moveq #2,d0
+    386c:	2f40 0070      	move.l d0,112(sp)
+    3870:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3876:	2c40           	movea.l d0,a6
+    3878:	202f 0074      	move.l 116(sp),d0
+    387c:	222f 0070      	move.l 112(sp),d1
+    3880:	4eae ff3a      	jsr -198(a6)
+    3884:	2f40 006c      	move.l d0,108(sp)
+    3888:	202f 006c      	move.l 108(sp),d0
+    388c:	23c0 0002 8550 	move.l d0,28550 <Zoom_Source>
   if( Zoom_Source == 0) {
-    36e6:	2039 0001 bad8 	move.l 1bad8 <Zoom_Source>,d0
-    36ec:	4a80           	tst.l d0
-    36ee:	6646           	bne.s 3736 <TestBlitleftOfZoom+0x90>
+    3892:	2039 0002 8550 	move.l 28550 <Zoom_Source>,d0
+    3898:	6646           	bne.s 38e0 <TestBlitleftOfZoom+0x8e>
     Write(  Output(), 
-    36f0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    36f6:	2c40           	movea.l d0,a6
-    36f8:	4eae ffc4      	jsr -60(a6)
-    36fc:	2f40 0068      	move.l d0,104(sp)
-    3700:	202f 0068      	move.l 104(sp),d0
-    3704:	2f40 0064      	move.l d0,100(sp)
-    3708:	2f7c 0001 80d2 	move.l #98514,96(sp)
-    370e:	0060 
-    3710:	7236           	moveq #54,d1
-    3712:	2f41 005c      	move.l d1,92(sp)
-    3716:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    371c:	2c40           	movea.l d0,a6
-    371e:	222f 0064      	move.l 100(sp),d1
-    3722:	242f 0060      	move.l 96(sp),d2
-    3726:	262f 005c      	move.l 92(sp),d3
-    372a:	4eae ffd0      	jsr -48(a6)
-    372e:	2f40 0058      	move.l d0,88(sp)
-    3732:	6000 01fe      	bra.w 3932 <TestBlitleftOfZoom+0x28c>
+    389a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    38a0:	2c40           	movea.l d0,a6
+    38a2:	4eae ffc4      	jsr -60(a6)
+    38a6:	2f40 001c      	move.l d0,28(sp)
+    38aa:	202f 001c      	move.l 28(sp),d0
+    38ae:	2f40 0018      	move.l d0,24(sp)
+    38b2:	2f7c 0001 8287 	move.l #98951,20(sp)
+    38b8:	0014 
+    38ba:	7236           	moveq #54,d1
+    38bc:	2f41 0010      	move.l d1,16(sp)
+    38c0:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    38c6:	2c40           	movea.l d0,a6
+    38c8:	222f 0018      	move.l 24(sp),d1
+    38cc:	242f 0014      	move.l 20(sp),d2
+    38d0:	262f 0010      	move.l 16(sp),d3
+    38d4:	4eae ffd0      	jsr -48(a6)
+    38d8:	2f40 000c      	move.l d0,12(sp)
+    38dc:	6000 01fe      	bra.w 3adc <TestBlitleftOfZoom+0x28a>
                  "Zoomtestroutines: Can not allocate mem for Zoomsource.\n",54);
     return;
   }
   
   UWORD *tstsource = Zoom_Source;
-    3736:	2f79 0001 bad8 	move.l 1bad8 <Zoom_Source>,84(sp)
-    373c:	0054 
+    38e0:	2f79 0002 8550 	move.l 28550 <Zoom_Source>,104(sp)
+    38e6:	0068 
   *tstsource++ = 0x0000;
-    373e:	202f 0054      	move.l 84(sp),d0
-    3742:	2200           	move.l d0,d1
-    3744:	5481           	addq.l #2,d1
-    3746:	2f41 0054      	move.l d1,84(sp)
-    374a:	2040           	movea.l d0,a0
-    374c:	4250           	clr.w (a0)
+    38e8:	202f 0068      	move.l 104(sp),d0
+    38ec:	2200           	move.l d0,d1
+    38ee:	5481           	addq.l #2,d1
+    38f0:	2f41 0068      	move.l d1,104(sp)
+    38f4:	2040           	movea.l d0,a0
+    38f6:	4250           	clr.w (a0)
   *tstsource = 0x0080;
-    374e:	206f 0054      	movea.l 84(sp),a0
-    3752:	30bc 0080      	move.w #128,(a0)
+    38f8:	206f 0068      	movea.l 104(sp),a0
+    38fc:	30bc 0080      	move.w #128,(a0)
   tstsource += ZMLINESIZE/2-1;
-    3756:	702e           	moveq #46,d0
-    3758:	d1af 0054      	add.l d0,84(sp)
+    3900:	702e           	moveq #46,d0
+    3902:	d1af 0068      	add.l d0,104(sp)
   *tstsource = 0x1000;
-    375c:	206f 0054      	movea.l 84(sp),a0
-    3760:	30bc 1000      	move.w #4096,(a0)
+    3906:	206f 0068      	movea.l 104(sp),a0
+    390a:	30bc 1000      	move.w #4096,(a0)
   tstsource++;
-    3764:	54af 0054      	addq.l #2,84(sp)
+    390e:	54af 0068      	addq.l #2,104(sp)
   *tstsource = 0x8e88;
-    3768:	206f 0054      	movea.l 84(sp),a0
-    376c:	30bc 8e88      	move.w #-29048,(a0)
+    3912:	206f 0068      	movea.l 104(sp),a0
+    3916:	30bc 8e88      	move.w #-29048,(a0)
   tstsource += ZMLINESIZE/2-1;
-    3770:	722e           	moveq #46,d1
-    3772:	d3af 0054      	add.l d1,84(sp)
+    391a:	722e           	moveq #46,d1
+    391c:	d3af 0068      	add.l d1,104(sp)
 
   tstsource = (UWORD *)Zoom_Source + 127*ZMLINESIZE/2;
-    3776:	2039 0001 bad8 	move.l 1bad8 <Zoom_Source>,d0
-    377c:	2200           	move.l d0,d1
-    377e:	0681 0000 17d0 	addi.l #6096,d1
-    3784:	2f41 0054      	move.l d1,84(sp)
+    3920:	2039 0002 8550 	move.l 28550 <Zoom_Source>,d0
+    3926:	2200           	move.l d0,d1
+    3928:	0681 0000 17d0 	addi.l #6096,d1
+    392e:	2f41 0068      	move.l d1,104(sp)
   *tstsource++ = 0x0000;
-    3788:	202f 0054      	move.l 84(sp),d0
-    378c:	2200           	move.l d0,d1
-    378e:	5481           	addq.l #2,d1
-    3790:	2f41 0054      	move.l d1,84(sp)
-    3794:	2040           	movea.l d0,a0
-    3796:	4250           	clr.w (a0)
+    3932:	202f 0068      	move.l 104(sp),d0
+    3936:	2200           	move.l d0,d1
+    3938:	5481           	addq.l #2,d1
+    393a:	2f41 0068      	move.l d1,104(sp)
+    393e:	2040           	movea.l d0,a0
+    3940:	4250           	clr.w (a0)
   *tstsource = 0x00ff;
-    3798:	206f 0054      	movea.l 84(sp),a0
-    379c:	30bc 00ff      	move.w #255,(a0)
+    3942:	206f 0068      	movea.l 104(sp),a0
+    3946:	30bc 00ff      	move.w #255,(a0)
   WaitBlit();
-    37a0:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    37a6:	2c40           	movea.l d0,a6
-    37a8:	4eae ff1c      	jsr -228(a6)
+    394a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    3950:	2c40           	movea.l d0,a6
+    3952:	4eae ff1c      	jsr -228(a6)
   Init_Blit();
-    37ac:	4eba e154      	jsr 1902 <Init_Blit>(pc)
+    3956:	4eba e226      	jsr 1b7e <Init_Blit>(pc)
   Init_ZoomBlit( 7, 16, 0);
-    37b0:	42a7           	clr.l -(sp)
-    37b2:	4878 0010      	pea 10 <GetVBR+0x8>
-    37b6:	4878 0007      	pea 7 <_start+0x7>
-    37ba:	4eba e1c2      	jsr 197e <Init_ZoomBlit>(pc)
-    37be:	4fef 000c      	lea 12(sp),sp
+    395a:	42a7           	clr.l -(sp)
+    395c:	4878 0010      	pea 10 <_start+0x10>
+    3960:	4878 0007      	pea 7 <_start+0x7>
+    3964:	4eba e294      	jsr 1bfa <Init_ZoomBlit>(pc)
+    3968:	4fef 000c      	lea 12(sp),sp
   Zoom_ZoomBlit( Zoom_Source, (UWORD *)DrawBuffer, 128);
-    37c2:	2239 0001 ba98 	move.l 1ba98 <DrawBuffer>,d1
-    37c8:	2039 0001 bad8 	move.l 1bad8 <Zoom_Source>,d0
-    37ce:	4878 0080      	pea 80 <SetInterruptHandler+0x6>
-    37d2:	2f01           	move.l d1,-(sp)
-    37d4:	2f00           	move.l d0,-(sp)
-    37d6:	4eba d76e      	jsr f46 <Zoom_ZoomBlit>(pc)
-    37da:	4fef 000c      	lea 12(sp),sp
+    396c:	2239 0002 8510 	move.l 28510 <DrawBuffer>,d1
+    3972:	2039 0002 8550 	move.l 28550 <Zoom_Source>,d0
+    3978:	4878 0080      	pea 80 <_start+0x80>
+    397c:	2f01           	move.l d1,-(sp)
+    397e:	2f00           	move.l d0,-(sp)
+    3980:	4eba d84e      	jsr 11d0 <Zoom_ZoomBlit>(pc)
+    3984:	4fef 000c      	lea 12(sp),sp
   WaitBlit();
-    37de:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    37e4:	2c40           	movea.l d0,a6
-    37e6:	4eae ff1c      	jsr -228(a6)
+    3988:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    398e:	2c40           	movea.l d0,a6
+    3990:	4eae ff1c      	jsr -228(a6)
   UWORD *destination = (UWORD *)DrawBuffer+1;
-    37ea:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    37f0:	2200           	move.l d0,d1
-    37f2:	5481           	addq.l #2,d1
-    37f4:	2f41 0050      	move.l d1,80(sp)
+    3994:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    399a:	2200           	move.l d0,d1
+    399c:	5481           	addq.l #2,d1
+    399e:	2f41 0064      	move.l d1,100(sp)
   if( *destination != 0x0180) {
-    37f8:	206f 0050      	movea.l 80(sp),a0
-    37fc:	3010           	move.w (a0),d0
-    37fe:	0c40 0180      	cmpi.w #384,d0
-    3802:	6742           	beq.s 3846 <TestBlitleftOfZoom+0x1a0>
+    39a2:	206f 0064      	movea.l 100(sp),a0
+    39a6:	3010           	move.w (a0),d0
+    39a8:	0c40 0180      	cmpi.w #384,d0
+    39ac:	6742           	beq.s 39f0 <TestBlitleftOfZoom+0x19e>
     Write(  Output(), "Zoomblit - First row wrong.\n",28);
-    3804:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    380a:	2c40           	movea.l d0,a6
-    380c:	4eae ffc4      	jsr -60(a6)
-    3810:	2f40 004c      	move.l d0,76(sp)
-    3814:	202f 004c      	move.l 76(sp),d0
-    3818:	2f40 0048      	move.l d0,72(sp)
-    381c:	2f7c 0001 810a 	move.l #98570,68(sp)
-    3822:	0044 
-    3824:	701c           	moveq #28,d0
-    3826:	2f40 0040      	move.l d0,64(sp)
-    382a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3830:	2c40           	movea.l d0,a6
-    3832:	222f 0048      	move.l 72(sp),d1
-    3836:	242f 0044      	move.l 68(sp),d2
-    383a:	262f 0040      	move.l 64(sp),d3
-    383e:	4eae ffd0      	jsr -48(a6)
-    3842:	2f40 003c      	move.l d0,60(sp)
+    39ae:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    39b4:	2c40           	movea.l d0,a6
+    39b6:	4eae ffc4      	jsr -60(a6)
+    39ba:	2f40 0060      	move.l d0,96(sp)
+    39be:	202f 0060      	move.l 96(sp),d0
+    39c2:	2f40 005c      	move.l d0,92(sp)
+    39c6:	2f7c 0001 82bf 	move.l #99007,88(sp)
+    39cc:	0058 
+    39ce:	701c           	moveq #28,d0
+    39d0:	2f40 0054      	move.l d0,84(sp)
+    39d4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    39da:	2c40           	movea.l d0,a6
+    39dc:	222f 005c      	move.l 92(sp),d1
+    39e0:	242f 0058      	move.l 88(sp),d2
+    39e4:	262f 0054      	move.l 84(sp),d3
+    39e8:	4eae ffd0      	jsr -48(a6)
+    39ec:	2f40 0050      	move.l d0,80(sp)
   }
   destination += ZMLINESIZE/2;
-    3846:	7230           	moveq #48,d1
-    3848:	d3af 0050      	add.l d1,80(sp)
+    39f0:	7230           	moveq #48,d1
+    39f2:	d3af 0064      	add.l d1,100(sp)
   if( *destination != 0x1d88)
-    384c:	206f 0050      	movea.l 80(sp),a0
-    3850:	3010           	move.w (a0),d0
-    3852:	0c40 1d88      	cmpi.w #7560,d0
-    3856:	6742           	beq.s 389a <TestBlitleftOfZoom+0x1f4>
+    39f6:	206f 0064      	movea.l 100(sp),a0
+    39fa:	3010           	move.w (a0),d0
+    39fc:	0c40 1d88      	cmpi.w #7560,d0
+    3a00:	6742           	beq.s 3a44 <TestBlitleftOfZoom+0x1f2>
     Write(  Output(), "Zoomblit: Second row wrong.\n",28);
-    3858:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    385e:	2c40           	movea.l d0,a6
-    3860:	4eae ffc4      	jsr -60(a6)
-    3864:	2f40 0038      	move.l d0,56(sp)
-    3868:	202f 0038      	move.l 56(sp),d0
-    386c:	2f40 0034      	move.l d0,52(sp)
-    3870:	2f7c 0001 8127 	move.l #98599,48(sp)
-    3876:	0030 
-    3878:	701c           	moveq #28,d0
-    387a:	2f40 002c      	move.l d0,44(sp)
-    387e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3884:	2c40           	movea.l d0,a6
-    3886:	222f 0034      	move.l 52(sp),d1
-    388a:	242f 0030      	move.l 48(sp),d2
-    388e:	262f 002c      	move.l 44(sp),d3
-    3892:	4eae ffd0      	jsr -48(a6)
-    3896:	2f40 0028      	move.l d0,40(sp)
+    3a02:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3a08:	2c40           	movea.l d0,a6
+    3a0a:	4eae ffc4      	jsr -60(a6)
+    3a0e:	2f40 004c      	move.l d0,76(sp)
+    3a12:	202f 004c      	move.l 76(sp),d0
+    3a16:	2f40 0048      	move.l d0,72(sp)
+    3a1a:	2f7c 0001 82dc 	move.l #99036,68(sp)
+    3a20:	0044 
+    3a22:	701c           	moveq #28,d0
+    3a24:	2f40 0040      	move.l d0,64(sp)
+    3a28:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3a2e:	2c40           	movea.l d0,a6
+    3a30:	222f 0048      	move.l 72(sp),d1
+    3a34:	242f 0044      	move.l 68(sp),d2
+    3a38:	262f 0040      	move.l 64(sp),d3
+    3a3c:	4eae ffd0      	jsr -48(a6)
+    3a40:	2f40 003c      	move.l d0,60(sp)
 
   
   destination = (UWORD *)DrawBuffer + 127*ZMLINESIZE/2;
-    389a:	2039 0001 ba98 	move.l 1ba98 <DrawBuffer>,d0
-    38a0:	2200           	move.l d0,d1
-    38a2:	0681 0000 17d0 	addi.l #6096,d1
-    38a8:	2f41 0050      	move.l d1,80(sp)
+    3a44:	2039 0002 8510 	move.l 28510 <DrawBuffer>,d0
+    3a4a:	2200           	move.l d0,d1
+    3a4c:	0681 0000 17d0 	addi.l #6096,d1
+    3a52:	2f41 0064      	move.l d1,100(sp)
   destination++;
-    38ac:	54af 0050      	addq.l #2,80(sp)
+    3a56:	54af 0064      	addq.l #2,100(sp)
   if( *destination != 0x01ff) {
-    38b0:	206f 0050      	movea.l 80(sp),a0
-    38b4:	3010           	move.w (a0),d0
-    38b6:	0c40 01ff      	cmpi.w #511,d0
-    38ba:	6742           	beq.s 38fe <TestBlitleftOfZoom+0x258>
+    3a5a:	206f 0064      	movea.l 100(sp),a0
+    3a5e:	3010           	move.w (a0),d0
+    3a60:	0c40 01ff      	cmpi.w #511,d0
+    3a64:	6742           	beq.s 3aa8 <TestBlitleftOfZoom+0x256>
     Write(  Output(), "Zoomblit: Last row wrong.\n",26);
-    38bc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    38c2:	2c40           	movea.l d0,a6
-    38c4:	4eae ffc4      	jsr -60(a6)
-    38c8:	2f40 0024      	move.l d0,36(sp)
-    38cc:	202f 0024      	move.l 36(sp),d0
-    38d0:	2f40 0020      	move.l d0,32(sp)
-    38d4:	2f7c 0001 8144 	move.l #98628,28(sp)
-    38da:	001c 
-    38dc:	701a           	moveq #26,d0
-    38de:	2f40 0018      	move.l d0,24(sp)
-    38e2:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    38e8:	2c40           	movea.l d0,a6
-    38ea:	222f 0020      	move.l 32(sp),d1
-    38ee:	242f 001c      	move.l 28(sp),d2
-    38f2:	262f 0018      	move.l 24(sp),d3
-    38f6:	4eae ffd0      	jsr -48(a6)
-    38fa:	2f40 0014      	move.l d0,20(sp)
+    3a66:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3a6c:	2c40           	movea.l d0,a6
+    3a6e:	4eae ffc4      	jsr -60(a6)
+    3a72:	2f40 0038      	move.l d0,56(sp)
+    3a76:	202f 0038      	move.l 56(sp),d0
+    3a7a:	2f40 0034      	move.l d0,52(sp)
+    3a7e:	2f7c 0001 82f9 	move.l #99065,48(sp)
+    3a84:	0030 
+    3a86:	701a           	moveq #26,d0
+    3a88:	2f40 002c      	move.l d0,44(sp)
+    3a8c:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3a92:	2c40           	movea.l d0,a6
+    3a94:	222f 0034      	move.l 52(sp),d1
+    3a98:	242f 0030      	move.l 48(sp),d2
+    3a9c:	262f 002c      	move.l 44(sp),d3
+    3aa0:	4eae ffd0      	jsr -48(a6)
+    3aa4:	2f40 0028      	move.l d0,40(sp)
   }
   FreeMem( Zoom_Source, 40*256*5);
-    38fe:	2f79 0001 bad8 	move.l 1bad8 <Zoom_Source>,16(sp)
-    3904:	0010 
-    3906:	2f7c 0000 c800 	move.l #51200,12(sp)
-    390c:	000c 
-    390e:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3914:	2c40           	movea.l d0,a6
-    3916:	226f 0010      	movea.l 16(sp),a1
-    391a:	202f 000c      	move.l 12(sp),d0
-    391e:	4eae ff2e      	jsr -210(a6)
+    3aa8:	2f79 0002 8550 	move.l 28550 <Zoom_Source>,36(sp)
+    3aae:	0024 
+    3ab0:	2f7c 0000 c800 	move.l #51200,32(sp)
+    3ab6:	0020 
+    3ab8:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3abe:	2c40           	movea.l d0,a6
+    3ac0:	226f 0024      	movea.l 36(sp),a1
+    3ac4:	202f 0020      	move.l 32(sp),d0
+    3ac8:	4eae ff2e      	jsr -210(a6)
   FreeDisplay(  ZMCPSIZE, ZMBPLSIZE);
-    3922:	2f3c 0000 ff00 	move.l #65280,-(sp)
-    3928:	4878 031c      	pea 31c <TakeSystem+0xb4>
-    392c:	4eba c7e0      	jsr 10e <FreeDisplay>(pc)
-    3930:	508f           	addq.l #8,sp
+    3acc:	2f3c 0000 ff00 	move.l #65280,-(sp)
+    3ad2:	4878 031c      	pea 31c <RunDemo+0x6>
+    3ad6:	4eba c608      	jsr e0 <FreeDisplay>(pc)
+    3ada:	508f           	addq.l #8,sp
 }
-    3932:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    3936:	4fef 006c      	lea 108(sp),sp
-    393a:	4e75           	rts
+    3adc:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    3ae0:	4fef 006c      	lea 108(sp),sp
+    3ae4:	4e75           	rts
 
-0000393c <TestCopyWord>:
+00003ae6 <TestCopyWord>:
 
 void TestCopyWord() {
-    393c:	4fef ff74      	lea -140(sp),sp
-    3940:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    3ae6:	4fef ff74      	lea -140(sp),sp
+    3aea:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   UWORD *source = AllocMem( ZMLINESIZE*30, MEMF_CHIP);
-    3944:	2f7c 0000 05a0 	move.l #1440,136(sp)
-    394a:	0088 
-    394c:	7002           	moveq #2,d0
-    394e:	2f40 0084      	move.l d0,132(sp)
-    3952:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3958:	2c40           	movea.l d0,a6
-    395a:	202f 0088      	move.l 136(sp),d0
-    395e:	222f 0084      	move.l 132(sp),d1
-    3962:	4eae ff3a      	jsr -198(a6)
-    3966:	2f40 0080      	move.l d0,128(sp)
-    396a:	202f 0080      	move.l 128(sp),d0
-    396e:	2f40 007c      	move.l d0,124(sp)
+    3aee:	2f7c 0000 05a0 	move.l #1440,136(sp)
+    3af4:	0088 
+    3af6:	7002           	moveq #2,d0
+    3af8:	2f40 0084      	move.l d0,132(sp)
+    3afc:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3b02:	2c40           	movea.l d0,a6
+    3b04:	202f 0088      	move.l 136(sp),d0
+    3b08:	222f 0084      	move.l 132(sp),d1
+    3b0c:	4eae ff3a      	jsr -198(a6)
+    3b10:	2f40 0080      	move.l d0,128(sp)
+    3b14:	202f 0080      	move.l 128(sp),d0
+    3b18:	2f40 007c      	move.l d0,124(sp)
   if( source == 0) {
-    3972:	4aaf 007c      	tst.l 124(sp)
-    3976:	6646           	bne.s 39be <TestCopyWord+0x82>
+    3b1c:	6646           	bne.s 3b64 <TestCopyWord+0x7e>
     Write(  Output(), "TestCopyWord: Memory for Source cannot be allocated.\n",
-    3978:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    397e:	2c40           	movea.l d0,a6
-    3980:	4eae ffc4      	jsr -60(a6)
-    3984:	2f40 0078      	move.l d0,120(sp)
-    3988:	202f 0078      	move.l 120(sp),d0
-    398c:	2f40 0074      	move.l d0,116(sp)
-    3990:	2f7c 0001 815f 	move.l #98655,112(sp)
-    3996:	0070 
-    3998:	7235           	moveq #53,d1
-    399a:	2f41 006c      	move.l d1,108(sp)
-    399e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    39a4:	2c40           	movea.l d0,a6
-    39a6:	222f 0074      	move.l 116(sp),d1
-    39aa:	242f 0070      	move.l 112(sp),d2
-    39ae:	262f 006c      	move.l 108(sp),d3
-    39b2:	4eae ffd0      	jsr -48(a6)
-    39b6:	2f40 0068      	move.l d0,104(sp)
-    39ba:	6000 0270      	bra.w 3c2c <TestCopyWord+0x2f0>
+    3b1e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3b24:	2c40           	movea.l d0,a6
+    3b26:	4eae ffc4      	jsr -60(a6)
+    3b2a:	2f40 001c      	move.l d0,28(sp)
+    3b2e:	202f 001c      	move.l 28(sp),d0
+    3b32:	2f40 0018      	move.l d0,24(sp)
+    3b36:	2f7c 0001 8314 	move.l #99092,20(sp)
+    3b3c:	0014 
+    3b3e:	7235           	moveq #53,d1
+    3b40:	2f41 0010      	move.l d1,16(sp)
+    3b44:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3b4a:	2c40           	movea.l d0,a6
+    3b4c:	222f 0018      	move.l 24(sp),d1
+    3b50:	242f 0014      	move.l 20(sp),d2
+    3b54:	262f 0010      	move.l 16(sp),d3
+    3b58:	4eae ffd0      	jsr -48(a6)
+    3b5c:	2f40 000c      	move.l d0,12(sp)
+    3b60:	6000 026c      	bra.w 3dce <TestCopyWord+0x2e8>
                                                                             53);
     return;
   }
   UWORD *destination = AllocMem(ZMLINESIZE*30, MEMF_CHIP);
-    39be:	2f7c 0000 05a0 	move.l #1440,100(sp)
-    39c4:	0064 
-    39c6:	7002           	moveq #2,d0
-    39c8:	2f40 0060      	move.l d0,96(sp)
-    39cc:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    39d2:	2c40           	movea.l d0,a6
-    39d4:	202f 0064      	move.l 100(sp),d0
-    39d8:	222f 0060      	move.l 96(sp),d1
-    39dc:	4eae ff3a      	jsr -198(a6)
-    39e0:	2f40 005c      	move.l d0,92(sp)
-    39e4:	202f 005c      	move.l 92(sp),d0
-    39e8:	2f40 0058      	move.l d0,88(sp)
+    3b64:	2f7c 0000 05a0 	move.l #1440,120(sp)
+    3b6a:	0078 
+    3b6c:	7002           	moveq #2,d0
+    3b6e:	2f40 0074      	move.l d0,116(sp)
+    3b72:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3b78:	2c40           	movea.l d0,a6
+    3b7a:	202f 0078      	move.l 120(sp),d0
+    3b7e:	222f 0074      	move.l 116(sp),d1
+    3b82:	4eae ff3a      	jsr -198(a6)
+    3b86:	2f40 0070      	move.l d0,112(sp)
+    3b8a:	202f 0070      	move.l 112(sp),d0
+    3b8e:	2f40 006c      	move.l d0,108(sp)
   if( destination == 0) {
-    39ec:	4aaf 0058      	tst.l 88(sp)
-    39f0:	6646           	bne.s 3a38 <TestCopyWord+0xfc>
+    3b92:	6646           	bne.s 3bda <TestCopyWord+0xf4>
     Write(  Output(), "TestCopyWord: Memory for Source cannot be allocated.\n",
-    39f2:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    39f8:	2c40           	movea.l d0,a6
-    39fa:	4eae ffc4      	jsr -60(a6)
-    39fe:	2f40 0054      	move.l d0,84(sp)
-    3a02:	202f 0054      	move.l 84(sp),d0
-    3a06:	2f40 0050      	move.l d0,80(sp)
-    3a0a:	2f7c 0001 815f 	move.l #98655,76(sp)
-    3a10:	004c 
-    3a12:	7235           	moveq #53,d1
-    3a14:	2f41 0048      	move.l d1,72(sp)
-    3a18:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3a1e:	2c40           	movea.l d0,a6
-    3a20:	222f 0050      	move.l 80(sp),d1
-    3a24:	242f 004c      	move.l 76(sp),d2
-    3a28:	262f 0048      	move.l 72(sp),d3
-    3a2c:	4eae ffd0      	jsr -48(a6)
-    3a30:	2f40 0044      	move.l d0,68(sp)
-    3a34:	6000 01f6      	bra.w 3c2c <TestCopyWord+0x2f0>
+    3b94:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3b9a:	2c40           	movea.l d0,a6
+    3b9c:	4eae ffc4      	jsr -60(a6)
+    3ba0:	2f40 0030      	move.l d0,48(sp)
+    3ba4:	202f 0030      	move.l 48(sp),d0
+    3ba8:	2f40 002c      	move.l d0,44(sp)
+    3bac:	2f7c 0001 8314 	move.l #99092,40(sp)
+    3bb2:	0028 
+    3bb4:	7235           	moveq #53,d1
+    3bb6:	2f41 0024      	move.l d1,36(sp)
+    3bba:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3bc0:	2c40           	movea.l d0,a6
+    3bc2:	222f 002c      	move.l 44(sp),d1
+    3bc6:	242f 0028      	move.l 40(sp),d2
+    3bca:	262f 0024      	move.l 36(sp),d3
+    3bce:	4eae ffd0      	jsr -48(a6)
+    3bd2:	2f40 0020      	move.l d0,32(sp)
+    3bd6:	6000 01f6      	bra.w 3dce <TestCopyWord+0x2e8>
                                                                             53);
     return;
   }
   
   UWORD *tmp = source;
-    3a38:	2f6f 007c 0094 	move.l 124(sp),148(sp)
+    3bda:	2f6f 007c 0094 	move.l 124(sp),148(sp)
   for( int i=0; i<8;i++) {
-    3a3e:	42af 0090      	clr.l 144(sp)
-    3a42:	6000 0086      	bra.w 3aca <TestCopyWord+0x18e>
+    3be0:	42af 0090      	clr.l 144(sp)
+    3be4:	6000 0086      	bra.w 3c6c <TestCopyWord+0x186>
     *tmp++ = 0;
-    3a46:	202f 0094      	move.l 148(sp),d0
-    3a4a:	2200           	move.l d0,d1
-    3a4c:	5481           	addq.l #2,d1
-    3a4e:	2f41 0094      	move.l d1,148(sp)
-    3a52:	2040           	movea.l d0,a0
-    3a54:	4250           	clr.w (a0)
+    3be8:	202f 0094      	move.l 148(sp),d0
+    3bec:	2200           	move.l d0,d1
+    3bee:	5481           	addq.l #2,d1
+    3bf0:	2f41 0094      	move.l d1,148(sp)
+    3bf4:	2040           	movea.l d0,a0
+    3bf6:	4250           	clr.w (a0)
     *tmp++ = 0xaaaa;
-    3a56:	202f 0094      	move.l 148(sp),d0
-    3a5a:	2200           	move.l d0,d1
-    3a5c:	5481           	addq.l #2,d1
-    3a5e:	2f41 0094      	move.l d1,148(sp)
-    3a62:	2040           	movea.l d0,a0
-    3a64:	30bc aaaa      	move.w #-21846,(a0)
+    3bf8:	202f 0094      	move.l 148(sp),d0
+    3bfc:	2200           	move.l d0,d1
+    3bfe:	5481           	addq.l #2,d1
+    3c00:	2f41 0094      	move.l d1,148(sp)
+    3c04:	2040           	movea.l d0,a0
+    3c06:	30bc aaaa      	move.w #-21846,(a0)
     *tmp++ = 0xaaaa;
-    3a68:	202f 0094      	move.l 148(sp),d0
-    3a6c:	2200           	move.l d0,d1
-    3a6e:	5481           	addq.l #2,d1
-    3a70:	2f41 0094      	move.l d1,148(sp)
-    3a74:	2040           	movea.l d0,a0
-    3a76:	30bc aaaa      	move.w #-21846,(a0)
+    3c0a:	202f 0094      	move.l 148(sp),d0
+    3c0e:	2200           	move.l d0,d1
+    3c10:	5481           	addq.l #2,d1
+    3c12:	2f41 0094      	move.l d1,148(sp)
+    3c16:	2040           	movea.l d0,a0
+    3c18:	30bc aaaa      	move.w #-21846,(a0)
     *tmp = 0;
-    3a7a:	206f 0094      	movea.l 148(sp),a0
-    3a7e:	4250           	clr.w (a0)
+    3c1c:	206f 0094      	movea.l 148(sp),a0
+    3c20:	4250           	clr.w (a0)
     tmp += ZMLINESIZE/2-3;
-    3a80:	702a           	moveq #42,d0
-    3a82:	d1af 0094      	add.l d0,148(sp)
+    3c22:	702a           	moveq #42,d0
+    3c24:	d1af 0094      	add.l d0,148(sp)
     *tmp++ = 0;
-    3a86:	202f 0094      	move.l 148(sp),d0
-    3a8a:	2200           	move.l d0,d1
-    3a8c:	5481           	addq.l #2,d1
-    3a8e:	2f41 0094      	move.l d1,148(sp)
-    3a92:	2040           	movea.l d0,a0
-    3a94:	4250           	clr.w (a0)
+    3c28:	202f 0094      	move.l 148(sp),d0
+    3c2c:	2200           	move.l d0,d1
+    3c2e:	5481           	addq.l #2,d1
+    3c30:	2f41 0094      	move.l d1,148(sp)
+    3c34:	2040           	movea.l d0,a0
+    3c36:	4250           	clr.w (a0)
     *tmp++ = 0x5555;
-    3a96:	202f 0094      	move.l 148(sp),d0
-    3a9a:	2200           	move.l d0,d1
-    3a9c:	5481           	addq.l #2,d1
-    3a9e:	2f41 0094      	move.l d1,148(sp)
-    3aa2:	2040           	movea.l d0,a0
-    3aa4:	30bc 5555      	move.w #21845,(a0)
+    3c38:	202f 0094      	move.l 148(sp),d0
+    3c3c:	2200           	move.l d0,d1
+    3c3e:	5481           	addq.l #2,d1
+    3c40:	2f41 0094      	move.l d1,148(sp)
+    3c44:	2040           	movea.l d0,a0
+    3c46:	30bc 5555      	move.w #21845,(a0)
     *tmp++ = 0x5555;
-    3aa8:	202f 0094      	move.l 148(sp),d0
-    3aac:	2200           	move.l d0,d1
-    3aae:	5481           	addq.l #2,d1
-    3ab0:	2f41 0094      	move.l d1,148(sp)
-    3ab4:	2040           	movea.l d0,a0
-    3ab6:	30bc 5555      	move.w #21845,(a0)
+    3c4a:	202f 0094      	move.l 148(sp),d0
+    3c4e:	2200           	move.l d0,d1
+    3c50:	5481           	addq.l #2,d1
+    3c52:	2f41 0094      	move.l d1,148(sp)
+    3c56:	2040           	movea.l d0,a0
+    3c58:	30bc 5555      	move.w #21845,(a0)
     *tmp = 0;
-    3aba:	206f 0094      	movea.l 148(sp),a0
-    3abe:	4250           	clr.w (a0)
+    3c5c:	206f 0094      	movea.l 148(sp),a0
+    3c60:	4250           	clr.w (a0)
     tmp += ZMLINESIZE/2-3;
-    3ac0:	702a           	moveq #42,d0
-    3ac2:	d1af 0094      	add.l d0,148(sp)
+    3c62:	702a           	moveq #42,d0
+    3c64:	d1af 0094      	add.l d0,148(sp)
   for( int i=0; i<8;i++) {
-    3ac6:	52af 0090      	addq.l #1,144(sp)
-    3aca:	7207           	moveq #7,d1
-    3acc:	b2af 0090      	cmp.l 144(sp),d1
-    3ad0:	6c00 ff74      	bge.w 3a46 <TestCopyWord+0x10a>
+    3c68:	52af 0090      	addq.l #1,144(sp)
+    3c6c:	7207           	moveq #7,d1
+    3c6e:	b2af 0090      	cmp.l 144(sp),d1
+    3c72:	6c00 ff74      	bge.w 3be8 <TestCopyWord+0x102>
   }
   tmp = destination;
-    3ad4:	2f6f 0058 0094 	move.l 88(sp),148(sp)
+    3c76:	2f6f 006c 0094 	move.l 108(sp),148(sp)
   for( int i=0; i<ZMLINESIZE/2*30; i++) {
-    3ada:	42af 008c      	clr.l 140(sp)
-    3ade:	6014           	bra.s 3af4 <TestCopyWord+0x1b8>
+    3c7c:	42af 008c      	clr.l 140(sp)
+    3c80:	6014           	bra.s 3c96 <TestCopyWord+0x1b0>
     *tmp++ = 0;
-    3ae0:	202f 0094      	move.l 148(sp),d0
-    3ae4:	2200           	move.l d0,d1
-    3ae6:	5481           	addq.l #2,d1
-    3ae8:	2f41 0094      	move.l d1,148(sp)
-    3aec:	2040           	movea.l d0,a0
-    3aee:	4250           	clr.w (a0)
+    3c82:	202f 0094      	move.l 148(sp),d0
+    3c86:	2200           	move.l d0,d1
+    3c88:	5481           	addq.l #2,d1
+    3c8a:	2f41 0094      	move.l d1,148(sp)
+    3c8e:	2040           	movea.l d0,a0
+    3c90:	4250           	clr.w (a0)
   for( int i=0; i<ZMLINESIZE/2*30; i++) {
-    3af0:	52af 008c      	addq.l #1,140(sp)
-    3af4:	0caf 0000 02cf 	cmpi.l #719,140(sp)
-    3afa:	008c 
-    3afc:	6fe2           	ble.s 3ae0 <TestCopyWord+0x1a4>
+    3c92:	52af 008c      	addq.l #1,140(sp)
+    3c96:	0caf 0000 02cf 	cmpi.l #719,140(sp)
+    3c9c:	008c 
+    3c9e:	6fe2           	ble.s 3c82 <TestCopyWord+0x19c>
   }
 
   WaitBlit();
-    3afe:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    3b04:	2c40           	movea.l d0,a6
-    3b06:	4eae ff1c      	jsr -228(a6)
+    3ca0:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    3ca6:	2c40           	movea.l d0,a6
+    3ca8:	4eae ff1c      	jsr -228(a6)
 
   Zoom_Init();
-    3b0a:	4eba d8d4      	jsr 13e0 <Zoom_Init>(pc)
+    3cac:	4eba d9b6      	jsr 1664 <Zoom_Init>(pc)
   Init_Copy( 3);
-    3b0e:	4878 0003      	pea 3 <_start+0x3>
-    3b12:	4eba df0e      	jsr 1a22 <Init_Copy>(pc)
-    3b16:	588f           	addq.l #4,sp
+    3cb0:	4878 0003      	pea 3 <_start+0x3>
+    3cb4:	4eba dfe8      	jsr 1c9e <Init_Copy>(pc)
+    3cb8:	588f           	addq.l #4,sp
   Zoom_CopyWord( (UWORD *)source+1, (UWORD *)destination, 16);
-    3b18:	202f 007c      	move.l 124(sp),d0
-    3b1c:	5480           	addq.l #2,d0
-    3b1e:	4878 0010      	pea 10 <GetVBR+0x8>
-    3b22:	2f2f 005c      	move.l 92(sp),-(sp)
-    3b26:	2f00           	move.l d0,-(sp)
-    3b28:	4eba d3de      	jsr f08 <Zoom_CopyWord>(pc)
-    3b2c:	4fef 000c      	lea 12(sp),sp
+    3cba:	202f 007c      	move.l 124(sp),d0
+    3cbe:	5480           	addq.l #2,d0
+    3cc0:	4878 0010      	pea 10 <_start+0x10>
+    3cc4:	2f2f 0070      	move.l 112(sp),-(sp)
+    3cc8:	2f00           	move.l d0,-(sp)
+    3cca:	4eba d4c6      	jsr 1192 <Zoom_CopyWord>(pc)
+    3cce:	4fef 000c      	lea 12(sp),sp
   WaitBlit();
-    3b30:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    3b36:	2c40           	movea.l d0,a6
-    3b38:	4eae ff1c      	jsr -228(a6)
+    3cd2:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    3cd8:	2c40           	movea.l d0,a6
+    3cda:	4eae ff1c      	jsr -228(a6)
   tmp = destination+1;
-    3b3c:	202f 0058      	move.l 88(sp),d0
-    3b40:	5480           	addq.l #2,d0
-    3b42:	2f40 0094      	move.l d0,148(sp)
+    3cde:	202f 006c      	move.l 108(sp),d0
+    3ce2:	5480           	addq.l #2,d0
+    3ce4:	2f40 0094      	move.l d0,148(sp)
   if( *tmp != 0x5555) 
-    3b46:	206f 0094      	movea.l 148(sp),a0
-    3b4a:	3010           	move.w (a0),d0
-    3b4c:	0c40 5555      	cmpi.w #21845,d0
-    3b50:	6742           	beq.s 3b94 <TestCopyWord+0x258>
+    3ce8:	206f 0094      	movea.l 148(sp),a0
+    3cec:	3010           	move.w (a0),d0
+    3cee:	0c40 5555      	cmpi.w #21845,d0
+    3cf2:	6742           	beq.s 3d36 <TestCopyWord+0x250>
     Write(  Output(), "TestCopyWord: First row wrong.\n",31);
-    3b52:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3b58:	2c40           	movea.l d0,a6
-    3b5a:	4eae ffc4      	jsr -60(a6)
-    3b5e:	2f40 0040      	move.l d0,64(sp)
-    3b62:	202f 0040      	move.l 64(sp),d0
-    3b66:	2f40 003c      	move.l d0,60(sp)
-    3b6a:	2f7c 0001 8195 	move.l #98709,56(sp)
-    3b70:	0038 
-    3b72:	721f           	moveq #31,d1
-    3b74:	2f41 0034      	move.l d1,52(sp)
-    3b78:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3b7e:	2c40           	movea.l d0,a6
-    3b80:	222f 003c      	move.l 60(sp),d1
-    3b84:	242f 0038      	move.l 56(sp),d2
-    3b88:	262f 0034      	move.l 52(sp),d3
-    3b8c:	4eae ffd0      	jsr -48(a6)
-    3b90:	2f40 0030      	move.l d0,48(sp)
+    3cf4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3cfa:	2c40           	movea.l d0,a6
+    3cfc:	4eae ffc4      	jsr -60(a6)
+    3d00:	2f40 0068      	move.l d0,104(sp)
+    3d04:	202f 0068      	move.l 104(sp),d0
+    3d08:	2f40 0064      	move.l d0,100(sp)
+    3d0c:	2f7c 0001 834a 	move.l #99146,96(sp)
+    3d12:	0060 
+    3d14:	721f           	moveq #31,d1
+    3d16:	2f41 005c      	move.l d1,92(sp)
+    3d1a:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3d20:	2c40           	movea.l d0,a6
+    3d22:	222f 0064      	move.l 100(sp),d1
+    3d26:	242f 0060      	move.l 96(sp),d2
+    3d2a:	262f 005c      	move.l 92(sp),d3
+    3d2e:	4eae ffd0      	jsr -48(a6)
+    3d32:	2f40 0058      	move.l d0,88(sp)
   tmp += ZMLINESIZE/2;
-    3b94:	7030           	moveq #48,d0
-    3b96:	d1af 0094      	add.l d0,148(sp)
+    3d36:	7030           	moveq #48,d0
+    3d38:	d1af 0094      	add.l d0,148(sp)
   if( *tmp != 0xaaaa)
-    3b9a:	206f 0094      	movea.l 148(sp),a0
-    3b9e:	3010           	move.w (a0),d0
-    3ba0:	0c40 aaaa      	cmpi.w #-21846,d0
-    3ba4:	6742           	beq.s 3be8 <TestCopyWord+0x2ac>
+    3d3c:	206f 0094      	movea.l 148(sp),a0
+    3d40:	3010           	move.w (a0),d0
+    3d42:	0c40 aaaa      	cmpi.w #-21846,d0
+    3d46:	6742           	beq.s 3d8a <TestCopyWord+0x2a4>
     Write(  Output(), "TestCopyWord: Second row wrong.\n",32);
-    3ba6:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3bac:	2c40           	movea.l d0,a6
-    3bae:	4eae ffc4      	jsr -60(a6)
-    3bb2:	2f40 002c      	move.l d0,44(sp)
-    3bb6:	202f 002c      	move.l 44(sp),d0
-    3bba:	2f40 0028      	move.l d0,40(sp)
-    3bbe:	2f7c 0001 81b5 	move.l #98741,36(sp)
-    3bc4:	0024 
-    3bc6:	7220           	moveq #32,d1
-    3bc8:	2f41 0020      	move.l d1,32(sp)
-    3bcc:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3bd2:	2c40           	movea.l d0,a6
-    3bd4:	222f 0028      	move.l 40(sp),d1
-    3bd8:	242f 0024      	move.l 36(sp),d2
-    3bdc:	262f 0020      	move.l 32(sp),d3
-    3be0:	4eae ffd0      	jsr -48(a6)
-    3be4:	2f40 001c      	move.l d0,28(sp)
+    3d48:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3d4e:	2c40           	movea.l d0,a6
+    3d50:	4eae ffc4      	jsr -60(a6)
+    3d54:	2f40 0054      	move.l d0,84(sp)
+    3d58:	202f 0054      	move.l 84(sp),d0
+    3d5c:	2f40 0050      	move.l d0,80(sp)
+    3d60:	2f7c 0001 836a 	move.l #99178,76(sp)
+    3d66:	004c 
+    3d68:	7220           	moveq #32,d1
+    3d6a:	2f41 0048      	move.l d1,72(sp)
+    3d6e:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3d74:	2c40           	movea.l d0,a6
+    3d76:	222f 0050      	move.l 80(sp),d1
+    3d7a:	242f 004c      	move.l 76(sp),d2
+    3d7e:	262f 0048      	move.l 72(sp),d3
+    3d82:	4eae ffd0      	jsr -48(a6)
+    3d86:	2f40 0044      	move.l d0,68(sp)
   
   FreeMem( source,ZMLINESIZE*30);
-    3be8:	2f6f 007c 0018 	move.l 124(sp),24(sp)
-    3bee:	2f7c 0000 05a0 	move.l #1440,20(sp)
-    3bf4:	0014 
-    3bf6:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3bfc:	2c40           	movea.l d0,a6
-    3bfe:	226f 0018      	movea.l 24(sp),a1
-    3c02:	202f 0014      	move.l 20(sp),d0
-    3c06:	4eae ff2e      	jsr -210(a6)
+    3d8a:	2f6f 007c 0040 	move.l 124(sp),64(sp)
+    3d90:	2f7c 0000 05a0 	move.l #1440,60(sp)
+    3d96:	003c 
+    3d98:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3d9e:	2c40           	movea.l d0,a6
+    3da0:	226f 0040      	movea.l 64(sp),a1
+    3da4:	202f 003c      	move.l 60(sp),d0
+    3da8:	4eae ff2e      	jsr -210(a6)
   FreeMem( destination,ZMLINESIZE*30);
-    3c0a:	2f6f 0058 0010 	move.l 88(sp),16(sp)
-    3c10:	2f7c 0000 05a0 	move.l #1440,12(sp)
-    3c16:	000c 
-    3c18:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3c1e:	2c40           	movea.l d0,a6
-    3c20:	226f 0010      	movea.l 16(sp),a1
-    3c24:	202f 000c      	move.l 12(sp),d0
-    3c28:	4eae ff2e      	jsr -210(a6)
+    3dac:	2f6f 006c 0038 	move.l 108(sp),56(sp)
+    3db2:	2f7c 0000 05a0 	move.l #1440,52(sp)
+    3db8:	0034 
+    3dba:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3dc0:	2c40           	movea.l d0,a6
+    3dc2:	226f 0038      	movea.l 56(sp),a1
+    3dc6:	202f 0034      	move.l 52(sp),d0
+    3dca:	4eae ff2e      	jsr -210(a6)
 }
-    3c2c:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    3c30:	4fef 008c      	lea 140(sp),sp
-    3c34:	4e75           	rts
+    3dce:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    3dd2:	4fef 008c      	lea 140(sp),sp
+    3dd6:	4e75           	rts
 
-00003c36 <TestZoom4PictureOn5Planes>:
+00003dd8 <TestZoom4PictureOn5Planes>:
 /* 2233 4455 6677 8899 aabb ccdd eeff gghh ii11 ...
    1100 1100 1100 1100 1100 1100 1100 1100 1100
    c    c    c    c    c    c    c    c    c */
 
 
 void TestZoom4PictureOn5Planes() {
-    3c36:	4fef ff74      	lea -140(sp),sp
-    3c3a:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    3dd8:	4fef ff74      	lea -140(sp),sp
+    3ddc:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   UWORD *source = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
-    3c3e:	2f7c 0001 1440 	move.l #70720,102(sp)
-    3c44:	0066 
-    3c46:	7002           	moveq #2,d0
-    3c48:	2f40 0062      	move.l d0,98(sp)
-    3c4c:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3c52:	2c40           	movea.l d0,a6
-    3c54:	202f 0066      	move.l 102(sp),d0
-    3c58:	222f 0062      	move.l 98(sp),d1
-    3c5c:	4eae ff3a      	jsr -198(a6)
-    3c60:	2f40 005e      	move.l d0,94(sp)
-    3c64:	202f 005e      	move.l 94(sp),d0
-    3c68:	2f40 005a      	move.l d0,90(sp)
+    3de0:	2f7c 0001 1440 	move.l #70720,102(sp)
+    3de6:	0066 
+    3de8:	7002           	moveq #2,d0
+    3dea:	2f40 0062      	move.l d0,98(sp)
+    3dee:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3df4:	2c40           	movea.l d0,a6
+    3df6:	202f 0066      	move.l 102(sp),d0
+    3dfa:	222f 0062      	move.l 98(sp),d1
+    3dfe:	4eae ff3a      	jsr -198(a6)
+    3e02:	2f40 005e      	move.l d0,94(sp)
+    3e06:	202f 005e      	move.l 94(sp),d0
+    3e0a:	2f40 005a      	move.l d0,90(sp)
   if( source == 0) {
-    3c6c:	4aaf 005a      	tst.l 90(sp)
-    3c70:	6646           	bne.s 3cb8 <TestZoom4PictureOn5Planes+0x82>
+    3e0e:	6646           	bne.s 3e56 <TestZoom4PictureOn5Planes+0x7e>
     Write(  Output(), 
-    3c72:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3c78:	2c40           	movea.l d0,a6
-    3c7a:	4eae ffc4      	jsr -60(a6)
-    3c7e:	2f40 0056      	move.l d0,86(sp)
-    3c82:	202f 0056      	move.l 86(sp),d0
-    3c86:	2f40 0052      	move.l d0,82(sp)
-    3c8a:	2f7c 0001 81d6 	move.l #98774,78(sp)
-    3c90:	004e 
-    3c92:	7239           	moveq #57,d1
-    3c94:	2f41 004a      	move.l d1,74(sp)
-    3c98:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3c9e:	2c40           	movea.l d0,a6
-    3ca0:	222f 0052      	move.l 82(sp),d1
-    3ca4:	242f 004e      	move.l 78(sp),d2
-    3ca8:	262f 004a      	move.l 74(sp),d3
-    3cac:	4eae ffd0      	jsr -48(a6)
-    3cb0:	2f40 0046      	move.l d0,70(sp)
-    3cb4:	6000 026a      	bra.w 3f20 <TestZoom4PictureOn5Planes+0x2ea>
+    3e10:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3e16:	2c40           	movea.l d0,a6
+    3e18:	4eae ffc4      	jsr -60(a6)
+    3e1c:	2f40 001e      	move.l d0,30(sp)
+    3e20:	202f 001e      	move.l 30(sp),d0
+    3e24:	2f40 001a      	move.l d0,26(sp)
+    3e28:	2f7c 0001 838b 	move.l #99211,22(sp)
+    3e2e:	0016 
+    3e30:	7239           	moveq #57,d1
+    3e32:	2f41 0012      	move.l d1,18(sp)
+    3e36:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3e3c:	2c40           	movea.l d0,a6
+    3e3e:	222f 001a      	move.l 26(sp),d1
+    3e42:	242f 0016      	move.l 22(sp),d2
+    3e46:	262f 0012      	move.l 18(sp),d3
+    3e4a:	4eae ffd0      	jsr -48(a6)
+    3e4e:	2f40 000e      	move.l d0,14(sp)
+    3e52:	6000 0266      	bra.w 40ba <TestZoom4PictureOn5Planes+0x2e2>
                "TestZoom4Picture: Memory for Source cannot be allocated.\n",57);
     return;
   }
 
   UWORD *destination = AllocMem( (ZMLINESIZE+4)*272*5, MEMF_CHIP);
-    3cb8:	2f7c 0001 1440 	move.l #70720,66(sp)
-    3cbe:	0042 
-    3cc0:	7002           	moveq #2,d0
-    3cc2:	2f40 003e      	move.l d0,62(sp)
-    3cc6:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3ccc:	2c40           	movea.l d0,a6
-    3cce:	202f 0042      	move.l 66(sp),d0
-    3cd2:	222f 003e      	move.l 62(sp),d1
-    3cd6:	4eae ff3a      	jsr -198(a6)
-    3cda:	2f40 003a      	move.l d0,58(sp)
-    3cde:	202f 003a      	move.l 58(sp),d0
-    3ce2:	2f40 0036      	move.l d0,54(sp)
+    3e56:	2f7c 0001 1440 	move.l #70720,86(sp)
+    3e5c:	0056 
+    3e5e:	7002           	moveq #2,d0
+    3e60:	2f40 0052      	move.l d0,82(sp)
+    3e64:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    3e6a:	2c40           	movea.l d0,a6
+    3e6c:	202f 0056      	move.l 86(sp),d0
+    3e70:	222f 0052      	move.l 82(sp),d1
+    3e74:	4eae ff3a      	jsr -198(a6)
+    3e78:	2f40 004e      	move.l d0,78(sp)
+    3e7c:	202f 004e      	move.l 78(sp),d0
+    3e80:	2f40 004a      	move.l d0,74(sp)
   if( destination == 0) {
-    3ce6:	4aaf 0036      	tst.l 54(sp)
-    3cea:	6646           	bne.s 3d32 <TestZoom4PictureOn5Planes+0xfc>
+    3e84:	6646           	bne.s 3ecc <TestZoom4PictureOn5Planes+0xf4>
     Write(  Output(), 
-    3cec:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3cf2:	2c40           	movea.l d0,a6
-    3cf4:	4eae ffc4      	jsr -60(a6)
-    3cf8:	2f40 0032      	move.l d0,50(sp)
-    3cfc:	202f 0032      	move.l 50(sp),d0
-    3d00:	2f40 002e      	move.l d0,46(sp)
-    3d04:	2f7c 0001 8210 	move.l #98832,42(sp)
-    3d0a:	002a 
-    3d0c:	723d           	moveq #61,d1
-    3d0e:	2f41 0026      	move.l d1,38(sp)
-    3d12:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3d18:	2c40           	movea.l d0,a6
-    3d1a:	222f 002e      	move.l 46(sp),d1
-    3d1e:	242f 002a      	move.l 42(sp),d2
-    3d22:	262f 0026      	move.l 38(sp),d3
-    3d26:	4eae ffd0      	jsr -48(a6)
-    3d2a:	2f40 0022      	move.l d0,34(sp)
-    3d2e:	6000 01f0      	bra.w 3f20 <TestZoom4PictureOn5Planes+0x2ea>
+    3e86:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3e8c:	2c40           	movea.l d0,a6
+    3e8e:	4eae ffc4      	jsr -60(a6)
+    3e92:	2f40 0032      	move.l d0,50(sp)
+    3e96:	202f 0032      	move.l 50(sp),d0
+    3e9a:	2f40 002e      	move.l d0,46(sp)
+    3e9e:	2f7c 0001 83c5 	move.l #99269,42(sp)
+    3ea4:	002a 
+    3ea6:	723d           	moveq #61,d1
+    3ea8:	2f41 0026      	move.l d1,38(sp)
+    3eac:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    3eb2:	2c40           	movea.l d0,a6
+    3eb4:	222f 002e      	move.l 46(sp),d1
+    3eb8:	242f 002a      	move.l 42(sp),d2
+    3ebc:	262f 0026      	move.l 38(sp),d3
+    3ec0:	4eae ffd0      	jsr -48(a6)
+    3ec4:	2f40 0022      	move.l d0,34(sp)
+    3ec8:	6000 01f0      	bra.w 40ba <TestZoom4PictureOn5Planes+0x2e2>
           "TestZoom4Picture: Memory for Destination cannot be allocated.\n",61);
     return;
   }
   ULONG *tmp4source = (ULONG *)source;
-    3d32:	2f6f 005a 0094 	move.l 90(sp),148(sp)
+    3ecc:	2f6f 005a 0094 	move.l 90(sp),148(sp)
   for(int i=0;i<128+8;i++) {
-    3d38:	42af 0090      	clr.l 144(sp)
-    3d3c:	6050           	bra.s 3d8e <TestZoom4PictureOn5Planes+0x158>
+    3ed2:	42af 0090      	clr.l 144(sp)
+    3ed6:	6050           	bra.s 3f28 <TestZoom4PictureOn5Planes+0x150>
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
-    3d3e:	42af 008c      	clr.l 140(sp)
-    3d42:	6018           	bra.s 3d5c <TestZoom4PictureOn5Planes+0x126>
+    3ed8:	42af 008c      	clr.l 140(sp)
+    3edc:	6018           	bra.s 3ef6 <TestZoom4PictureOn5Planes+0x11e>
       *tmp4source++ = 0x55555555;
-    3d44:	202f 0094      	move.l 148(sp),d0
-    3d48:	2200           	move.l d0,d1
-    3d4a:	5881           	addq.l #4,d1
-    3d4c:	2f41 0094      	move.l d1,148(sp)
-    3d50:	2040           	movea.l d0,a0
-    3d52:	20bc 5555 5555 	move.l #1431655765,(a0)
+    3ede:	202f 0094      	move.l 148(sp),d0
+    3ee2:	2200           	move.l d0,d1
+    3ee4:	5881           	addq.l #4,d1
+    3ee6:	2f41 0094      	move.l d1,148(sp)
+    3eea:	2040           	movea.l d0,a0
+    3eec:	20bc 5555 5555 	move.l #1431655765,(a0)
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
-    3d58:	52af 008c      	addq.l #1,140(sp)
-    3d5c:	703b           	moveq #59,d0
-    3d5e:	b0af 008c      	cmp.l 140(sp),d0
-    3d62:	6ce0           	bge.s 3d44 <TestZoom4PictureOn5Planes+0x10e>
+    3ef2:	52af 008c      	addq.l #1,140(sp)
+    3ef6:	703b           	moveq #59,d0
+    3ef8:	b0af 008c      	cmp.l 140(sp),d0
+    3efc:	6ce0           	bge.s 3ede <TestZoom4PictureOn5Planes+0x106>
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
-    3d64:	42af 0088      	clr.l 136(sp)
-    3d68:	6018           	bra.s 3d82 <TestZoom4PictureOn5Planes+0x14c>
+    3efe:	42af 0088      	clr.l 136(sp)
+    3f02:	6018           	bra.s 3f1c <TestZoom4PictureOn5Planes+0x144>
       *tmp4source++ = 0xaaaaaaaa;
-    3d6a:	202f 0094      	move.l 148(sp),d0
-    3d6e:	2200           	move.l d0,d1
-    3d70:	5881           	addq.l #4,d1
-    3d72:	2f41 0094      	move.l d1,148(sp)
-    3d76:	2040           	movea.l d0,a0
-    3d78:	20bc aaaa aaaa 	move.l #-1431655766,(a0)
+    3f04:	202f 0094      	move.l 148(sp),d0
+    3f08:	2200           	move.l d0,d1
+    3f0a:	5881           	addq.l #4,d1
+    3f0c:	2f41 0094      	move.l d1,148(sp)
+    3f10:	2040           	movea.l d0,a0
+    3f12:	20bc aaaa aaaa 	move.l #-1431655766,(a0)
     for(int i2=0;i2<ZMLINESIZE/4*5;i2++)
-    3d7e:	52af 0088      	addq.l #1,136(sp)
-    3d82:	703b           	moveq #59,d0
-    3d84:	b0af 0088      	cmp.l 136(sp),d0
-    3d88:	6ce0           	bge.s 3d6a <TestZoom4PictureOn5Planes+0x134>
+    3f18:	52af 0088      	addq.l #1,136(sp)
+    3f1c:	703b           	moveq #59,d0
+    3f1e:	b0af 0088      	cmp.l 136(sp),d0
+    3f22:	6ce0           	bge.s 3f04 <TestZoom4PictureOn5Planes+0x12c>
   for(int i=0;i<128+8;i++) {
-    3d8a:	52af 0090      	addq.l #1,144(sp)
-    3d8e:	0caf 0000 0087 	cmpi.l #135,144(sp)
-    3d94:	0090 
-    3d96:	6fa6           	ble.s 3d3e <TestZoom4PictureOn5Planes+0x108>
+    3f24:	52af 0090      	addq.l #1,144(sp)
+    3f28:	0caf 0000 0087 	cmpi.l #135,144(sp)
+    3f2e:	0090 
+    3f30:	6fa6           	ble.s 3ed8 <TestZoom4PictureOn5Planes+0x100>
   }
 
   Zoom_ZoomIntoPicture( source, destination, 0, 5);
-    3d98:	4878 0005      	pea 5 <_start+0x5>
-    3d9c:	42a7           	clr.l -(sp)
-    3d9e:	2f2f 003e      	move.l 62(sp),-(sp)
-    3da2:	2f2f 0066      	move.l 102(sp),-(sp)
-    3da6:	4eba dcb4      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    3daa:	4fef 0010      	lea 16(sp),sp
+    3f32:	4878 0005      	pea 5 <_start+0x5>
+    3f36:	42a7           	clr.l -(sp)
+    3f38:	2f2f 0052      	move.l 82(sp),-(sp)
+    3f3c:	2f2f 0066      	move.l 102(sp),-(sp)
+    3f40:	4eba dd96      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    3f44:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    3dae:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    3db4:	2c40           	movea.l d0,a6
-    3db6:	4eae ff1c      	jsr -228(a6)
+    3f48:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    3f4e:	2c40           	movea.l d0,a6
+    3f50:	4eae ff1c      	jsr -228(a6)
   UWORD *valactual = destination+2; 
-    3dba:	222f 0036      	move.l 54(sp),d1
-    3dbe:	5881           	addq.l #4,d1
-    3dc0:	2f41 0084      	move.l d1,132(sp)
+    3f54:	222f 004a      	move.l 74(sp),d1
+    3f58:	5881           	addq.l #4,d1
+    3f5a:	2f41 0084      	move.l d1,132(sp)
   UWORD *valsupposed = destlinezoom1;
-    3dc4:	2f7c 0001 b764 	move.l #112484,30(sp)
-    3dca:	001e 
+    3f5e:	2f7c 0001 b9e4 	move.l #113124,70(sp)
+    3f64:	0046 
   UWORD mask = 0xffff;
-    3dcc:	3f7c ffff 0082 	move.w #-1,130(sp)
+    3f66:	3f7c ffff 0082 	move.w #-1,130(sp)
   for(int i=0;i<14;i++) {
-    3dd2:	42af 007e      	clr.l 126(sp)
-    3dd6:	6000 00a8      	bra.w 3e80 <TestZoom4PictureOn5Planes+0x24a>
+    3f6c:	42af 007e      	clr.l 126(sp)
+    3f70:	6000 00a8      	bra.w 401a <TestZoom4PictureOn5Planes+0x242>
     for(int i2=0;i2<18;i2++) { 
-    3dda:	42af 007a      	clr.l 122(sp)
-    3dde:	604e           	bra.s 3e2e <TestZoom4PictureOn5Planes+0x1f8>
+    3f74:	42af 007a      	clr.l 122(sp)
+    3f78:	604e           	bra.s 3fc8 <TestZoom4PictureOn5Planes+0x1f0>
       for( int i3=0;i3<5;i3++) {
-    3de0:	42af 0076      	clr.l 118(sp)
-    3de4:	6038           	bra.s 3e1e <TestZoom4PictureOn5Planes+0x1e8>
+    3f7a:	42af 0076      	clr.l 118(sp)
+    3f7e:	6038           	bra.s 3fb8 <TestZoom4PictureOn5Planes+0x1e0>
         TestRow( valsupposed, valactual, mask, i2+i*19);
-    3de6:	222f 007e      	move.l 126(sp),d1
-    3dea:	2001           	move.l d1,d0
-    3dec:	e788           	lsl.l #3,d0
-    3dee:	d081           	add.l d1,d0
-    3df0:	d080           	add.l d0,d0
-    3df2:	d081           	add.l d1,d0
-    3df4:	2200           	move.l d0,d1
-    3df6:	d2af 007a      	add.l 122(sp),d1
-    3dfa:	7000           	moveq #0,d0
-    3dfc:	302f 0082      	move.w 130(sp),d0
-    3e00:	2f01           	move.l d1,-(sp)
-    3e02:	2f00           	move.l d0,-(sp)
-    3e04:	2f2f 008c      	move.l 140(sp),-(sp)
-    3e08:	2f2f 002a      	move.l 42(sp),-(sp)
-    3e0c:	4eba 2f92      	jsr 6da0 <TestRow>(pc)
-    3e10:	4fef 0010      	lea 16(sp),sp
+    3f80:	222f 007e      	move.l 126(sp),d1
+    3f84:	2001           	move.l d1,d0
+    3f86:	e788           	lsl.l #3,d0
+    3f88:	d081           	add.l d1,d0
+    3f8a:	d080           	add.l d0,d0
+    3f8c:	d081           	add.l d1,d0
+    3f8e:	2200           	move.l d0,d1
+    3f90:	d2af 007a      	add.l 122(sp),d1
+    3f94:	7000           	moveq #0,d0
+    3f96:	302f 0082      	move.w 130(sp),d0
+    3f9a:	2f01           	move.l d1,-(sp)
+    3f9c:	2f00           	move.l d0,-(sp)
+    3f9e:	2f2f 008c      	move.l 140(sp),-(sp)
+    3fa2:	2f2f 0052      	move.l 82(sp),-(sp)
+    3fa6:	4eba 2f7e      	jsr 6f26 <TestRow>(pc)
+    3faa:	4fef 0010      	lea 16(sp),sp
         valactual += ZMLINESIZE/2;
-    3e14:	7030           	moveq #48,d0
-    3e16:	d1af 0084      	add.l d0,132(sp)
+    3fae:	7030           	moveq #48,d0
+    3fb0:	d1af 0084      	add.l d0,132(sp)
       for( int i3=0;i3<5;i3++) {
-    3e1a:	52af 0076      	addq.l #1,118(sp)
-    3e1e:	7204           	moveq #4,d1
-    3e20:	b2af 0076      	cmp.l 118(sp),d1
-    3e24:	6cc0           	bge.s 3de6 <TestZoom4PictureOn5Planes+0x1b0>
+    3fb4:	52af 0076      	addq.l #1,118(sp)
+    3fb8:	7204           	moveq #4,d1
+    3fba:	b2af 0076      	cmp.l 118(sp),d1
+    3fbe:	6cc0           	bge.s 3f80 <TestZoom4PictureOn5Planes+0x1a8>
       }
       mask = mask ^ 0xffff;
-    3e26:	466f 0082      	not.w 130(sp)
+    3fc0:	466f 0082      	not.w 130(sp)
     for(int i2=0;i2<18;i2++) { 
-    3e2a:	52af 007a      	addq.l #1,122(sp)
-    3e2e:	7011           	moveq #17,d0
-    3e30:	b0af 007a      	cmp.l 122(sp),d0
-    3e34:	6caa           	bge.s 3de0 <TestZoom4PictureOn5Planes+0x1aa>
+    3fc4:	52af 007a      	addq.l #1,122(sp)
+    3fc8:	7011           	moveq #17,d0
+    3fca:	b0af 007a      	cmp.l 122(sp),d0
+    3fce:	6caa           	bge.s 3f7a <TestZoom4PictureOn5Planes+0x1a2>
     }
     for( int i3=0;i3<5;i3++) {
-    3e36:	42af 0072      	clr.l 114(sp)
-    3e3a:	6038           	bra.s 3e74 <TestZoom4PictureOn5Planes+0x23e>
+    3fd0:	42af 0072      	clr.l 114(sp)
+    3fd4:	6038           	bra.s 400e <TestZoom4PictureOn5Planes+0x236>
       TestRow( valsupposed, valactual, mask, 18+i*19);
-    3e3c:	222f 007e      	move.l 126(sp),d1
-    3e40:	2001           	move.l d1,d0
-    3e42:	e788           	lsl.l #3,d0
-    3e44:	d081           	add.l d1,d0
-    3e46:	d080           	add.l d0,d0
-    3e48:	2040           	movea.l d0,a0
-    3e4a:	d1c1           	adda.l d1,a0
-    3e4c:	41e8 0012      	lea 18(a0),a0
-    3e50:	7000           	moveq #0,d0
-    3e52:	302f 0082      	move.w 130(sp),d0
-    3e56:	2f08           	move.l a0,-(sp)
-    3e58:	2f00           	move.l d0,-(sp)
-    3e5a:	2f2f 008c      	move.l 140(sp),-(sp)
-    3e5e:	2f2f 002a      	move.l 42(sp),-(sp)
-    3e62:	4eba 2f3c      	jsr 6da0 <TestRow>(pc)
-    3e66:	4fef 0010      	lea 16(sp),sp
+    3fd6:	222f 007e      	move.l 126(sp),d1
+    3fda:	2001           	move.l d1,d0
+    3fdc:	e788           	lsl.l #3,d0
+    3fde:	d081           	add.l d1,d0
+    3fe0:	d080           	add.l d0,d0
+    3fe2:	2040           	movea.l d0,a0
+    3fe4:	d1c1           	adda.l d1,a0
+    3fe6:	41e8 0012      	lea 18(a0),a0
+    3fea:	7000           	moveq #0,d0
+    3fec:	302f 0082      	move.w 130(sp),d0
+    3ff0:	2f08           	move.l a0,-(sp)
+    3ff2:	2f00           	move.l d0,-(sp)
+    3ff4:	2f2f 008c      	move.l 140(sp),-(sp)
+    3ff8:	2f2f 0052      	move.l 82(sp),-(sp)
+    3ffc:	4eba 2f28      	jsr 6f26 <TestRow>(pc)
+    4000:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    3e6a:	7230           	moveq #48,d1
-    3e6c:	d3af 0084      	add.l d1,132(sp)
+    4004:	7230           	moveq #48,d1
+    4006:	d3af 0084      	add.l d1,132(sp)
     for( int i3=0;i3<5;i3++) {
-    3e70:	52af 0072      	addq.l #1,114(sp)
-    3e74:	7004           	moveq #4,d0
-    3e76:	b0af 0072      	cmp.l 114(sp),d0
-    3e7a:	6cc0           	bge.s 3e3c <TestZoom4PictureOn5Planes+0x206>
+    400a:	52af 0072      	addq.l #1,114(sp)
+    400e:	7004           	moveq #4,d0
+    4010:	b0af 0072      	cmp.l 114(sp),d0
+    4014:	6cc0           	bge.s 3fd6 <TestZoom4PictureOn5Planes+0x1fe>
   for(int i=0;i<14;i++) {
-    3e7c:	52af 007e      	addq.l #1,126(sp)
-    3e80:	720d           	moveq #13,d1
-    3e82:	b2af 007e      	cmp.l 126(sp),d1
-    3e86:	6c00 ff52      	bge.w 3dda <TestZoom4PictureOn5Planes+0x1a4>
+    4016:	52af 007e      	addq.l #1,126(sp)
+    401a:	720d           	moveq #13,d1
+    401c:	b2af 007e      	cmp.l 126(sp),d1
+    4020:	6c00 ff52      	bge.w 3f74 <TestZoom4PictureOn5Planes+0x19c>
     }
   }
   for(int i2=0;i2<4;i2++) { 
-    3e8a:	42af 006e      	clr.l 110(sp)
-    3e8e:	6044           	bra.s 3ed4 <TestZoom4PictureOn5Planes+0x29e>
+    4024:	42af 006e      	clr.l 110(sp)
+    4028:	6044           	bra.s 406e <TestZoom4PictureOn5Planes+0x296>
     for( int i3=0;i3<5;i3++) {
-    3e90:	42af 006a      	clr.l 106(sp)
-    3e94:	602e           	bra.s 3ec4 <TestZoom4PictureOn5Planes+0x28e>
+    402a:	42af 006a      	clr.l 106(sp)
+    402e:	602e           	bra.s 405e <TestZoom4PictureOn5Planes+0x286>
       TestRow( valsupposed, valactual, mask, i2+265);
-    3e96:	222f 006e      	move.l 110(sp),d1
-    3e9a:	0681 0000 0109 	addi.l #265,d1
-    3ea0:	7000           	moveq #0,d0
-    3ea2:	302f 0082      	move.w 130(sp),d0
-    3ea6:	2f01           	move.l d1,-(sp)
-    3ea8:	2f00           	move.l d0,-(sp)
-    3eaa:	2f2f 008c      	move.l 140(sp),-(sp)
-    3eae:	2f2f 002a      	move.l 42(sp),-(sp)
-    3eb2:	4eba 2eec      	jsr 6da0 <TestRow>(pc)
-    3eb6:	4fef 0010      	lea 16(sp),sp
+    4030:	222f 006e      	move.l 110(sp),d1
+    4034:	0681 0000 0109 	addi.l #265,d1
+    403a:	7000           	moveq #0,d0
+    403c:	302f 0082      	move.w 130(sp),d0
+    4040:	2f01           	move.l d1,-(sp)
+    4042:	2f00           	move.l d0,-(sp)
+    4044:	2f2f 008c      	move.l 140(sp),-(sp)
+    4048:	2f2f 0052      	move.l 82(sp),-(sp)
+    404c:	4eba 2ed8      	jsr 6f26 <TestRow>(pc)
+    4050:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    3eba:	7030           	moveq #48,d0
-    3ebc:	d1af 0084      	add.l d0,132(sp)
+    4054:	7030           	moveq #48,d0
+    4056:	d1af 0084      	add.l d0,132(sp)
     for( int i3=0;i3<5;i3++) {
-    3ec0:	52af 006a      	addq.l #1,106(sp)
-    3ec4:	7204           	moveq #4,d1
-    3ec6:	b2af 006a      	cmp.l 106(sp),d1
-    3eca:	6cca           	bge.s 3e96 <TestZoom4PictureOn5Planes+0x260>
+    405a:	52af 006a      	addq.l #1,106(sp)
+    405e:	7204           	moveq #4,d1
+    4060:	b2af 006a      	cmp.l 106(sp),d1
+    4064:	6cca           	bge.s 4030 <TestZoom4PictureOn5Planes+0x258>
     }
     mask = mask ^ 0xffff;
-    3ecc:	466f 0082      	not.w 130(sp)
+    4066:	466f 0082      	not.w 130(sp)
   for(int i2=0;i2<4;i2++) { 
-    3ed0:	52af 006e      	addq.l #1,110(sp)
-    3ed4:	7003           	moveq #3,d0
-    3ed6:	b0af 006e      	cmp.l 110(sp),d0
-    3eda:	6cb4           	bge.s 3e90 <TestZoom4PictureOn5Planes+0x25a>
+    406a:	52af 006e      	addq.l #1,110(sp)
+    406e:	7003           	moveq #3,d0
+    4070:	b0af 006e      	cmp.l 110(sp),d0
+    4074:	6cb4           	bge.s 402a <TestZoom4PictureOn5Planes+0x252>
   } 
   FreeMem( source, (ZMLINESIZE+4)*272*5);
-    3edc:	2f6f 005a 001a 	move.l 90(sp),26(sp)
-    3ee2:	2f7c 0001 1440 	move.l #70720,22(sp)
-    3ee8:	0016 
-    3eea:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3ef0:	2c40           	movea.l d0,a6
-    3ef2:	226f 001a      	movea.l 26(sp),a1
-    3ef6:	202f 0016      	move.l 22(sp),d0
-    3efa:	4eae ff2e      	jsr -210(a6)
+    4076:	2f6f 005a 0042 	move.l 90(sp),66(sp)
+    407c:	2f7c 0001 1440 	move.l #70720,62(sp)
+    4082:	003e 
+    4084:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    408a:	2c40           	movea.l d0,a6
+    408c:	226f 0042      	movea.l 66(sp),a1
+    4090:	202f 003e      	move.l 62(sp),d0
+    4094:	4eae ff2e      	jsr -210(a6)
   FreeMem( destination, (ZMLINESIZE+4)*272*5);
-    3efe:	2f6f 0036 0012 	move.l 54(sp),18(sp)
-    3f04:	2f7c 0001 1440 	move.l #70720,14(sp)
-    3f0a:	000e 
-    3f0c:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3f12:	2c40           	movea.l d0,a6
-    3f14:	226f 0012      	movea.l 18(sp),a1
-    3f18:	202f 000e      	move.l 14(sp),d0
-    3f1c:	4eae ff2e      	jsr -210(a6)
+    4098:	2f6f 004a 003a 	move.l 74(sp),58(sp)
+    409e:	2f7c 0001 1440 	move.l #70720,54(sp)
+    40a4:	0036 
+    40a6:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    40ac:	2c40           	movea.l d0,a6
+    40ae:	226f 003a      	movea.l 58(sp),a1
+    40b2:	202f 0036      	move.l 54(sp),d0
+    40b6:	4eae ff2e      	jsr -210(a6)
 }
-    3f20:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    3f24:	4fef 008c      	lea 140(sp),sp
-    3f28:	4e75           	rts
+    40ba:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    40be:	4fef 008c      	lea 140(sp),sp
+    40c2:	4e75           	rts
 
-00003f2a <TestZoom4Picture>:
+000040c4 <TestZoom4Picture>:
 
 void TestZoom4Picture() {
-    3f2a:	4fef fe30      	lea -464(sp),sp
-    3f2e:	48e7 3002      	movem.l d2-d3/a6,-(sp)
+    40c4:	4fef fe30      	lea -464(sp),sp
+    40c8:	48e7 3002      	movem.l d2-d3/a6,-(sp)
   UWORD *source = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
-    3f32:	2f7c 0000 3740 	move.l #14144,106(sp)
-    3f38:	006a 
-    3f3a:	7002           	moveq #2,d0
-    3f3c:	2f40 0066      	move.l d0,102(sp)
-    3f40:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3f46:	2c40           	movea.l d0,a6
-    3f48:	202f 006a      	move.l 106(sp),d0
-    3f4c:	222f 0066      	move.l 102(sp),d1
-    3f50:	4eae ff3a      	jsr -198(a6)
-    3f54:	2f40 0062      	move.l d0,98(sp)
-    3f58:	202f 0062      	move.l 98(sp),d0
-    3f5c:	2f40 005e      	move.l d0,94(sp)
+    40cc:	2f7c 0000 3740 	move.l #14144,106(sp)
+    40d2:	006a 
+    40d4:	7002           	moveq #2,d0
+    40d6:	2f40 0066      	move.l d0,102(sp)
+    40da:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    40e0:	2c40           	movea.l d0,a6
+    40e2:	202f 006a      	move.l 106(sp),d0
+    40e6:	222f 0066      	move.l 102(sp),d1
+    40ea:	4eae ff3a      	jsr -198(a6)
+    40ee:	2f40 0062      	move.l d0,98(sp)
+    40f2:	202f 0062      	move.l 98(sp),d0
+    40f6:	2f40 005e      	move.l d0,94(sp)
   if( source == 0) {
-    3f60:	4aaf 005e      	tst.l 94(sp)
-    3f64:	6646           	bne.s 3fac <TestZoom4Picture+0x82>
+    40fa:	6646           	bne.s 4142 <TestZoom4Picture+0x7e>
     Write(  Output(), 
-    3f66:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3f6c:	2c40           	movea.l d0,a6
-    3f6e:	4eae ffc4      	jsr -60(a6)
-    3f72:	2f40 005a      	move.l d0,90(sp)
-    3f76:	202f 005a      	move.l 90(sp),d0
-    3f7a:	2f40 0056      	move.l d0,86(sp)
-    3f7e:	2f7c 0001 81d6 	move.l #98774,82(sp)
-    3f84:	0052 
-    3f86:	7239           	moveq #57,d1
-    3f88:	2f41 004e      	move.l d1,78(sp)
-    3f8c:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3f92:	2c40           	movea.l d0,a6
-    3f94:	222f 0056      	move.l 86(sp),d1
-    3f98:	242f 0052      	move.l 82(sp),d2
-    3f9c:	262f 004e      	move.l 78(sp),d3
-    3fa0:	4eae ffd0      	jsr -48(a6)
-    3fa4:	2f40 004a      	move.l d0,74(sp)
-    3fa8:	6000 2dec      	bra.w 6d96 <TestZoom4Picture+0x2e6c>
+    40fc:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    4102:	2c40           	movea.l d0,a6
+    4104:	4eae ffc4      	jsr -60(a6)
+    4108:	2f40 001e      	move.l d0,30(sp)
+    410c:	202f 001e      	move.l 30(sp),d0
+    4110:	2f40 001a      	move.l d0,26(sp)
+    4114:	2f7c 0001 838b 	move.l #99211,22(sp)
+    411a:	0016 
+    411c:	7239           	moveq #57,d1
+    411e:	2f41 0012      	move.l d1,18(sp)
+    4122:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    4128:	2c40           	movea.l d0,a6
+    412a:	222f 001a      	move.l 26(sp),d1
+    412e:	242f 0016      	move.l 22(sp),d2
+    4132:	262f 0012      	move.l 18(sp),d3
+    4136:	4eae ffd0      	jsr -48(a6)
+    413a:	2f40 000e      	move.l d0,14(sp)
+    413e:	6000 2ddc      	bra.w 6f1c <TestZoom4Picture+0x2e58>
                "TestZoom4Picture: Memory for Source cannot be allocated.\n",57);
     return;
   }
 
   UWORD *destination = AllocMem( (ZMLINESIZE+4)*272, MEMF_CHIP);
-    3fac:	2f7c 0000 3740 	move.l #14144,70(sp)
-    3fb2:	0046 
-    3fb4:	7402           	moveq #2,d2
-    3fb6:	2f42 0042      	move.l d2,66(sp)
-    3fba:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    3fc0:	2c40           	movea.l d0,a6
-    3fc2:	202f 0046      	move.l 70(sp),d0
-    3fc6:	222f 0042      	move.l 66(sp),d1
-    3fca:	4eae ff3a      	jsr -198(a6)
-    3fce:	2f40 003e      	move.l d0,62(sp)
-    3fd2:	202f 003e      	move.l 62(sp),d0
-    3fd6:	2f40 003a      	move.l d0,58(sp)
+    4142:	2f7c 0000 3740 	move.l #14144,90(sp)
+    4148:	005a 
+    414a:	7002           	moveq #2,d0
+    414c:	2f40 0056      	move.l d0,86(sp)
+    4150:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    4156:	2c40           	movea.l d0,a6
+    4158:	202f 005a      	move.l 90(sp),d0
+    415c:	222f 0056      	move.l 86(sp),d1
+    4160:	4eae ff3a      	jsr -198(a6)
+    4164:	2f40 0052      	move.l d0,82(sp)
+    4168:	202f 0052      	move.l 82(sp),d0
+    416c:	2f40 004e      	move.l d0,78(sp)
   if( destination == 0) {
-    3fda:	4aaf 003a      	tst.l 58(sp)
-    3fde:	6646           	bne.s 4026 <TestZoom4Picture+0xfc>
+    4170:	6646           	bne.s 41b8 <TestZoom4Picture+0xf4>
     Write(  Output(), 
-    3fe0:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    3fe6:	2c40           	movea.l d0,a6
-    3fe8:	4eae ffc4      	jsr -60(a6)
-    3fec:	2f40 0036      	move.l d0,54(sp)
-    3ff0:	202f 0036      	move.l 54(sp),d0
-    3ff4:	2f40 0032      	move.l d0,50(sp)
-    3ff8:	2f7c 0001 8210 	move.l #98832,46(sp)
-    3ffe:	002e 
-    4000:	703d           	moveq #61,d0
-    4002:	2f40 002a      	move.l d0,42(sp)
-    4006:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    400c:	2c40           	movea.l d0,a6
-    400e:	222f 0032      	move.l 50(sp),d1
-    4012:	242f 002e      	move.l 46(sp),d2
-    4016:	262f 002a      	move.l 42(sp),d3
-    401a:	4eae ffd0      	jsr -48(a6)
-    401e:	2f40 0026      	move.l d0,38(sp)
-    4022:	6000 2d72      	bra.w 6d96 <TestZoom4Picture+0x2e6c>
+    4172:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    4178:	2c40           	movea.l d0,a6
+    417a:	4eae ffc4      	jsr -60(a6)
+    417e:	2f40 0032      	move.l d0,50(sp)
+    4182:	202f 0032      	move.l 50(sp),d0
+    4186:	2f40 002e      	move.l d0,46(sp)
+    418a:	2f7c 0001 83c5 	move.l #99269,42(sp)
+    4190:	002a 
+    4192:	723d           	moveq #61,d1
+    4194:	2f41 0026      	move.l d1,38(sp)
+    4198:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    419e:	2c40           	movea.l d0,a6
+    41a0:	222f 002e      	move.l 46(sp),d1
+    41a4:	242f 002a      	move.l 42(sp),d2
+    41a8:	262f 0026      	move.l 38(sp),d3
+    41ac:	4eae ffd0      	jsr -48(a6)
+    41b0:	2f40 0022      	move.l d0,34(sp)
+    41b4:	6000 2d66      	bra.w 6f1c <TestZoom4Picture+0x2e58>
           "TestZoom4Picture: Memory for Destination cannot be allocated.\n",61);
     return;
   }
   ULONG *tmp4source = (ULONG *)source;
-    4026:	2f6f 005e 01d8 	move.l 94(sp),472(sp)
+    41b8:	2f6f 005e 01d8 	move.l 94(sp),472(sp)
   for(int i=0;i<128+8;i++) {
-    402c:	42af 01d4      	clr.l 468(sp)
-    4030:	6050           	bra.s 4082 <TestZoom4Picture+0x158>
+    41be:	42af 01d4      	clr.l 468(sp)
+    41c2:	6050           	bra.s 4214 <TestZoom4Picture+0x150>
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
-    4032:	42af 01d0      	clr.l 464(sp)
-    4036:	6018           	bra.s 4050 <TestZoom4Picture+0x126>
+    41c4:	42af 01d0      	clr.l 464(sp)
+    41c8:	6018           	bra.s 41e2 <TestZoom4Picture+0x11e>
       *tmp4source++ = 0x55555555;
-    4038:	202f 01d8      	move.l 472(sp),d0
-    403c:	2200           	move.l d0,d1
-    403e:	5881           	addq.l #4,d1
-    4040:	2f41 01d8      	move.l d1,472(sp)
-    4044:	2040           	movea.l d0,a0
-    4046:	20bc 5555 5555 	move.l #1431655765,(a0)
+    41ca:	202f 01d8      	move.l 472(sp),d0
+    41ce:	2200           	move.l d0,d1
+    41d0:	5881           	addq.l #4,d1
+    41d2:	2f41 01d8      	move.l d1,472(sp)
+    41d6:	2040           	movea.l d0,a0
+    41d8:	20bc 5555 5555 	move.l #1431655765,(a0)
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
-    404c:	52af 01d0      	addq.l #1,464(sp)
-    4050:	700b           	moveq #11,d0
-    4052:	b0af 01d0      	cmp.l 464(sp),d0
-    4056:	6ce0           	bge.s 4038 <TestZoom4Picture+0x10e>
+    41de:	52af 01d0      	addq.l #1,464(sp)
+    41e2:	700b           	moveq #11,d0
+    41e4:	b0af 01d0      	cmp.l 464(sp),d0
+    41e8:	6ce0           	bge.s 41ca <TestZoom4Picture+0x106>
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
-    4058:	42af 01cc      	clr.l 460(sp)
-    405c:	6018           	bra.s 4076 <TestZoom4Picture+0x14c>
+    41ea:	42af 01cc      	clr.l 460(sp)
+    41ee:	6018           	bra.s 4208 <TestZoom4Picture+0x144>
       *tmp4source++ = 0xaaaaaaaa;
-    405e:	202f 01d8      	move.l 472(sp),d0
-    4062:	2200           	move.l d0,d1
-    4064:	5881           	addq.l #4,d1
-    4066:	2f41 01d8      	move.l d1,472(sp)
-    406a:	2040           	movea.l d0,a0
-    406c:	20bc aaaa aaaa 	move.l #-1431655766,(a0)
+    41f0:	202f 01d8      	move.l 472(sp),d0
+    41f4:	2200           	move.l d0,d1
+    41f6:	5881           	addq.l #4,d1
+    41f8:	2f41 01d8      	move.l d1,472(sp)
+    41fc:	2040           	movea.l d0,a0
+    41fe:	20bc aaaa aaaa 	move.l #-1431655766,(a0)
     for(int i2=0;i2<ZMLINESIZE/4;i2++)
-    4072:	52af 01cc      	addq.l #1,460(sp)
-    4076:	700b           	moveq #11,d0
-    4078:	b0af 01cc      	cmp.l 460(sp),d0
-    407c:	6ce0           	bge.s 405e <TestZoom4Picture+0x134>
+    4204:	52af 01cc      	addq.l #1,460(sp)
+    4208:	700b           	moveq #11,d0
+    420a:	b0af 01cc      	cmp.l 460(sp),d0
+    420e:	6ce0           	bge.s 41f0 <TestZoom4Picture+0x12c>
   for(int i=0;i<128+8;i++) {
-    407e:	52af 01d4      	addq.l #1,468(sp)
-    4082:	0caf 0000 0087 	cmpi.l #135,468(sp)
-    4088:	01d4 
-    408a:	6fa6           	ble.s 4032 <TestZoom4Picture+0x108>
+    4210:	52af 01d4      	addq.l #1,468(sp)
+    4214:	0caf 0000 0087 	cmpi.l #135,468(sp)
+    421a:	01d4 
+    421c:	6fa6           	ble.s 41c4 <TestZoom4Picture+0x100>
   }
 
   Zoom_ZoomIntoPicture( source, destination, 0, 1);
-    408c:	4878 0001      	pea 1 <_start+0x1>
-    4090:	42a7           	clr.l -(sp)
-    4092:	2f2f 0042      	move.l 66(sp),-(sp)
-    4096:	2f2f 006a      	move.l 106(sp),-(sp)
-    409a:	4eba d9c0      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    409e:	4fef 0010      	lea 16(sp),sp
+    421e:	4878 0001      	pea 1 <_start+0x1>
+    4222:	42a7           	clr.l -(sp)
+    4224:	2f2f 0056      	move.l 86(sp),-(sp)
+    4228:	2f2f 006a      	move.l 106(sp),-(sp)
+    422c:	4eba daaa      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    4230:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    40a2:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    40a8:	2c40           	movea.l d0,a6
-    40aa:	4eae ff1c      	jsr -228(a6)
+    4234:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    423a:	2c40           	movea.l d0,a6
+    423c:	4eae ff1c      	jsr -228(a6)
   UWORD *valactual = destination+2; 
-    40ae:	222f 003a      	move.l 58(sp),d1
-    40b2:	5881           	addq.l #4,d1
-    40b4:	2f41 01c8      	move.l d1,456(sp)
+    4240:	222f 004e      	move.l 78(sp),d1
+    4244:	5881           	addq.l #4,d1
+    4246:	2f41 01c8      	move.l d1,456(sp)
   UWORD *valsupposed = destlinezoom1;
-    40b8:	2f7c 0001 b764 	move.l #112484,34(sp)
-    40be:	0022 
+    424a:	2f7c 0001 b9e4 	move.l #113124,74(sp)
+    4250:	004a 
   UWORD mask = 0xffff;
-    40c0:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    4252:	3f7c ffff 01c6 	move.w #-1,454(sp)
   for(int i=0;i<14;i++) {
-    40c6:	42af 01c2      	clr.l 450(sp)
-    40ca:	6000 0084      	bra.w 4150 <TestZoom4Picture+0x226>
+    4258:	42af 01c2      	clr.l 450(sp)
+    425c:	6000 0084      	bra.w 42e2 <TestZoom4Picture+0x21e>
     for(int i2=0;i2<18;i2++) { 
-    40ce:	42af 01be      	clr.l 446(sp)
-    40d2:	603c           	bra.s 4110 <TestZoom4Picture+0x1e6>
+    4260:	42af 01be      	clr.l 446(sp)
+    4264:	603c           	bra.s 42a2 <TestZoom4Picture+0x1de>
       TestRow( valsupposed, valactual, mask, i2+i*19);
-    40d4:	222f 01c2      	move.l 450(sp),d1
-    40d8:	2001           	move.l d1,d0
-    40da:	e788           	lsl.l #3,d0
-    40dc:	d081           	add.l d1,d0
-    40de:	d080           	add.l d0,d0
-    40e0:	d081           	add.l d1,d0
-    40e2:	2200           	move.l d0,d1
-    40e4:	d2af 01be      	add.l 446(sp),d1
-    40e8:	7000           	moveq #0,d0
-    40ea:	302f 01c6      	move.w 454(sp),d0
-    40ee:	2f01           	move.l d1,-(sp)
-    40f0:	2f00           	move.l d0,-(sp)
-    40f2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    40f6:	2f2f 002e      	move.l 46(sp),-(sp)
-    40fa:	4eba 2ca4      	jsr 6da0 <TestRow>(pc)
-    40fe:	4fef 0010      	lea 16(sp),sp
+    4266:	222f 01c2      	move.l 450(sp),d1
+    426a:	2001           	move.l d1,d0
+    426c:	e788           	lsl.l #3,d0
+    426e:	d081           	add.l d1,d0
+    4270:	d080           	add.l d0,d0
+    4272:	d081           	add.l d1,d0
+    4274:	2200           	move.l d0,d1
+    4276:	d2af 01be      	add.l 446(sp),d1
+    427a:	7000           	moveq #0,d0
+    427c:	302f 01c6      	move.w 454(sp),d0
+    4280:	2f01           	move.l d1,-(sp)
+    4282:	2f00           	move.l d0,-(sp)
+    4284:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4288:	2f2f 0056      	move.l 86(sp),-(sp)
+    428c:	4eba 2c98      	jsr 6f26 <TestRow>(pc)
+    4290:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    4102:	7430           	moveq #48,d2
-    4104:	d5af 01c8      	add.l d2,456(sp)
+    4294:	7030           	moveq #48,d0
+    4296:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    4108:	466f 01c6      	not.w 454(sp)
+    429a:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<18;i2++) { 
-    410c:	52af 01be      	addq.l #1,446(sp)
-    4110:	7011           	moveq #17,d0
-    4112:	b0af 01be      	cmp.l 446(sp),d0
-    4116:	6cbc           	bge.s 40d4 <TestZoom4Picture+0x1aa>
+    429e:	52af 01be      	addq.l #1,446(sp)
+    42a2:	7211           	moveq #17,d1
+    42a4:	b2af 01be      	cmp.l 446(sp),d1
+    42a8:	6cbc           	bge.s 4266 <TestZoom4Picture+0x1a2>
     }
     TestRow( valsupposed, valactual, mask, 18+i*19);
-    4118:	222f 01c2      	move.l 450(sp),d1
-    411c:	2001           	move.l d1,d0
-    411e:	e788           	lsl.l #3,d0
-    4120:	d081           	add.l d1,d0
-    4122:	d080           	add.l d0,d0
-    4124:	2040           	movea.l d0,a0
-    4126:	d1c1           	adda.l d1,a0
-    4128:	41e8 0012      	lea 18(a0),a0
-    412c:	7000           	moveq #0,d0
-    412e:	302f 01c6      	move.w 454(sp),d0
-    4132:	2f08           	move.l a0,-(sp)
-    4134:	2f00           	move.l d0,-(sp)
-    4136:	2f2f 01d0      	move.l 464(sp),-(sp)
-    413a:	2f2f 002e      	move.l 46(sp),-(sp)
-    413e:	4eba 2c60      	jsr 6da0 <TestRow>(pc)
-    4142:	4fef 0010      	lea 16(sp),sp
+    42aa:	222f 01c2      	move.l 450(sp),d1
+    42ae:	2001           	move.l d1,d0
+    42b0:	e788           	lsl.l #3,d0
+    42b2:	d081           	add.l d1,d0
+    42b4:	d080           	add.l d0,d0
+    42b6:	2040           	movea.l d0,a0
+    42b8:	d1c1           	adda.l d1,a0
+    42ba:	41e8 0012      	lea 18(a0),a0
+    42be:	7000           	moveq #0,d0
+    42c0:	302f 01c6      	move.w 454(sp),d0
+    42c4:	2f08           	move.l a0,-(sp)
+    42c6:	2f00           	move.l d0,-(sp)
+    42c8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    42cc:	2f2f 0056      	move.l 86(sp),-(sp)
+    42d0:	4eba 2c54      	jsr 6f26 <TestRow>(pc)
+    42d4:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4146:	7230           	moveq #48,d1
-    4148:	d3af 01c8      	add.l d1,456(sp)
+    42d8:	7030           	moveq #48,d0
+    42da:	d1af 01c8      	add.l d0,456(sp)
   for(int i=0;i<14;i++) {
-    414c:	52af 01c2      	addq.l #1,450(sp)
-    4150:	740d           	moveq #13,d2
-    4152:	b4af 01c2      	cmp.l 450(sp),d2
-    4156:	6c00 ff76      	bge.w 40ce <TestZoom4Picture+0x1a4>
+    42de:	52af 01c2      	addq.l #1,450(sp)
+    42e2:	720d           	moveq #13,d1
+    42e4:	b2af 01c2      	cmp.l 450(sp),d1
+    42e8:	6c00 ff76      	bge.w 4260 <TestZoom4Picture+0x19c>
   }
 
   for(int i2=0;i2<4;i2++) { 
-    415a:	42af 01ba      	clr.l 442(sp)
-    415e:	6032           	bra.s 4192 <TestZoom4Picture+0x268>
+    42ec:	42af 01ba      	clr.l 442(sp)
+    42f0:	6032           	bra.s 4324 <TestZoom4Picture+0x260>
     TestRow( valsupposed, valactual, mask, i2+265);
-    4160:	222f 01ba      	move.l 442(sp),d1
-    4164:	0681 0000 0109 	addi.l #265,d1
-    416a:	7000           	moveq #0,d0
-    416c:	302f 01c6      	move.w 454(sp),d0
-    4170:	2f01           	move.l d1,-(sp)
-    4172:	2f00           	move.l d0,-(sp)
-    4174:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4178:	2f2f 002e      	move.l 46(sp),-(sp)
-    417c:	4eba 2c22      	jsr 6da0 <TestRow>(pc)
-    4180:	4fef 0010      	lea 16(sp),sp
+    42f2:	222f 01ba      	move.l 442(sp),d1
+    42f6:	0681 0000 0109 	addi.l #265,d1
+    42fc:	7000           	moveq #0,d0
+    42fe:	302f 01c6      	move.w 454(sp),d0
+    4302:	2f01           	move.l d1,-(sp)
+    4304:	2f00           	move.l d0,-(sp)
+    4306:	2f2f 01d0      	move.l 464(sp),-(sp)
+    430a:	2f2f 0056      	move.l 86(sp),-(sp)
+    430e:	4eba 2c16      	jsr 6f26 <TestRow>(pc)
+    4312:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4184:	7030           	moveq #48,d0
-    4186:	d1af 01c8      	add.l d0,456(sp)
+    4316:	7030           	moveq #48,d0
+    4318:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    418a:	466f 01c6      	not.w 454(sp)
+    431c:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<4;i2++) { 
-    418e:	52af 01ba      	addq.l #1,442(sp)
-    4192:	7203           	moveq #3,d1
-    4194:	b2af 01ba      	cmp.l 442(sp),d1
-    4198:	6cc6           	bge.s 4160 <TestZoom4Picture+0x236>
+    4320:	52af 01ba      	addq.l #1,442(sp)
+    4324:	7203           	moveq #3,d1
+    4326:	b2af 01ba      	cmp.l 442(sp),d1
+    432a:	6cc6           	bge.s 42f2 <TestZoom4Picture+0x22e>
   }
   
   UWORD *tmp = source;
-    419a:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    432c:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    41a0:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    4332:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    41a6:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    4338:	2f6f 0046 004e 	move.l 70(sp),78(sp)
   
   Zoom_ZoomIntoPicture( source, destination, 1, 1);
-    41ac:	4878 0001      	pea 1 <_start+0x1>
-    41b0:	4878 0001      	pea 1 <_start+0x1>
-    41b4:	2f2f 0042      	move.l 66(sp),-(sp)
-    41b8:	2f2f 006a      	move.l 106(sp),-(sp)
-    41bc:	4eba d89e      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    41c0:	4fef 0010      	lea 16(sp),sp
+    433e:	4878 0001      	pea 1 <_start+0x1>
+    4342:	4878 0001      	pea 1 <_start+0x1>
+    4346:	2f2f 0056      	move.l 86(sp),-(sp)
+    434a:	2f2f 006a      	move.l 106(sp),-(sp)
+    434e:	4eba d988      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    4352:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    41c4:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    41ca:	2c40           	movea.l d0,a6
-    41cc:	4eae ff1c      	jsr -228(a6)
+    4356:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    435c:	2c40           	movea.l d0,a6
+    435e:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    41d0:	242f 003a      	move.l 58(sp),d2
-    41d4:	5882           	addq.l #4,d2
-    41d6:	2f42 01c8      	move.l d2,456(sp)
+    4362:	202f 004e      	move.l 78(sp),d0
+    4366:	5880           	addq.l #4,d0
+    4368:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom2;
-    41da:	2f7c 0001 b790 	move.l #112528,34(sp)
-    41e0:	0022 
+    436c:	2f7c 0001 ba10 	move.l #113168,74(sp)
+    4372:	004a 
   mask = 0x0000;
-    41e2:	426f 01c6      	clr.w 454(sp)
+    4374:	426f 01c6      	clr.w 454(sp)
   for(int i2=0;i2<11;i2++) { 
-    41e6:	42af 01b6      	clr.l 438(sp)
-    41ea:	602a           	bra.s 4216 <TestZoom4Picture+0x2ec>
+    4378:	42af 01b6      	clr.l 438(sp)
+    437c:	602a           	bra.s 43a8 <TestZoom4Picture+0x2e4>
     TestRow( valsupposed, valactual, mask, i2);
-    41ec:	7000           	moveq #0,d0
-    41ee:	302f 01c6      	move.w 454(sp),d0
-    41f2:	2f2f 01b6      	move.l 438(sp),-(sp)
-    41f6:	2f00           	move.l d0,-(sp)
-    41f8:	2f2f 01d0      	move.l 464(sp),-(sp)
-    41fc:	2f2f 002e      	move.l 46(sp),-(sp)
-    4200:	4eba 2b9e      	jsr 6da0 <TestRow>(pc)
-    4204:	4fef 0010      	lea 16(sp),sp
+    437e:	7000           	moveq #0,d0
+    4380:	302f 01c6      	move.w 454(sp),d0
+    4384:	2f2f 01b6      	move.l 438(sp),-(sp)
+    4388:	2f00           	move.l d0,-(sp)
+    438a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    438e:	2f2f 0056      	move.l 86(sp),-(sp)
+    4392:	4eba 2b92      	jsr 6f26 <TestRow>(pc)
+    4396:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4208:	7030           	moveq #48,d0
-    420a:	d1af 01c8      	add.l d0,456(sp)
+    439a:	7230           	moveq #48,d1
+    439c:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    420e:	466f 01c6      	not.w 454(sp)
+    43a0:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<11;i2++) { 
-    4212:	52af 01b6      	addq.l #1,438(sp)
-    4216:	720a           	moveq #10,d1
-    4218:	b2af 01b6      	cmp.l 438(sp),d1
-    421c:	6cce           	bge.s 41ec <TestZoom4Picture+0x2c2>
+    43a4:	52af 01b6      	addq.l #1,438(sp)
+    43a8:	700a           	moveq #10,d0
+    43aa:	b0af 01b6      	cmp.l 438(sp),d0
+    43ae:	6cce           	bge.s 437e <TestZoom4Picture+0x2ba>
   }
   TestRow( valsupposed, valactual, 0xffff, 8);
-    421e:	4878 0008      	pea 8 <GetVBR>
-    4222:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    4228:	2f2f 01d0      	move.l 464(sp),-(sp)
-    422c:	2f2f 002e      	move.l 46(sp),-(sp)
-    4230:	4eba 2b6e      	jsr 6da0 <TestRow>(pc)
-    4234:	4fef 0010      	lea 16(sp),sp
+    43b0:	4878 0008      	pea 8 <_start+0x8>
+    43b4:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    43ba:	2f2f 01d0      	move.l 464(sp),-(sp)
+    43be:	2f2f 0056      	move.l 86(sp),-(sp)
+    43c2:	4eba 2b62      	jsr 6f26 <TestRow>(pc)
+    43c6:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4238:	7430           	moveq #48,d2
-    423a:	d5af 01c8      	add.l d2,456(sp)
+    43ca:	7230           	moveq #48,d1
+    43cc:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 9);
-    423e:	4878 0009      	pea 9 <GetVBR+0x1>
-    4242:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    4248:	2f2f 01d0      	move.l 464(sp),-(sp)
-    424c:	2f2f 002e      	move.l 46(sp),-(sp)
-    4250:	4eba 2b4e      	jsr 6da0 <TestRow>(pc)
-    4254:	4fef 0010      	lea 16(sp),sp
+    43d0:	4878 0009      	pea 9 <_start+0x9>
+    43d4:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    43da:	2f2f 01d0      	move.l 464(sp),-(sp)
+    43de:	2f2f 0056      	move.l 86(sp),-(sp)
+    43e2:	4eba 2b42      	jsr 6f26 <TestRow>(pc)
+    43e6:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4258:	7030           	moveq #48,d0
-    425a:	d1af 01c8      	add.l d0,456(sp)
+    43ea:	7030           	moveq #48,d0
+    43ec:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 10);
-    425e:	4878 000a      	pea a <GetVBR+0x2>
-    4262:	42a7           	clr.l -(sp)
-    4264:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4268:	2f2f 002e      	move.l 46(sp),-(sp)
-    426c:	4eba 2b32      	jsr 6da0 <TestRow>(pc)
-    4270:	4fef 0010      	lea 16(sp),sp
+    43f0:	4878 000a      	pea a <_start+0xa>
+    43f4:	42a7           	clr.l -(sp)
+    43f6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    43fa:	2f2f 0056      	move.l 86(sp),-(sp)
+    43fe:	4eba 2b26      	jsr 6f26 <TestRow>(pc)
+    4402:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4274:	7230           	moveq #48,d1
-    4276:	d3af 01c8      	add.l d1,456(sp)
+    4406:	7230           	moveq #48,d1
+    4408:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 11);
-    427a:	4878 000b      	pea b <GetVBR+0x3>
-    427e:	42a7           	clr.l -(sp)
-    4280:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4284:	2f2f 002e      	move.l 46(sp),-(sp)
-    4288:	4eba 2b16      	jsr 6da0 <TestRow>(pc)
-    428c:	4fef 0010      	lea 16(sp),sp
+    440c:	4878 000b      	pea b <_start+0xb>
+    4410:	42a7           	clr.l -(sp)
+    4412:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4416:	2f2f 0056      	move.l 86(sp),-(sp)
+    441a:	4eba 2b0a      	jsr 6f26 <TestRow>(pc)
+    441e:	4fef 0010      	lea 16(sp),sp
 
   valactual += ZMLINESIZE/2;
-    4290:	7430           	moveq #48,d2
-    4292:	d5af 01c8      	add.l d2,456(sp)
+    4422:	7030           	moveq #48,d0
+    4424:	d1af 01c8      	add.l d0,456(sp)
   for(int i=0;i<12;i++) {
-    4296:	42af 01b2      	clr.l 434(sp)
-    429a:	6000 0118      	bra.w 43b4 <TestZoom4Picture+0x48a>
+    4428:	42af 01b2      	clr.l 434(sp)
+    442c:	6000 0118      	bra.w 4546 <TestZoom4Picture+0x482>
     for(int i2=0;i2<16;i2++) {  
-    429e:	42af 01ae      	clr.l 430(sp)
-    42a2:	603c           	bra.s 42e0 <TestZoom4Picture+0x3b6>
+    4430:	42af 01ae      	clr.l 430(sp)
+    4434:	603c           	bra.s 4472 <TestZoom4Picture+0x3ae>
       TestRow( valsupposed, valactual, mask, i2+i*17+11);
-    42a4:	222f 01b2      	move.l 434(sp),d1
-    42a8:	2001           	move.l d1,d0
-    42aa:	e988           	lsl.l #4,d0
-    42ac:	d081           	add.l d1,d0
-    42ae:	2040           	movea.l d0,a0
-    42b0:	d1ef 01ae      	adda.l 430(sp),a0
-    42b4:	41e8 000b      	lea 11(a0),a0
-    42b8:	7000           	moveq #0,d0
-    42ba:	302f 01c6      	move.w 454(sp),d0
-    42be:	2f08           	move.l a0,-(sp)
-    42c0:	2f00           	move.l d0,-(sp)
-    42c2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    42c6:	2f2f 002e      	move.l 46(sp),-(sp)
-    42ca:	4eba 2ad4      	jsr 6da0 <TestRow>(pc)
-    42ce:	4fef 0010      	lea 16(sp),sp
+    4436:	222f 01b2      	move.l 434(sp),d1
+    443a:	2001           	move.l d1,d0
+    443c:	e988           	lsl.l #4,d0
+    443e:	d081           	add.l d1,d0
+    4440:	2040           	movea.l d0,a0
+    4442:	d1ef 01ae      	adda.l 430(sp),a0
+    4446:	41e8 000b      	lea 11(a0),a0
+    444a:	7000           	moveq #0,d0
+    444c:	302f 01c6      	move.w 454(sp),d0
+    4450:	2f08           	move.l a0,-(sp)
+    4452:	2f00           	move.l d0,-(sp)
+    4454:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4458:	2f2f 0056      	move.l 86(sp),-(sp)
+    445c:	4eba 2ac8      	jsr 6f26 <TestRow>(pc)
+    4460:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    42d2:	7030           	moveq #48,d0
-    42d4:	d1af 01c8      	add.l d0,456(sp)
+    4464:	7230           	moveq #48,d1
+    4466:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    42d8:	466f 01c6      	not.w 454(sp)
+    446a:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<16;i2++) {  
-    42dc:	52af 01ae      	addq.l #1,430(sp)
-    42e0:	720f           	moveq #15,d1
-    42e2:	b2af 01ae      	cmp.l 430(sp),d1
-    42e6:	6cbc           	bge.s 42a4 <TestZoom4Picture+0x37a>
+    446e:	52af 01ae      	addq.l #1,430(sp)
+    4472:	700f           	moveq #15,d0
+    4474:	b0af 01ae      	cmp.l 430(sp),d0
+    4478:	6cbc           	bge.s 4436 <TestZoom4Picture+0x372>
     }
   
     TestRow( valsupposed, valactual, mask, i*17+11+13);
-    42e8:	222f 01b2      	move.l 434(sp),d1
-    42ec:	2001           	move.l d1,d0
-    42ee:	e988           	lsl.l #4,d0
-    42f0:	2040           	movea.l d0,a0
-    42f2:	d1c1           	adda.l d1,a0
-    42f4:	41e8 0018      	lea 24(a0),a0
-    42f8:	7000           	moveq #0,d0
-    42fa:	302f 01c6      	move.w 454(sp),d0
-    42fe:	2f08           	move.l a0,-(sp)
-    4300:	2f00           	move.l d0,-(sp)
-    4302:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4306:	2f2f 002e      	move.l 46(sp),-(sp)
-    430a:	4eba 2a94      	jsr 6da0 <TestRow>(pc)
-    430e:	4fef 0010      	lea 16(sp),sp
+    447a:	222f 01b2      	move.l 434(sp),d1
+    447e:	2001           	move.l d1,d0
+    4480:	e988           	lsl.l #4,d0
+    4482:	2040           	movea.l d0,a0
+    4484:	d1c1           	adda.l d1,a0
+    4486:	41e8 0018      	lea 24(a0),a0
+    448a:	7000           	moveq #0,d0
+    448c:	302f 01c6      	move.w 454(sp),d0
+    4490:	2f08           	move.l a0,-(sp)
+    4492:	2f00           	move.l d0,-(sp)
+    4494:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4498:	2f2f 0056      	move.l 86(sp),-(sp)
+    449c:	4eba 2a88      	jsr 6f26 <TestRow>(pc)
+    44a0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4312:	7430           	moveq #48,d2
-    4314:	d5af 01c8      	add.l d2,456(sp)
+    44a4:	7230           	moveq #48,d1
+    44a6:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, i*17+11+14);
-    4318:	222f 01b2      	move.l 434(sp),d1
-    431c:	2001           	move.l d1,d0
-    431e:	e988           	lsl.l #4,d0
-    4320:	2040           	movea.l d0,a0
-    4322:	d1c1           	adda.l d1,a0
-    4324:	41e8 0019      	lea 25(a0),a0
-    4328:	7000           	moveq #0,d0
-    432a:	302f 01c6      	move.w 454(sp),d0
-    432e:	2f08           	move.l a0,-(sp)
-    4330:	2f00           	move.l d0,-(sp)
-    4332:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4336:	2f2f 002e      	move.l 46(sp),-(sp)
-    433a:	4eba 2a64      	jsr 6da0 <TestRow>(pc)
-    433e:	4fef 0010      	lea 16(sp),sp
+    44aa:	222f 01b2      	move.l 434(sp),d1
+    44ae:	2001           	move.l d1,d0
+    44b0:	e988           	lsl.l #4,d0
+    44b2:	2040           	movea.l d0,a0
+    44b4:	d1c1           	adda.l d1,a0
+    44b6:	41e8 0019      	lea 25(a0),a0
+    44ba:	7000           	moveq #0,d0
+    44bc:	302f 01c6      	move.w 454(sp),d0
+    44c0:	2f08           	move.l a0,-(sp)
+    44c2:	2f00           	move.l d0,-(sp)
+    44c4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    44c8:	2f2f 0056      	move.l 86(sp),-(sp)
+    44cc:	4eba 2a58      	jsr 6f26 <TestRow>(pc)
+    44d0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4342:	7030           	moveq #48,d0
-    4344:	d1af 01c8      	add.l d0,456(sp)
+    44d4:	7030           	moveq #48,d0
+    44d6:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4348:	466f 01c6      	not.w 454(sp)
+    44da:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*17+11+15);
-    434c:	222f 01b2      	move.l 434(sp),d1
-    4350:	2001           	move.l d1,d0
-    4352:	e988           	lsl.l #4,d0
-    4354:	2040           	movea.l d0,a0
-    4356:	d1c1           	adda.l d1,a0
-    4358:	41e8 001a      	lea 26(a0),a0
-    435c:	7000           	moveq #0,d0
-    435e:	302f 01c6      	move.w 454(sp),d0
-    4362:	2f08           	move.l a0,-(sp)
-    4364:	2f00           	move.l d0,-(sp)
-    4366:	2f2f 01d0      	move.l 464(sp),-(sp)
-    436a:	2f2f 002e      	move.l 46(sp),-(sp)
-    436e:	4eba 2a30      	jsr 6da0 <TestRow>(pc)
-    4372:	4fef 0010      	lea 16(sp),sp
+    44de:	222f 01b2      	move.l 434(sp),d1
+    44e2:	2001           	move.l d1,d0
+    44e4:	e988           	lsl.l #4,d0
+    44e6:	2040           	movea.l d0,a0
+    44e8:	d1c1           	adda.l d1,a0
+    44ea:	41e8 001a      	lea 26(a0),a0
+    44ee:	7000           	moveq #0,d0
+    44f0:	302f 01c6      	move.w 454(sp),d0
+    44f4:	2f08           	move.l a0,-(sp)
+    44f6:	2f00           	move.l d0,-(sp)
+    44f8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    44fc:	2f2f 0056      	move.l 86(sp),-(sp)
+    4500:	4eba 2a24      	jsr 6f26 <TestRow>(pc)
+    4504:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4376:	7230           	moveq #48,d1
-    4378:	d3af 01c8      	add.l d1,456(sp)
+    4508:	7230           	moveq #48,d1
+    450a:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, i*17+11+16);
-    437c:	222f 01b2      	move.l 434(sp),d1
-    4380:	2001           	move.l d1,d0
-    4382:	e988           	lsl.l #4,d0
-    4384:	2040           	movea.l d0,a0
-    4386:	d1c1           	adda.l d1,a0
-    4388:	41e8 001b      	lea 27(a0),a0
-    438c:	7000           	moveq #0,d0
-    438e:	302f 01c6      	move.w 454(sp),d0
-    4392:	2f08           	move.l a0,-(sp)
-    4394:	2f00           	move.l d0,-(sp)
-    4396:	2f2f 01d0      	move.l 464(sp),-(sp)
-    439a:	2f2f 002e      	move.l 46(sp),-(sp)
-    439e:	4eba 2a00      	jsr 6da0 <TestRow>(pc)
-    43a2:	4fef 0010      	lea 16(sp),sp
+    450e:	222f 01b2      	move.l 434(sp),d1
+    4512:	2001           	move.l d1,d0
+    4514:	e988           	lsl.l #4,d0
+    4516:	2040           	movea.l d0,a0
+    4518:	d1c1           	adda.l d1,a0
+    451a:	41e8 001b      	lea 27(a0),a0
+    451e:	7000           	moveq #0,d0
+    4520:	302f 01c6      	move.w 454(sp),d0
+    4524:	2f08           	move.l a0,-(sp)
+    4526:	2f00           	move.l d0,-(sp)
+    4528:	2f2f 01d0      	move.l 464(sp),-(sp)
+    452c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4530:	4eba 29f4      	jsr 6f26 <TestRow>(pc)
+    4534:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    43a6:	7430           	moveq #48,d2
-    43a8:	d5af 01c8      	add.l d2,456(sp)
+    4538:	7030           	moveq #48,d0
+    453a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    43ac:	466f 01c6      	not.w 454(sp)
+    453e:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<12;i++) {
-    43b0:	52af 01b2      	addq.l #1,434(sp)
-    43b4:	700b           	moveq #11,d0
-    43b6:	b0af 01b2      	cmp.l 434(sp),d0
-    43ba:	6c00 fee2      	bge.w 429e <TestZoom4Picture+0x374>
+    4542:	52af 01b2      	addq.l #1,434(sp)
+    4546:	720b           	moveq #11,d1
+    4548:	b2af 01b2      	cmp.l 434(sp),d1
+    454c:	6c00 fee2      	bge.w 4430 <TestZoom4Picture+0x36c>
     
   }
 
   for(int i2=0;i2<15;i2++) { 
-    43be:	42af 01aa      	clr.l 426(sp)
-    43c2:	602a           	bra.s 43ee <TestZoom4Picture+0x4c4>
+    4550:	42af 01aa      	clr.l 426(sp)
+    4554:	602a           	bra.s 4580 <TestZoom4Picture+0x4bc>
     TestRow( valsupposed, valactual, mask, i2);
-    43c4:	7000           	moveq #0,d0
-    43c6:	302f 01c6      	move.w 454(sp),d0
-    43ca:	2f2f 01aa      	move.l 426(sp),-(sp)
-    43ce:	2f00           	move.l d0,-(sp)
-    43d0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    43d4:	2f2f 002e      	move.l 46(sp),-(sp)
-    43d8:	4eba 29c6      	jsr 6da0 <TestRow>(pc)
-    43dc:	4fef 0010      	lea 16(sp),sp
+    4556:	7000           	moveq #0,d0
+    4558:	302f 01c6      	move.w 454(sp),d0
+    455c:	2f2f 01aa      	move.l 426(sp),-(sp)
+    4560:	2f00           	move.l d0,-(sp)
+    4562:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4566:	2f2f 0056      	move.l 86(sp),-(sp)
+    456a:	4eba 29ba      	jsr 6f26 <TestRow>(pc)
+    456e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    43e0:	7230           	moveq #48,d1
-    43e2:	d3af 01c8      	add.l d1,456(sp)
+    4572:	7030           	moveq #48,d0
+    4574:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    43e6:	466f 01c6      	not.w 454(sp)
+    4578:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<15;i2++) { 
-    43ea:	52af 01aa      	addq.l #1,426(sp)
-    43ee:	740e           	moveq #14,d2
-    43f0:	b4af 01aa      	cmp.l 426(sp),d2
-    43f4:	6cce           	bge.s 43c4 <TestZoom4Picture+0x49a>
+    457c:	52af 01aa      	addq.l #1,426(sp)
+    4580:	720e           	moveq #14,d1
+    4582:	b2af 01aa      	cmp.l 426(sp),d1
+    4586:	6cce           	bge.s 4556 <TestZoom4Picture+0x492>
   }
 
   tmp = source;
-    43f6:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    4588:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    43fc:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    458e:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    4402:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    4594:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 2, 1);
-    4408:	4878 0001      	pea 1 <_start+0x1>
-    440c:	4878 0002      	pea 2 <_start+0x2>
-    4410:	2f2f 0042      	move.l 66(sp),-(sp)
-    4414:	2f2f 006a      	move.l 106(sp),-(sp)
-    4418:	4eba d642      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    441c:	4fef 0010      	lea 16(sp),sp
+    459a:	4878 0001      	pea 1 <_start+0x1>
+    459e:	4878 0002      	pea 2 <_start+0x2>
+    45a2:	2f2f 0056      	move.l 86(sp),-(sp)
+    45a6:	2f2f 006a      	move.l 106(sp),-(sp)
+    45aa:	4eba d72c      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    45ae:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    4420:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    4426:	2c40           	movea.l d0,a6
-    4428:	4eae ff1c      	jsr -228(a6)
+    45b2:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    45b8:	2c40           	movea.l d0,a6
+    45ba:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    442c:	202f 003a      	move.l 58(sp),d0
-    4430:	5880           	addq.l #4,d0
-    4432:	2f40 01c8      	move.l d0,456(sp)
+    45be:	202f 004e      	move.l 78(sp),d0
+    45c2:	5880           	addq.l #4,d0
+    45c4:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom3;
-    4436:	2f7c 0001 b7bc 	move.l #112572,34(sp)
-    443c:	0022 
+    45c8:	2f7c 0001 ba3c 	move.l #113212,74(sp)
+    45ce:	004a 
   mask = 0xffff;
-    443e:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    45d0:	3f7c ffff 01c6 	move.w #-1,454(sp)
 
   for(int i2=0;i2<4;i2++) { 
-    4444:	42af 01a6      	clr.l 422(sp)
-    4448:	602a           	bra.s 4474 <TestZoom4Picture+0x54a>
+    45d6:	42af 01a6      	clr.l 422(sp)
+    45da:	602a           	bra.s 4606 <TestZoom4Picture+0x542>
     TestRow( valsupposed, valactual, mask, i2);
-    444a:	7000           	moveq #0,d0
-    444c:	302f 01c6      	move.w 454(sp),d0
-    4450:	2f2f 01a6      	move.l 422(sp),-(sp)
-    4454:	2f00           	move.l d0,-(sp)
-    4456:	2f2f 01d0      	move.l 464(sp),-(sp)
-    445a:	2f2f 002e      	move.l 46(sp),-(sp)
-    445e:	4eba 2940      	jsr 6da0 <TestRow>(pc)
-    4462:	4fef 0010      	lea 16(sp),sp
+    45dc:	7000           	moveq #0,d0
+    45de:	302f 01c6      	move.w 454(sp),d0
+    45e2:	2f2f 01a6      	move.l 422(sp),-(sp)
+    45e6:	2f00           	move.l d0,-(sp)
+    45e8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    45ec:	2f2f 0056      	move.l 86(sp),-(sp)
+    45f0:	4eba 2934      	jsr 6f26 <TestRow>(pc)
+    45f4:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4466:	7230           	moveq #48,d1
-    4468:	d3af 01c8      	add.l d1,456(sp)
+    45f8:	7230           	moveq #48,d1
+    45fa:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    446c:	466f 01c6      	not.w 454(sp)
+    45fe:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<4;i2++) { 
-    4470:	52af 01a6      	addq.l #1,422(sp)
-    4474:	7403           	moveq #3,d2
-    4476:	b4af 01a6      	cmp.l 422(sp),d2
-    447a:	6cce           	bge.s 444a <TestZoom4Picture+0x520>
+    4602:	52af 01a6      	addq.l #1,422(sp)
+    4606:	7003           	moveq #3,d0
+    4608:	b0af 01a6      	cmp.l 422(sp),d0
+    460c:	6cce           	bge.s 45dc <TestZoom4Picture+0x518>
   }
 
   TestRow( valsupposed, valactual, 0xffff, 0+4);
-    447c:	4878 0004      	pea 4 <_start+0x4>
-    4480:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    4486:	2f2f 01d0      	move.l 464(sp),-(sp)
-    448a:	2f2f 002e      	move.l 46(sp),-(sp)
-    448e:	4eba 2910      	jsr 6da0 <TestRow>(pc)
-    4492:	4fef 0010      	lea 16(sp),sp
+    460e:	4878 0004      	pea 4 <_start+0x4>
+    4612:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    4618:	2f2f 01d0      	move.l 464(sp),-(sp)
+    461c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4620:	4eba 2904      	jsr 6f26 <TestRow>(pc)
+    4624:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4496:	7030           	moveq #48,d0
-    4498:	d1af 01c8      	add.l d0,456(sp)
+    4628:	7230           	moveq #48,d1
+    462a:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 1+4);
-    449c:	4878 0005      	pea 5 <_start+0x5>
-    44a0:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    44a6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    44aa:	2f2f 002e      	move.l 46(sp),-(sp)
-    44ae:	4eba 28f0      	jsr 6da0 <TestRow>(pc)
-    44b2:	4fef 0010      	lea 16(sp),sp
+    462e:	4878 0005      	pea 5 <_start+0x5>
+    4632:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    4638:	2f2f 01d0      	move.l 464(sp),-(sp)
+    463c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4640:	4eba 28e4      	jsr 6f26 <TestRow>(pc)
+    4644:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    44b6:	7230           	moveq #48,d1
-    44b8:	d3af 01c8      	add.l d1,456(sp)
+    4648:	7030           	moveq #48,d0
+    464a:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 2+4);
-    44bc:	4878 0006      	pea 6 <_start+0x6>
-    44c0:	42a7           	clr.l -(sp)
-    44c2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    44c6:	2f2f 002e      	move.l 46(sp),-(sp)
-    44ca:	4eba 28d4      	jsr 6da0 <TestRow>(pc)
-    44ce:	4fef 0010      	lea 16(sp),sp
+    464e:	4878 0006      	pea 6 <_start+0x6>
+    4652:	42a7           	clr.l -(sp)
+    4654:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4658:	2f2f 0056      	move.l 86(sp),-(sp)
+    465c:	4eba 28c8      	jsr 6f26 <TestRow>(pc)
+    4660:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    44d2:	7430           	moveq #48,d2
-    44d4:	d5af 01c8      	add.l d2,456(sp)
+    4664:	7230           	moveq #48,d1
+    4666:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 3+4);
-    44d8:	4878 0007      	pea 7 <_start+0x7>
-    44dc:	42a7           	clr.l -(sp)
-    44de:	2f2f 01d0      	move.l 464(sp),-(sp)
-    44e2:	2f2f 002e      	move.l 46(sp),-(sp)
-    44e6:	4eba 28b8      	jsr 6da0 <TestRow>(pc)
-    44ea:	4fef 0010      	lea 16(sp),sp
+    466a:	4878 0007      	pea 7 <_start+0x7>
+    466e:	42a7           	clr.l -(sp)
+    4670:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4674:	2f2f 0056      	move.l 86(sp),-(sp)
+    4678:	4eba 28ac      	jsr 6f26 <TestRow>(pc)
+    467c:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    44ee:	7030           	moveq #48,d0
-    44f0:	d1af 01c8      	add.l d0,456(sp)
+    4680:	7030           	moveq #48,d0
+    4682:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 4+4);
-    44f4:	4878 0008      	pea 8 <GetVBR>
-    44f8:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    44fe:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4502:	2f2f 002e      	move.l 46(sp),-(sp)
-    4506:	4eba 2898      	jsr 6da0 <TestRow>(pc)
-    450a:	4fef 0010      	lea 16(sp),sp
+    4686:	4878 0008      	pea 8 <_start+0x8>
+    468a:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    4690:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4694:	2f2f 0056      	move.l 86(sp),-(sp)
+    4698:	4eba 288c      	jsr 6f26 <TestRow>(pc)
+    469c:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    450e:	7230           	moveq #48,d1
-    4510:	d3af 01c8      	add.l d1,456(sp)
+    46a0:	7230           	moveq #48,d1
+    46a2:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 5+4);
-    4514:	4878 0009      	pea 9 <GetVBR+0x1>
-    4518:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    451e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4522:	2f2f 002e      	move.l 46(sp),-(sp)
-    4526:	4eba 2878      	jsr 6da0 <TestRow>(pc)
-    452a:	4fef 0010      	lea 16(sp),sp
+    46a6:	4878 0009      	pea 9 <_start+0x9>
+    46aa:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    46b0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    46b4:	2f2f 0056      	move.l 86(sp),-(sp)
+    46b8:	4eba 286c      	jsr 6f26 <TestRow>(pc)
+    46bc:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    452e:	7430           	moveq #48,d2
-    4530:	d5af 01c8      	add.l d2,456(sp)
+    46c0:	7030           	moveq #48,d0
+    46c2:	d1af 01c8      	add.l d0,456(sp)
 
   mask = 0x0000;
-    4534:	426f 01c6      	clr.w 454(sp)
+    46c6:	426f 01c6      	clr.w 454(sp)
   for(int i=0;i<12;i++) {
-    4538:	42af 01a2      	clr.l 418(sp)
-    453c:	6000 01aa      	bra.w 46e8 <TestZoom4Picture+0x7be>
+    46ca:	42af 01a2      	clr.l 418(sp)
+    46ce:	6000 01a6      	bra.w 4876 <TestZoom4Picture+0x7b2>
     for(int i2=0;i2<15;i2++) {  
-    4540:	42af 019e      	clr.l 414(sp)
-    4544:	6046           	bra.s 458c <TestZoom4Picture+0x662>
+    46d2:	42af 019e      	clr.l 414(sp)
+    46d6:	6042           	bra.s 471a <TestZoom4Picture+0x656>
       TestRow( valsupposed, valactual, mask, i2+i*21+9);
-    4546:	222f 01a2      	move.l 418(sp),d1
-    454a:	2001           	move.l d1,d0
-    454c:	d080           	add.l d0,d0
-    454e:	d081           	add.l d1,d0
-    4550:	2200           	move.l d0,d1
-    4552:	e789           	lsl.l #3,d1
-    4554:	2401           	move.l d1,d2
-    4556:	9480           	sub.l d0,d2
-    4558:	2002           	move.l d2,d0
-    455a:	2040           	movea.l d0,a0
-    455c:	d1ef 019e      	adda.l 414(sp),a0
-    4560:	41e8 0009      	lea 9(a0),a0
-    4564:	7000           	moveq #0,d0
-    4566:	302f 01c6      	move.w 454(sp),d0
-    456a:	2f08           	move.l a0,-(sp)
-    456c:	2f00           	move.l d0,-(sp)
-    456e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4572:	2f2f 002e      	move.l 46(sp),-(sp)
-    4576:	4eba 2828      	jsr 6da0 <TestRow>(pc)
-    457a:	4fef 0010      	lea 16(sp),sp
+    46d8:	222f 01a2      	move.l 418(sp),d1
+    46dc:	2001           	move.l d1,d0
+    46de:	d080           	add.l d0,d0
+    46e0:	d081           	add.l d1,d0
+    46e2:	2200           	move.l d0,d1
+    46e4:	e789           	lsl.l #3,d1
+    46e6:	9280           	sub.l d0,d1
+    46e8:	2041           	movea.l d1,a0
+    46ea:	d1ef 019e      	adda.l 414(sp),a0
+    46ee:	41e8 0009      	lea 9(a0),a0
+    46f2:	7000           	moveq #0,d0
+    46f4:	302f 01c6      	move.w 454(sp),d0
+    46f8:	2f08           	move.l a0,-(sp)
+    46fa:	2f00           	move.l d0,-(sp)
+    46fc:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4700:	2f2f 0056      	move.l 86(sp),-(sp)
+    4704:	4eba 2820      	jsr 6f26 <TestRow>(pc)
+    4708:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    457e:	7030           	moveq #48,d0
-    4580:	d1af 01c8      	add.l d0,456(sp)
+    470c:	7230           	moveq #48,d1
+    470e:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    4584:	466f 01c6      	not.w 454(sp)
+    4712:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<15;i2++) {  
-    4588:	52af 019e      	addq.l #1,414(sp)
-    458c:	720e           	moveq #14,d1
-    458e:	b2af 019e      	cmp.l 414(sp),d1
-    4592:	6cb2           	bge.s 4546 <TestZoom4Picture+0x61c>
+    4716:	52af 019e      	addq.l #1,414(sp)
+    471a:	700e           	moveq #14,d0
+    471c:	b0af 019e      	cmp.l 414(sp),d0
+    4720:	6cb6           	bge.s 46d8 <TestZoom4Picture+0x614>
     }
 
     TestRow( valsupposed, valactual, mask, i*21+9+15);
-    4594:	222f 01a2      	move.l 418(sp),d1
-    4598:	2001           	move.l d1,d0
-    459a:	d080           	add.l d0,d0
-    459c:	d081           	add.l d1,d0
-    459e:	2200           	move.l d0,d1
-    45a0:	e789           	lsl.l #3,d1
-    45a2:	2041           	movea.l d1,a0
-    45a4:	91c0           	suba.l d0,a0
-    45a6:	41e8 0018      	lea 24(a0),a0
-    45aa:	7000           	moveq #0,d0
-    45ac:	302f 01c6      	move.w 454(sp),d0
-    45b0:	2f08           	move.l a0,-(sp)
-    45b2:	2f00           	move.l d0,-(sp)
-    45b4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    45b8:	2f2f 002e      	move.l 46(sp),-(sp)
-    45bc:	4eba 27e2      	jsr 6da0 <TestRow>(pc)
-    45c0:	4fef 0010      	lea 16(sp),sp
+    4722:	222f 01a2      	move.l 418(sp),d1
+    4726:	2001           	move.l d1,d0
+    4728:	d080           	add.l d0,d0
+    472a:	d081           	add.l d1,d0
+    472c:	2200           	move.l d0,d1
+    472e:	e789           	lsl.l #3,d1
+    4730:	2041           	movea.l d1,a0
+    4732:	91c0           	suba.l d0,a0
+    4734:	41e8 0018      	lea 24(a0),a0
+    4738:	7000           	moveq #0,d0
+    473a:	302f 01c6      	move.w 454(sp),d0
+    473e:	2f08           	move.l a0,-(sp)
+    4740:	2f00           	move.l d0,-(sp)
+    4742:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4746:	2f2f 0056      	move.l 86(sp),-(sp)
+    474a:	4eba 27da      	jsr 6f26 <TestRow>(pc)
+    474e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    45c4:	7430           	moveq #48,d2
-    45c6:	d5af 01c8      	add.l d2,456(sp)
+    4752:	7230           	moveq #48,d1
+    4754:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+16);
-    45ca:	222f 01a2      	move.l 418(sp),d1
-    45ce:	2001           	move.l d1,d0
-    45d0:	d080           	add.l d0,d0
-    45d2:	d081           	add.l d1,d0
-    45d4:	2200           	move.l d0,d1
-    45d6:	e789           	lsl.l #3,d1
-    45d8:	2041           	movea.l d1,a0
-    45da:	91c0           	suba.l d0,a0
-    45dc:	41e8 0019      	lea 25(a0),a0
-    45e0:	7000           	moveq #0,d0
-    45e2:	302f 01c6      	move.w 454(sp),d0
-    45e6:	2f08           	move.l a0,-(sp)
-    45e8:	2f00           	move.l d0,-(sp)
-    45ea:	2f2f 01d0      	move.l 464(sp),-(sp)
-    45ee:	2f2f 002e      	move.l 46(sp),-(sp)
-    45f2:	4eba 27ac      	jsr 6da0 <TestRow>(pc)
-    45f6:	4fef 0010      	lea 16(sp),sp
+    4758:	222f 01a2      	move.l 418(sp),d1
+    475c:	2001           	move.l d1,d0
+    475e:	d080           	add.l d0,d0
+    4760:	d081           	add.l d1,d0
+    4762:	2200           	move.l d0,d1
+    4764:	e789           	lsl.l #3,d1
+    4766:	2041           	movea.l d1,a0
+    4768:	91c0           	suba.l d0,a0
+    476a:	41e8 0019      	lea 25(a0),a0
+    476e:	7000           	moveq #0,d0
+    4770:	302f 01c6      	move.w 454(sp),d0
+    4774:	2f08           	move.l a0,-(sp)
+    4776:	2f00           	move.l d0,-(sp)
+    4778:	2f2f 01d0      	move.l 464(sp),-(sp)
+    477c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4780:	4eba 27a4      	jsr 6f26 <TestRow>(pc)
+    4784:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    45fa:	7030           	moveq #48,d0
-    45fc:	d1af 01c8      	add.l d0,456(sp)
+    4788:	7030           	moveq #48,d0
+    478a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4600:	466f 01c6      	not.w 454(sp)
+    478e:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+17);
-    4604:	222f 01a2      	move.l 418(sp),d1
-    4608:	2001           	move.l d1,d0
-    460a:	d080           	add.l d0,d0
-    460c:	d081           	add.l d1,d0
-    460e:	2200           	move.l d0,d1
-    4610:	e789           	lsl.l #3,d1
-    4612:	2041           	movea.l d1,a0
-    4614:	91c0           	suba.l d0,a0
-    4616:	41e8 001a      	lea 26(a0),a0
-    461a:	7000           	moveq #0,d0
-    461c:	302f 01c6      	move.w 454(sp),d0
-    4620:	2f08           	move.l a0,-(sp)
-    4622:	2f00           	move.l d0,-(sp)
-    4624:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4628:	2f2f 002e      	move.l 46(sp),-(sp)
-    462c:	4eba 2772      	jsr 6da0 <TestRow>(pc)
-    4630:	4fef 0010      	lea 16(sp),sp
+    4792:	222f 01a2      	move.l 418(sp),d1
+    4796:	2001           	move.l d1,d0
+    4798:	d080           	add.l d0,d0
+    479a:	d081           	add.l d1,d0
+    479c:	2200           	move.l d0,d1
+    479e:	e789           	lsl.l #3,d1
+    47a0:	2041           	movea.l d1,a0
+    47a2:	91c0           	suba.l d0,a0
+    47a4:	41e8 001a      	lea 26(a0),a0
+    47a8:	7000           	moveq #0,d0
+    47aa:	302f 01c6      	move.w 454(sp),d0
+    47ae:	2f08           	move.l a0,-(sp)
+    47b0:	2f00           	move.l d0,-(sp)
+    47b2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    47b6:	2f2f 0056      	move.l 86(sp),-(sp)
+    47ba:	4eba 276a      	jsr 6f26 <TestRow>(pc)
+    47be:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4634:	7230           	moveq #48,d1
-    4636:	d3af 01c8      	add.l d1,456(sp)
+    47c2:	7230           	moveq #48,d1
+    47c4:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+18);
-    463a:	222f 01a2      	move.l 418(sp),d1
-    463e:	2001           	move.l d1,d0
-    4640:	d080           	add.l d0,d0
-    4642:	d081           	add.l d1,d0
-    4644:	2200           	move.l d0,d1
-    4646:	e789           	lsl.l #3,d1
-    4648:	2041           	movea.l d1,a0
-    464a:	91c0           	suba.l d0,a0
-    464c:	41e8 001b      	lea 27(a0),a0
-    4650:	7000           	moveq #0,d0
-    4652:	302f 01c6      	move.w 454(sp),d0
-    4656:	2f08           	move.l a0,-(sp)
-    4658:	2f00           	move.l d0,-(sp)
-    465a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    465e:	2f2f 002e      	move.l 46(sp),-(sp)
-    4662:	4eba 273c      	jsr 6da0 <TestRow>(pc)
-    4666:	4fef 0010      	lea 16(sp),sp
+    47c8:	222f 01a2      	move.l 418(sp),d1
+    47cc:	2001           	move.l d1,d0
+    47ce:	d080           	add.l d0,d0
+    47d0:	d081           	add.l d1,d0
+    47d2:	2200           	move.l d0,d1
+    47d4:	e789           	lsl.l #3,d1
+    47d6:	2041           	movea.l d1,a0
+    47d8:	91c0           	suba.l d0,a0
+    47da:	41e8 001b      	lea 27(a0),a0
+    47de:	7000           	moveq #0,d0
+    47e0:	302f 01c6      	move.w 454(sp),d0
+    47e4:	2f08           	move.l a0,-(sp)
+    47e6:	2f00           	move.l d0,-(sp)
+    47e8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    47ec:	2f2f 0056      	move.l 86(sp),-(sp)
+    47f0:	4eba 2734      	jsr 6f26 <TestRow>(pc)
+    47f4:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    466a:	7430           	moveq #48,d2
-    466c:	d5af 01c8      	add.l d2,456(sp)
+    47f8:	7030           	moveq #48,d0
+    47fa:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4670:	466f 01c6      	not.w 454(sp)
+    47fe:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+19);
-    4674:	222f 01a2      	move.l 418(sp),d1
-    4678:	2001           	move.l d1,d0
-    467a:	d080           	add.l d0,d0
-    467c:	d081           	add.l d1,d0
-    467e:	2200           	move.l d0,d1
-    4680:	e789           	lsl.l #3,d1
-    4682:	2041           	movea.l d1,a0
-    4684:	91c0           	suba.l d0,a0
-    4686:	41e8 001c      	lea 28(a0),a0
-    468a:	7000           	moveq #0,d0
-    468c:	302f 01c6      	move.w 454(sp),d0
-    4690:	2f08           	move.l a0,-(sp)
-    4692:	2f00           	move.l d0,-(sp)
-    4694:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4698:	2f2f 002e      	move.l 46(sp),-(sp)
-    469c:	4eba 2702      	jsr 6da0 <TestRow>(pc)
-    46a0:	4fef 0010      	lea 16(sp),sp
+    4802:	222f 01a2      	move.l 418(sp),d1
+    4806:	2001           	move.l d1,d0
+    4808:	d080           	add.l d0,d0
+    480a:	d081           	add.l d1,d0
+    480c:	2200           	move.l d0,d1
+    480e:	e789           	lsl.l #3,d1
+    4810:	2041           	movea.l d1,a0
+    4812:	91c0           	suba.l d0,a0
+    4814:	41e8 001c      	lea 28(a0),a0
+    4818:	7000           	moveq #0,d0
+    481a:	302f 01c6      	move.w 454(sp),d0
+    481e:	2f08           	move.l a0,-(sp)
+    4820:	2f00           	move.l d0,-(sp)
+    4822:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4826:	2f2f 0056      	move.l 86(sp),-(sp)
+    482a:	4eba 26fa      	jsr 6f26 <TestRow>(pc)
+    482e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    46a4:	7030           	moveq #48,d0
-    46a6:	d1af 01c8      	add.l d0,456(sp)
+    4832:	7230           	moveq #48,d1
+    4834:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+20);
-    46aa:	222f 01a2      	move.l 418(sp),d1
-    46ae:	2001           	move.l d1,d0
-    46b0:	d080           	add.l d0,d0
-    46b2:	d081           	add.l d1,d0
-    46b4:	2200           	move.l d0,d1
-    46b6:	e789           	lsl.l #3,d1
-    46b8:	2041           	movea.l d1,a0
-    46ba:	91c0           	suba.l d0,a0
-    46bc:	41e8 001d      	lea 29(a0),a0
-    46c0:	7000           	moveq #0,d0
-    46c2:	302f 01c6      	move.w 454(sp),d0
-    46c6:	2f08           	move.l a0,-(sp)
-    46c8:	2f00           	move.l d0,-(sp)
-    46ca:	2f2f 01d0      	move.l 464(sp),-(sp)
-    46ce:	2f2f 002e      	move.l 46(sp),-(sp)
-    46d2:	4eba 26cc      	jsr 6da0 <TestRow>(pc)
-    46d6:	4fef 0010      	lea 16(sp),sp
+    4838:	222f 01a2      	move.l 418(sp),d1
+    483c:	2001           	move.l d1,d0
+    483e:	d080           	add.l d0,d0
+    4840:	d081           	add.l d1,d0
+    4842:	2200           	move.l d0,d1
+    4844:	e789           	lsl.l #3,d1
+    4846:	2041           	movea.l d1,a0
+    4848:	91c0           	suba.l d0,a0
+    484a:	41e8 001d      	lea 29(a0),a0
+    484e:	7000           	moveq #0,d0
+    4850:	302f 01c6      	move.w 454(sp),d0
+    4854:	2f08           	move.l a0,-(sp)
+    4856:	2f00           	move.l d0,-(sp)
+    4858:	2f2f 01d0      	move.l 464(sp),-(sp)
+    485c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4860:	4eba 26c4      	jsr 6f26 <TestRow>(pc)
+    4864:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    46da:	7230           	moveq #48,d1
-    46dc:	d3af 01c8      	add.l d1,456(sp)
+    4868:	7030           	moveq #48,d0
+    486a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    46e0:	466f 01c6      	not.w 454(sp)
+    486e:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<12;i++) {
-    46e4:	52af 01a2      	addq.l #1,418(sp)
-    46e8:	740b           	moveq #11,d2
-    46ea:	b4af 01a2      	cmp.l 418(sp),d2
-    46ee:	6c00 fe50      	bge.w 4540 <TestZoom4Picture+0x616>
+    4872:	52af 01a2      	addq.l #1,418(sp)
+    4876:	720b           	moveq #11,d1
+    4878:	b2af 01a2      	cmp.l 418(sp),d1
+    487c:	6c00 fe54      	bge.w 46d2 <TestZoom4Picture+0x60e>
   }
 
   for(int i2=0;i2<8;i2++) {  
-    46f2:	42af 019a      	clr.l 410(sp)
-    46f6:	6032           	bra.s 472a <TestZoom4Picture+0x800>
+    4880:	42af 019a      	clr.l 410(sp)
+    4884:	6032           	bra.s 48b8 <TestZoom4Picture+0x7f4>
     TestRow( valsupposed, valactual, mask, i2+12*21+9);
-    46f8:	222f 019a      	move.l 410(sp),d1
-    46fc:	0681 0000 0105 	addi.l #261,d1
-    4702:	7000           	moveq #0,d0
-    4704:	302f 01c6      	move.w 454(sp),d0
-    4708:	2f01           	move.l d1,-(sp)
-    470a:	2f00           	move.l d0,-(sp)
-    470c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4710:	2f2f 002e      	move.l 46(sp),-(sp)
-    4714:	4eba 268a      	jsr 6da0 <TestRow>(pc)
-    4718:	4fef 0010      	lea 16(sp),sp
+    4886:	222f 019a      	move.l 410(sp),d1
+    488a:	0681 0000 0105 	addi.l #261,d1
+    4890:	7000           	moveq #0,d0
+    4892:	302f 01c6      	move.w 454(sp),d0
+    4896:	2f01           	move.l d1,-(sp)
+    4898:	2f00           	move.l d0,-(sp)
+    489a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    489e:	2f2f 0056      	move.l 86(sp),-(sp)
+    48a2:	4eba 2682      	jsr 6f26 <TestRow>(pc)
+    48a6:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    471c:	7030           	moveq #48,d0
-    471e:	d1af 01c8      	add.l d0,456(sp)
+    48aa:	7030           	moveq #48,d0
+    48ac:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4722:	466f 01c6      	not.w 454(sp)
+    48b0:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<8;i2++) {  
-    4726:	52af 019a      	addq.l #1,410(sp)
-    472a:	7207           	moveq #7,d1
-    472c:	b2af 019a      	cmp.l 410(sp),d1
-    4730:	6cc6           	bge.s 46f8 <TestZoom4Picture+0x7ce>
+    48b4:	52af 019a      	addq.l #1,410(sp)
+    48b8:	7207           	moveq #7,d1
+    48ba:	b2af 019a      	cmp.l 410(sp),d1
+    48be:	6cc6           	bge.s 4886 <TestZoom4Picture+0x7c2>
   }
 
   tmp = source;
-    4732:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    48c0:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    4738:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    48c6:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    473e:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    48cc:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 3,1 );
-    4744:	4878 0001      	pea 1 <_start+0x1>
-    4748:	4878 0003      	pea 3 <_start+0x3>
-    474c:	2f2f 0042      	move.l 66(sp),-(sp)
-    4750:	2f2f 006a      	move.l 106(sp),-(sp)
-    4754:	4eba d306      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    4758:	4fef 0010      	lea 16(sp),sp
+    48d2:	4878 0001      	pea 1 <_start+0x1>
+    48d6:	4878 0003      	pea 3 <_start+0x3>
+    48da:	2f2f 0056      	move.l 86(sp),-(sp)
+    48de:	2f2f 006a      	move.l 106(sp),-(sp)
+    48e2:	4eba d3f4      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    48e6:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    475c:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    4762:	2c40           	movea.l d0,a6
-    4764:	4eae ff1c      	jsr -228(a6)
+    48ea:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    48f0:	2c40           	movea.l d0,a6
+    48f2:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    4768:	242f 003a      	move.l 58(sp),d2
-    476c:	5882           	addq.l #4,d2
-    476e:	2f42 01c8      	move.l d2,456(sp)
+    48f6:	202f 004e      	move.l 78(sp),d0
+    48fa:	5880           	addq.l #4,d0
+    48fc:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom4;
-    4772:	2f7c 0001 b7e8 	move.l #112616,34(sp)
-    4778:	0022 
+    4900:	2f7c 0001 ba68 	move.l #113256,74(sp)
+    4906:	004a 
   mask = 0x0000;
-    477a:	426f 01c6      	clr.w 454(sp)
+    4908:	426f 01c6      	clr.w 454(sp)
   
   TestRow( valsupposed, valactual, 0x0000, 3+4);
-    477e:	4878 0007      	pea 7 <_start+0x7>
-    4782:	42a7           	clr.l -(sp)
-    4784:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4788:	2f2f 002e      	move.l 46(sp),-(sp)
-    478c:	4eba 2612      	jsr 6da0 <TestRow>(pc)
-    4790:	4fef 0010      	lea 16(sp),sp
+    490c:	4878 0007      	pea 7 <_start+0x7>
+    4910:	42a7           	clr.l -(sp)
+    4912:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4916:	2f2f 0056      	move.l 86(sp),-(sp)
+    491a:	4eba 260a      	jsr 6f26 <TestRow>(pc)
+    491e:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4794:	7030           	moveq #48,d0
-    4796:	d1af 01c8      	add.l d0,456(sp)
+    4922:	7230           	moveq #48,d1
+    4924:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 4+4);
-    479a:	4878 0008      	pea 8 <GetVBR>
-    479e:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    47a4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    47a8:	2f2f 002e      	move.l 46(sp),-(sp)
-    47ac:	4eba 25f2      	jsr 6da0 <TestRow>(pc)
-    47b0:	4fef 0010      	lea 16(sp),sp
+    4928:	4878 0008      	pea 8 <_start+0x8>
+    492c:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    4932:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4936:	2f2f 0056      	move.l 86(sp),-(sp)
+    493a:	4eba 25ea      	jsr 6f26 <TestRow>(pc)
+    493e:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    47b4:	7230           	moveq #48,d1
-    47b6:	d3af 01c8      	add.l d1,456(sp)
+    4942:	7030           	moveq #48,d0
+    4944:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, 0xffff, 5+4);
-    47ba:	4878 0009      	pea 9 <GetVBR+0x1>
-    47be:	2f3c 0000 ffff 	move.l #65535,-(sp)
-    47c4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    47c8:	2f2f 002e      	move.l 46(sp),-(sp)
-    47cc:	4eba 25d2      	jsr 6da0 <TestRow>(pc)
-    47d0:	4fef 0010      	lea 16(sp),sp
+    4948:	4878 0009      	pea 9 <_start+0x9>
+    494c:	2f3c 0000 ffff 	move.l #65535,-(sp)
+    4952:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4956:	2f2f 0056      	move.l 86(sp),-(sp)
+    495a:	4eba 25ca      	jsr 6f26 <TestRow>(pc)
+    495e:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    47d4:	7430           	moveq #48,d2
-    47d6:	d5af 01c8      	add.l d2,456(sp)
+    4962:	7230           	moveq #48,d1
+    4964:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 4+4);
-    47da:	4878 0008      	pea 8 <GetVBR>
-    47de:	42a7           	clr.l -(sp)
-    47e0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    47e4:	2f2f 002e      	move.l 46(sp),-(sp)
-    47e8:	4eba 25b6      	jsr 6da0 <TestRow>(pc)
-    47ec:	4fef 0010      	lea 16(sp),sp
+    4968:	4878 0008      	pea 8 <_start+0x8>
+    496c:	42a7           	clr.l -(sp)
+    496e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4972:	2f2f 0056      	move.l 86(sp),-(sp)
+    4976:	4eba 25ae      	jsr 6f26 <TestRow>(pc)
+    497a:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    47f0:	7030           	moveq #48,d0
-    47f2:	d1af 01c8      	add.l d0,456(sp)
+    497e:	7030           	moveq #48,d0
+    4980:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, 0x0000, 5+4);
-    47f6:	4878 0009      	pea 9 <GetVBR+0x1>
-    47fa:	42a7           	clr.l -(sp)
-    47fc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4800:	2f2f 002e      	move.l 46(sp),-(sp)
-    4804:	4eba 259a      	jsr 6da0 <TestRow>(pc)
-    4808:	4fef 0010      	lea 16(sp),sp
+    4984:	4878 0009      	pea 9 <_start+0x9>
+    4988:	42a7           	clr.l -(sp)
+    498a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    498e:	2f2f 0056      	move.l 86(sp),-(sp)
+    4992:	4eba 2592      	jsr 6f26 <TestRow>(pc)
+    4996:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    480c:	7230           	moveq #48,d1
-    480e:	d3af 01c8      	add.l d1,456(sp)
+    499a:	7230           	moveq #48,d1
+    499c:	d3af 01c8      	add.l d1,456(sp)
 
   mask = 0xffff;
-    4812:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    49a0:	3f7c ffff 01c6 	move.w #-1,454(sp)
   for(int i=0;i<12;i++) {
-    4818:	42af 0196      	clr.l 406(sp)
-    481c:	6000 021a      	bra.w 4a38 <TestZoom4Picture+0xb0e>
+    49a6:	42af 0196      	clr.l 406(sp)
+    49aa:	6000 0216      	bra.w 4bc2 <TestZoom4Picture+0xafe>
     for(int i2=0;i2<14;i2++) {  
-    4820:	42af 0192      	clr.l 402(sp)
-    4824:	6046           	bra.s 486c <TestZoom4Picture+0x942>
+    49ae:	42af 0192      	clr.l 402(sp)
+    49b2:	6042           	bra.s 49f6 <TestZoom4Picture+0x932>
       TestRow( valsupposed, valactual, mask, i2+i*21+9);
-    4826:	222f 0196      	move.l 406(sp),d1
-    482a:	2001           	move.l d1,d0
-    482c:	d080           	add.l d0,d0
-    482e:	d081           	add.l d1,d0
-    4830:	2200           	move.l d0,d1
-    4832:	e789           	lsl.l #3,d1
-    4834:	2401           	move.l d1,d2
-    4836:	9480           	sub.l d0,d2
-    4838:	2002           	move.l d2,d0
-    483a:	2040           	movea.l d0,a0
-    483c:	d1ef 0192      	adda.l 402(sp),a0
-    4840:	41e8 0009      	lea 9(a0),a0
-    4844:	7000           	moveq #0,d0
-    4846:	302f 01c6      	move.w 454(sp),d0
-    484a:	2f08           	move.l a0,-(sp)
-    484c:	2f00           	move.l d0,-(sp)
-    484e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4852:	2f2f 002e      	move.l 46(sp),-(sp)
-    4856:	4eba 2548      	jsr 6da0 <TestRow>(pc)
-    485a:	4fef 0010      	lea 16(sp),sp
+    49b4:	222f 0196      	move.l 406(sp),d1
+    49b8:	2001           	move.l d1,d0
+    49ba:	d080           	add.l d0,d0
+    49bc:	d081           	add.l d1,d0
+    49be:	2200           	move.l d0,d1
+    49c0:	e789           	lsl.l #3,d1
+    49c2:	9280           	sub.l d0,d1
+    49c4:	2041           	movea.l d1,a0
+    49c6:	d1ef 0192      	adda.l 402(sp),a0
+    49ca:	41e8 0009      	lea 9(a0),a0
+    49ce:	7000           	moveq #0,d0
+    49d0:	302f 01c6      	move.w 454(sp),d0
+    49d4:	2f08           	move.l a0,-(sp)
+    49d6:	2f00           	move.l d0,-(sp)
+    49d8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    49dc:	2f2f 0056      	move.l 86(sp),-(sp)
+    49e0:	4eba 2544      	jsr 6f26 <TestRow>(pc)
+    49e4:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    485e:	7030           	moveq #48,d0
-    4860:	d1af 01c8      	add.l d0,456(sp)
+    49e8:	7030           	moveq #48,d0
+    49ea:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    4864:	466f 01c6      	not.w 454(sp)
+    49ee:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<14;i2++) {  
-    4868:	52af 0192      	addq.l #1,402(sp)
-    486c:	720d           	moveq #13,d1
-    486e:	b2af 0192      	cmp.l 402(sp),d1
-    4872:	6cb2           	bge.s 4826 <TestZoom4Picture+0x8fc>
+    49f2:	52af 0192      	addq.l #1,402(sp)
+    49f6:	720d           	moveq #13,d1
+    49f8:	b2af 0192      	cmp.l 402(sp),d1
+    49fc:	6cb6           	bge.s 49b4 <TestZoom4Picture+0x8f0>
     }
 
     TestRow( valsupposed, valactual, mask, i*21+9+15);
-    4874:	222f 0196      	move.l 406(sp),d1
-    4878:	2001           	move.l d1,d0
-    487a:	d080           	add.l d0,d0
-    487c:	d081           	add.l d1,d0
-    487e:	2200           	move.l d0,d1
-    4880:	e789           	lsl.l #3,d1
-    4882:	2041           	movea.l d1,a0
-    4884:	91c0           	suba.l d0,a0
-    4886:	41e8 0018      	lea 24(a0),a0
-    488a:	7000           	moveq #0,d0
-    488c:	302f 01c6      	move.w 454(sp),d0
-    4890:	2f08           	move.l a0,-(sp)
-    4892:	2f00           	move.l d0,-(sp)
-    4894:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4898:	2f2f 002e      	move.l 46(sp),-(sp)
-    489c:	4eba 2502      	jsr 6da0 <TestRow>(pc)
-    48a0:	4fef 0010      	lea 16(sp),sp
+    49fe:	222f 0196      	move.l 406(sp),d1
+    4a02:	2001           	move.l d1,d0
+    4a04:	d080           	add.l d0,d0
+    4a06:	d081           	add.l d1,d0
+    4a08:	2200           	move.l d0,d1
+    4a0a:	e789           	lsl.l #3,d1
+    4a0c:	2041           	movea.l d1,a0
+    4a0e:	91c0           	suba.l d0,a0
+    4a10:	41e8 0018      	lea 24(a0),a0
+    4a14:	7000           	moveq #0,d0
+    4a16:	302f 01c6      	move.w 454(sp),d0
+    4a1a:	2f08           	move.l a0,-(sp)
+    4a1c:	2f00           	move.l d0,-(sp)
+    4a1e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4a22:	2f2f 0056      	move.l 86(sp),-(sp)
+    4a26:	4eba 24fe      	jsr 6f26 <TestRow>(pc)
+    4a2a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    48a4:	7430           	moveq #48,d2
-    48a6:	d5af 01c8      	add.l d2,456(sp)
+    4a2e:	7030           	moveq #48,d0
+    4a30:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+16);
-    48aa:	222f 0196      	move.l 406(sp),d1
-    48ae:	2001           	move.l d1,d0
-    48b0:	d080           	add.l d0,d0
-    48b2:	d081           	add.l d1,d0
-    48b4:	2200           	move.l d0,d1
-    48b6:	e789           	lsl.l #3,d1
-    48b8:	2041           	movea.l d1,a0
-    48ba:	91c0           	suba.l d0,a0
-    48bc:	41e8 0019      	lea 25(a0),a0
-    48c0:	7000           	moveq #0,d0
-    48c2:	302f 01c6      	move.w 454(sp),d0
-    48c6:	2f08           	move.l a0,-(sp)
-    48c8:	2f00           	move.l d0,-(sp)
-    48ca:	2f2f 01d0      	move.l 464(sp),-(sp)
-    48ce:	2f2f 002e      	move.l 46(sp),-(sp)
-    48d2:	4eba 24cc      	jsr 6da0 <TestRow>(pc)
-    48d6:	4fef 0010      	lea 16(sp),sp
+    4a34:	222f 0196      	move.l 406(sp),d1
+    4a38:	2001           	move.l d1,d0
+    4a3a:	d080           	add.l d0,d0
+    4a3c:	d081           	add.l d1,d0
+    4a3e:	2200           	move.l d0,d1
+    4a40:	e789           	lsl.l #3,d1
+    4a42:	2041           	movea.l d1,a0
+    4a44:	91c0           	suba.l d0,a0
+    4a46:	41e8 0019      	lea 25(a0),a0
+    4a4a:	7000           	moveq #0,d0
+    4a4c:	302f 01c6      	move.w 454(sp),d0
+    4a50:	2f08           	move.l a0,-(sp)
+    4a52:	2f00           	move.l d0,-(sp)
+    4a54:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4a58:	2f2f 0056      	move.l 86(sp),-(sp)
+    4a5c:	4eba 24c8      	jsr 6f26 <TestRow>(pc)
+    4a60:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    48da:	7030           	moveq #48,d0
-    48dc:	d1af 01c8      	add.l d0,456(sp)
+    4a64:	7230           	moveq #48,d1
+    4a66:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    48e0:	466f 01c6      	not.w 454(sp)
+    4a6a:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+17);
-    48e4:	222f 0196      	move.l 406(sp),d1
-    48e8:	2001           	move.l d1,d0
-    48ea:	d080           	add.l d0,d0
-    48ec:	d081           	add.l d1,d0
-    48ee:	2200           	move.l d0,d1
-    48f0:	e789           	lsl.l #3,d1
-    48f2:	2041           	movea.l d1,a0
-    48f4:	91c0           	suba.l d0,a0
-    48f6:	41e8 001a      	lea 26(a0),a0
-    48fa:	7000           	moveq #0,d0
-    48fc:	302f 01c6      	move.w 454(sp),d0
-    4900:	2f08           	move.l a0,-(sp)
-    4902:	2f00           	move.l d0,-(sp)
-    4904:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4908:	2f2f 002e      	move.l 46(sp),-(sp)
-    490c:	4eba 2492      	jsr 6da0 <TestRow>(pc)
-    4910:	4fef 0010      	lea 16(sp),sp
+    4a6e:	222f 0196      	move.l 406(sp),d1
+    4a72:	2001           	move.l d1,d0
+    4a74:	d080           	add.l d0,d0
+    4a76:	d081           	add.l d1,d0
+    4a78:	2200           	move.l d0,d1
+    4a7a:	e789           	lsl.l #3,d1
+    4a7c:	2041           	movea.l d1,a0
+    4a7e:	91c0           	suba.l d0,a0
+    4a80:	41e8 001a      	lea 26(a0),a0
+    4a84:	7000           	moveq #0,d0
+    4a86:	302f 01c6      	move.w 454(sp),d0
+    4a8a:	2f08           	move.l a0,-(sp)
+    4a8c:	2f00           	move.l d0,-(sp)
+    4a8e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4a92:	2f2f 0056      	move.l 86(sp),-(sp)
+    4a96:	4eba 248e      	jsr 6f26 <TestRow>(pc)
+    4a9a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4914:	7230           	moveq #48,d1
-    4916:	d3af 01c8      	add.l d1,456(sp)
+    4a9e:	7030           	moveq #48,d0
+    4aa0:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+18);
-    491a:	222f 0196      	move.l 406(sp),d1
-    491e:	2001           	move.l d1,d0
-    4920:	d080           	add.l d0,d0
-    4922:	d081           	add.l d1,d0
-    4924:	2200           	move.l d0,d1
-    4926:	e789           	lsl.l #3,d1
-    4928:	2041           	movea.l d1,a0
-    492a:	91c0           	suba.l d0,a0
-    492c:	41e8 001b      	lea 27(a0),a0
-    4930:	7000           	moveq #0,d0
-    4932:	302f 01c6      	move.w 454(sp),d0
-    4936:	2f08           	move.l a0,-(sp)
-    4938:	2f00           	move.l d0,-(sp)
-    493a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    493e:	2f2f 002e      	move.l 46(sp),-(sp)
-    4942:	4eba 245c      	jsr 6da0 <TestRow>(pc)
-    4946:	4fef 0010      	lea 16(sp),sp
+    4aa4:	222f 0196      	move.l 406(sp),d1
+    4aa8:	2001           	move.l d1,d0
+    4aaa:	d080           	add.l d0,d0
+    4aac:	d081           	add.l d1,d0
+    4aae:	2200           	move.l d0,d1
+    4ab0:	e789           	lsl.l #3,d1
+    4ab2:	2041           	movea.l d1,a0
+    4ab4:	91c0           	suba.l d0,a0
+    4ab6:	41e8 001b      	lea 27(a0),a0
+    4aba:	7000           	moveq #0,d0
+    4abc:	302f 01c6      	move.w 454(sp),d0
+    4ac0:	2f08           	move.l a0,-(sp)
+    4ac2:	2f00           	move.l d0,-(sp)
+    4ac4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4ac8:	2f2f 0056      	move.l 86(sp),-(sp)
+    4acc:	4eba 2458      	jsr 6f26 <TestRow>(pc)
+    4ad0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    494a:	7430           	moveq #48,d2
-    494c:	d5af 01c8      	add.l d2,456(sp)
+    4ad4:	7230           	moveq #48,d1
+    4ad6:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    4950:	466f 01c6      	not.w 454(sp)
+    4ada:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+19);
-    4954:	222f 0196      	move.l 406(sp),d1
-    4958:	2001           	move.l d1,d0
-    495a:	d080           	add.l d0,d0
-    495c:	d081           	add.l d1,d0
-    495e:	2200           	move.l d0,d1
-    4960:	e789           	lsl.l #3,d1
-    4962:	2041           	movea.l d1,a0
-    4964:	91c0           	suba.l d0,a0
-    4966:	41e8 001c      	lea 28(a0),a0
-    496a:	7000           	moveq #0,d0
-    496c:	302f 01c6      	move.w 454(sp),d0
-    4970:	2f08           	move.l a0,-(sp)
-    4972:	2f00           	move.l d0,-(sp)
-    4974:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4978:	2f2f 002e      	move.l 46(sp),-(sp)
-    497c:	4eba 2422      	jsr 6da0 <TestRow>(pc)
-    4980:	4fef 0010      	lea 16(sp),sp
+    4ade:	222f 0196      	move.l 406(sp),d1
+    4ae2:	2001           	move.l d1,d0
+    4ae4:	d080           	add.l d0,d0
+    4ae6:	d081           	add.l d1,d0
+    4ae8:	2200           	move.l d0,d1
+    4aea:	e789           	lsl.l #3,d1
+    4aec:	2041           	movea.l d1,a0
+    4aee:	91c0           	suba.l d0,a0
+    4af0:	41e8 001c      	lea 28(a0),a0
+    4af4:	7000           	moveq #0,d0
+    4af6:	302f 01c6      	move.w 454(sp),d0
+    4afa:	2f08           	move.l a0,-(sp)
+    4afc:	2f00           	move.l d0,-(sp)
+    4afe:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4b02:	2f2f 0056      	move.l 86(sp),-(sp)
+    4b06:	4eba 241e      	jsr 6f26 <TestRow>(pc)
+    4b0a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4984:	7030           	moveq #48,d0
-    4986:	d1af 01c8      	add.l d0,456(sp)
+    4b0e:	7030           	moveq #48,d0
+    4b10:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+20);
-    498a:	222f 0196      	move.l 406(sp),d1
-    498e:	2001           	move.l d1,d0
-    4990:	d080           	add.l d0,d0
-    4992:	d081           	add.l d1,d0
-    4994:	2200           	move.l d0,d1
-    4996:	e789           	lsl.l #3,d1
-    4998:	2041           	movea.l d1,a0
-    499a:	91c0           	suba.l d0,a0
-    499c:	41e8 001d      	lea 29(a0),a0
-    49a0:	7000           	moveq #0,d0
-    49a2:	302f 01c6      	move.w 454(sp),d0
-    49a6:	2f08           	move.l a0,-(sp)
-    49a8:	2f00           	move.l d0,-(sp)
-    49aa:	2f2f 01d0      	move.l 464(sp),-(sp)
-    49ae:	2f2f 002e      	move.l 46(sp),-(sp)
-    49b2:	4eba 23ec      	jsr 6da0 <TestRow>(pc)
-    49b6:	4fef 0010      	lea 16(sp),sp
+    4b14:	222f 0196      	move.l 406(sp),d1
+    4b18:	2001           	move.l d1,d0
+    4b1a:	d080           	add.l d0,d0
+    4b1c:	d081           	add.l d1,d0
+    4b1e:	2200           	move.l d0,d1
+    4b20:	e789           	lsl.l #3,d1
+    4b22:	2041           	movea.l d1,a0
+    4b24:	91c0           	suba.l d0,a0
+    4b26:	41e8 001d      	lea 29(a0),a0
+    4b2a:	7000           	moveq #0,d0
+    4b2c:	302f 01c6      	move.w 454(sp),d0
+    4b30:	2f08           	move.l a0,-(sp)
+    4b32:	2f00           	move.l d0,-(sp)
+    4b34:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4b38:	2f2f 0056      	move.l 86(sp),-(sp)
+    4b3c:	4eba 23e8      	jsr 6f26 <TestRow>(pc)
+    4b40:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    49ba:	7230           	moveq #48,d1
-    49bc:	d3af 01c8      	add.l d1,456(sp)
+    4b44:	7230           	moveq #48,d1
+    4b46:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    49c0:	466f 01c6      	not.w 454(sp)
+    4b4a:	466f 01c6      	not.w 454(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+19);
-    49c4:	222f 0196      	move.l 406(sp),d1
-    49c8:	2001           	move.l d1,d0
-    49ca:	d080           	add.l d0,d0
-    49cc:	d081           	add.l d1,d0
-    49ce:	2200           	move.l d0,d1
-    49d0:	e789           	lsl.l #3,d1
-    49d2:	2041           	movea.l d1,a0
-    49d4:	91c0           	suba.l d0,a0
-    49d6:	41e8 001c      	lea 28(a0),a0
-    49da:	7000           	moveq #0,d0
-    49dc:	302f 01c6      	move.w 454(sp),d0
-    49e0:	2f08           	move.l a0,-(sp)
-    49e2:	2f00           	move.l d0,-(sp)
-    49e4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    49e8:	2f2f 002e      	move.l 46(sp),-(sp)
-    49ec:	4eba 23b2      	jsr 6da0 <TestRow>(pc)
-    49f0:	4fef 0010      	lea 16(sp),sp
+    4b4e:	222f 0196      	move.l 406(sp),d1
+    4b52:	2001           	move.l d1,d0
+    4b54:	d080           	add.l d0,d0
+    4b56:	d081           	add.l d1,d0
+    4b58:	2200           	move.l d0,d1
+    4b5a:	e789           	lsl.l #3,d1
+    4b5c:	2041           	movea.l d1,a0
+    4b5e:	91c0           	suba.l d0,a0
+    4b60:	41e8 001c      	lea 28(a0),a0
+    4b64:	7000           	moveq #0,d0
+    4b66:	302f 01c6      	move.w 454(sp),d0
+    4b6a:	2f08           	move.l a0,-(sp)
+    4b6c:	2f00           	move.l d0,-(sp)
+    4b6e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4b72:	2f2f 0056      	move.l 86(sp),-(sp)
+    4b76:	4eba 23ae      	jsr 6f26 <TestRow>(pc)
+    4b7a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    49f4:	7430           	moveq #48,d2
-    49f6:	d5af 01c8      	add.l d2,456(sp)
+    4b7e:	7030           	moveq #48,d0
+    4b80:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, i*21+9+20);
-    49fa:	222f 0196      	move.l 406(sp),d1
-    49fe:	2001           	move.l d1,d0
-    4a00:	d080           	add.l d0,d0
-    4a02:	d081           	add.l d1,d0
-    4a04:	2200           	move.l d0,d1
-    4a06:	e789           	lsl.l #3,d1
-    4a08:	2041           	movea.l d1,a0
-    4a0a:	91c0           	suba.l d0,a0
-    4a0c:	41e8 001d      	lea 29(a0),a0
-    4a10:	7000           	moveq #0,d0
-    4a12:	302f 01c6      	move.w 454(sp),d0
-    4a16:	2f08           	move.l a0,-(sp)
-    4a18:	2f00           	move.l d0,-(sp)
-    4a1a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4a1e:	2f2f 002e      	move.l 46(sp),-(sp)
-    4a22:	4eba 237c      	jsr 6da0 <TestRow>(pc)
-    4a26:	4fef 0010      	lea 16(sp),sp
+    4b84:	222f 0196      	move.l 406(sp),d1
+    4b88:	2001           	move.l d1,d0
+    4b8a:	d080           	add.l d0,d0
+    4b8c:	d081           	add.l d1,d0
+    4b8e:	2200           	move.l d0,d1
+    4b90:	e789           	lsl.l #3,d1
+    4b92:	2041           	movea.l d1,a0
+    4b94:	91c0           	suba.l d0,a0
+    4b96:	41e8 001d      	lea 29(a0),a0
+    4b9a:	7000           	moveq #0,d0
+    4b9c:	302f 01c6      	move.w 454(sp),d0
+    4ba0:	2f08           	move.l a0,-(sp)
+    4ba2:	2f00           	move.l d0,-(sp)
+    4ba4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4ba8:	2f2f 0056      	move.l 86(sp),-(sp)
+    4bac:	4eba 2378      	jsr 6f26 <TestRow>(pc)
+    4bb0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4a2a:	7030           	moveq #48,d0
-    4a2c:	d1af 01c8      	add.l d0,456(sp)
+    4bb4:	7230           	moveq #48,d1
+    4bb6:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    4a30:	466f 01c6      	not.w 454(sp)
+    4bba:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<12;i++) {
-    4a34:	52af 0196      	addq.l #1,406(sp)
-    4a38:	720b           	moveq #11,d1
-    4a3a:	b2af 0196      	cmp.l 406(sp),d1
-    4a3e:	6c00 fde0      	bge.w 4820 <TestZoom4Picture+0x8f6>
+    4bbe:	52af 0196      	addq.l #1,406(sp)
+    4bc2:	700b           	moveq #11,d0
+    4bc4:	b0af 0196      	cmp.l 406(sp),d0
+    4bc8:	6c00 fde4      	bge.w 49ae <TestZoom4Picture+0x8ea>
   }
 
   TestRow( valsupposed, valactual, mask, 269);
-    4a42:	7000           	moveq #0,d0
-    4a44:	302f 01c6      	move.w 454(sp),d0
-    4a48:	4878 010d      	pea 10d <WaitBlt+0x2d>
-    4a4c:	2f00           	move.l d0,-(sp)
-    4a4e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4a52:	2f2f 002e      	move.l 46(sp),-(sp)
-    4a56:	4eba 2348      	jsr 6da0 <TestRow>(pc)
-    4a5a:	4fef 0010      	lea 16(sp),sp
+    4bcc:	7000           	moveq #0,d0
+    4bce:	302f 01c6      	move.w 454(sp),d0
+    4bd2:	4878 010d      	pea 10d <FreeDisplay+0x2d>
+    4bd6:	2f00           	move.l d0,-(sp)
+    4bd8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4bdc:	2f2f 0056      	move.l 86(sp),-(sp)
+    4be0:	4eba 2344      	jsr 6f26 <TestRow>(pc)
+    4be4:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4a5e:	7430           	moveq #48,d2
-    4a60:	d5af 01c8      	add.l d2,456(sp)
+    4be8:	7230           	moveq #48,d1
+    4bea:	d3af 01c8      	add.l d1,456(sp)
   
   tmp = source;
-    4a64:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    4bee:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    4a6a:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    4bf4:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    4a70:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    4bfa:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 4, 1);
-    4a76:	4878 0001      	pea 1 <_start+0x1>
-    4a7a:	4878 0004      	pea 4 <_start+0x4>
-    4a7e:	2f2f 0042      	move.l 66(sp),-(sp)
-    4a82:	2f2f 006a      	move.l 106(sp),-(sp)
-    4a86:	4eba cfd4      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    4a8a:	4fef 0010      	lea 16(sp),sp
+    4c00:	4878 0001      	pea 1 <_start+0x1>
+    4c04:	4878 0004      	pea 4 <_start+0x4>
+    4c08:	2f2f 0056      	move.l 86(sp),-(sp)
+    4c0c:	2f2f 006a      	move.l 106(sp),-(sp)
+    4c10:	4eba d0c6      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    4c14:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    4a8e:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    4a94:	2c40           	movea.l d0,a6
-    4a96:	4eae ff1c      	jsr -228(a6)
+    4c18:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    4c1e:	2c40           	movea.l d0,a6
+    4c20:	4eae ff1c      	jsr -228(a6)
 
   valactual = destination+2; 
-    4a9a:	202f 003a      	move.l 58(sp),d0
-    4a9e:	5880           	addq.l #4,d0
-    4aa0:	2f40 01c8      	move.l d0,456(sp)
+    4c24:	202f 004e      	move.l 78(sp),d0
+    4c28:	5880           	addq.l #4,d0
+    4c2a:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom5;
-    4aa4:	2f7c 0001 b814 	move.l #112660,34(sp)
-    4aaa:	0022 
+    4c2e:	2f7c 0001 ba94 	move.l #113300,74(sp)
+    4c34:	004a 
   mask = 0x0000;
-    4aac:	426f 01c6      	clr.w 454(sp)
+    4c36:	426f 01c6      	clr.w 454(sp)
 
   for(int i2=0;i2<13;i2++) {  
-    4ab0:	42af 018e      	clr.l 398(sp)
-    4ab4:	602a           	bra.s 4ae0 <TestZoom4Picture+0xbb6>
+    4c3a:	42af 018e      	clr.l 398(sp)
+    4c3e:	602a           	bra.s 4c6a <TestZoom4Picture+0xba6>
     TestRow( valsupposed, valactual, mask, i2);
-    4ab6:	7000           	moveq #0,d0
-    4ab8:	302f 01c6      	move.w 454(sp),d0
-    4abc:	2f2f 018e      	move.l 398(sp),-(sp)
-    4ac0:	2f00           	move.l d0,-(sp)
-    4ac2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4ac6:	2f2f 002e      	move.l 46(sp),-(sp)
-    4aca:	4eba 22d4      	jsr 6da0 <TestRow>(pc)
-    4ace:	4fef 0010      	lea 16(sp),sp
+    4c40:	7000           	moveq #0,d0
+    4c42:	302f 01c6      	move.w 454(sp),d0
+    4c46:	2f2f 018e      	move.l 398(sp),-(sp)
+    4c4a:	2f00           	move.l d0,-(sp)
+    4c4c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4c50:	2f2f 0056      	move.l 86(sp),-(sp)
+    4c54:	4eba 22d0      	jsr 6f26 <TestRow>(pc)
+    4c58:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4ad2:	7230           	moveq #48,d1
-    4ad4:	d3af 01c8      	add.l d1,456(sp)
+    4c5c:	7230           	moveq #48,d1
+    4c5e:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    4ad8:	466f 01c6      	not.w 454(sp)
+    4c62:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<13;i2++) {  
-    4adc:	52af 018e      	addq.l #1,398(sp)
-    4ae0:	740c           	moveq #12,d2
-    4ae2:	b4af 018e      	cmp.l 398(sp),d2
-    4ae6:	6cce           	bge.s 4ab6 <TestZoom4Picture+0xb8c>
+    4c66:	52af 018e      	addq.l #1,398(sp)
+    4c6a:	700c           	moveq #12,d0
+    4c6c:	b0af 018e      	cmp.l 398(sp),d0
+    4c70:	6cce           	bge.s 4c40 <TestZoom4Picture+0xb7c>
   }
 
   TestRow( valsupposed, valactual, mask, 12);   
-    4ae8:	7000           	moveq #0,d0
-    4aea:	302f 01c6      	move.w 454(sp),d0
-    4aee:	4878 000c      	pea c <GetVBR+0x4>
-    4af2:	2f00           	move.l d0,-(sp)
-    4af4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4af8:	2f2f 002e      	move.l 46(sp),-(sp)
-    4afc:	4eba 22a2      	jsr 6da0 <TestRow>(pc)
-    4b00:	4fef 0010      	lea 16(sp),sp
+    4c72:	7000           	moveq #0,d0
+    4c74:	302f 01c6      	move.w 454(sp),d0
+    4c78:	4878 000c      	pea c <_start+0xc>
+    4c7c:	2f00           	move.l d0,-(sp)
+    4c7e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4c82:	2f2f 0056      	move.l 86(sp),-(sp)
+    4c86:	4eba 229e      	jsr 6f26 <TestRow>(pc)
+    4c8a:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4b04:	7030           	moveq #48,d0
-    4b06:	d1af 01c8      	add.l d0,456(sp)
+    4c8e:	7230           	moveq #48,d1
+    4c90:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, mask, 13);
-    4b0a:	7000           	moveq #0,d0
-    4b0c:	302f 01c6      	move.w 454(sp),d0
-    4b10:	4878 000d      	pea d <GetVBR+0x5>
-    4b14:	2f00           	move.l d0,-(sp)
-    4b16:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4b1a:	2f2f 002e      	move.l 46(sp),-(sp)
-    4b1e:	4eba 2280      	jsr 6da0 <TestRow>(pc)
-    4b22:	4fef 0010      	lea 16(sp),sp
+    4c94:	7000           	moveq #0,d0
+    4c96:	302f 01c6      	move.w 454(sp),d0
+    4c9a:	4878 000d      	pea d <_start+0xd>
+    4c9e:	2f00           	move.l d0,-(sp)
+    4ca0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4ca4:	2f2f 0056      	move.l 86(sp),-(sp)
+    4ca8:	4eba 227c      	jsr 6f26 <TestRow>(pc)
+    4cac:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4b26:	7230           	moveq #48,d1
-    4b28:	d3af 01c8      	add.l d1,456(sp)
+    4cb0:	7030           	moveq #48,d0
+    4cb2:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    4b2c:	466f 01c6      	not.w 454(sp)
+    4cb6:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 14);
-    4b30:	7000           	moveq #0,d0
-    4b32:	302f 01c6      	move.w 454(sp),d0
-    4b36:	4878 000e      	pea e <GetVBR+0x6>
-    4b3a:	2f00           	move.l d0,-(sp)
-    4b3c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4b40:	2f2f 002e      	move.l 46(sp),-(sp)
-    4b44:	4eba 225a      	jsr 6da0 <TestRow>(pc)
-    4b48:	4fef 0010      	lea 16(sp),sp
+    4cba:	7000           	moveq #0,d0
+    4cbc:	302f 01c6      	move.w 454(sp),d0
+    4cc0:	4878 000e      	pea e <_start+0xe>
+    4cc4:	2f00           	move.l d0,-(sp)
+    4cc6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4cca:	2f2f 0056      	move.l 86(sp),-(sp)
+    4cce:	4eba 2256      	jsr 6f26 <TestRow>(pc)
+    4cd2:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4b4c:	7430           	moveq #48,d2
-    4b4e:	d5af 01c8      	add.l d2,456(sp)
+    4cd6:	7230           	moveq #48,d1
+    4cd8:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, mask, 15);
-    4b52:	7000           	moveq #0,d0
-    4b54:	302f 01c6      	move.w 454(sp),d0
-    4b58:	4878 000f      	pea f <GetVBR+0x7>
-    4b5c:	2f00           	move.l d0,-(sp)
-    4b5e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4b62:	2f2f 002e      	move.l 46(sp),-(sp)
-    4b66:	4eba 2238      	jsr 6da0 <TestRow>(pc)
-    4b6a:	4fef 0010      	lea 16(sp),sp
+    4cdc:	7000           	moveq #0,d0
+    4cde:	302f 01c6      	move.w 454(sp),d0
+    4ce2:	4878 000f      	pea f <_start+0xf>
+    4ce6:	2f00           	move.l d0,-(sp)
+    4ce8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4cec:	2f2f 0056      	move.l 86(sp),-(sp)
+    4cf0:	4eba 2234      	jsr 6f26 <TestRow>(pc)
+    4cf4:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4b6e:	7030           	moveq #48,d0
-    4b70:	d1af 01c8      	add.l d0,456(sp)
+    4cf8:	7030           	moveq #48,d0
+    4cfa:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    4b74:	466f 01c6      	not.w 454(sp)
+    4cfe:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 16);
-    4b78:	7000           	moveq #0,d0
-    4b7a:	302f 01c6      	move.w 454(sp),d0
-    4b7e:	4878 0010      	pea 10 <GetVBR+0x8>
-    4b82:	2f00           	move.l d0,-(sp)
-    4b84:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4b88:	2f2f 002e      	move.l 46(sp),-(sp)
-    4b8c:	4eba 2212      	jsr 6da0 <TestRow>(pc)
-    4b90:	4fef 0010      	lea 16(sp),sp
+    4d02:	7000           	moveq #0,d0
+    4d04:	302f 01c6      	move.w 454(sp),d0
+    4d08:	4878 0010      	pea 10 <_start+0x10>
+    4d0c:	2f00           	move.l d0,-(sp)
+    4d0e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4d12:	2f2f 0056      	move.l 86(sp),-(sp)
+    4d16:	4eba 220e      	jsr 6f26 <TestRow>(pc)
+    4d1a:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4b94:	7230           	moveq #48,d1
-    4b96:	d3af 01c8      	add.l d1,456(sp)
+    4d1e:	7230           	moveq #48,d1
+    4d20:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, mask, 17);
-    4b9a:	7000           	moveq #0,d0
-    4b9c:	302f 01c6      	move.w 454(sp),d0
-    4ba0:	4878 0011      	pea 11 <GetVBR+0x9>
-    4ba4:	2f00           	move.l d0,-(sp)
-    4ba6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4baa:	2f2f 002e      	move.l 46(sp),-(sp)
-    4bae:	4eba 21f0      	jsr 6da0 <TestRow>(pc)
-    4bb2:	4fef 0010      	lea 16(sp),sp
+    4d24:	7000           	moveq #0,d0
+    4d26:	302f 01c6      	move.w 454(sp),d0
+    4d2a:	4878 0011      	pea 11 <_start+0x11>
+    4d2e:	2f00           	move.l d0,-(sp)
+    4d30:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4d34:	2f2f 0056      	move.l 86(sp),-(sp)
+    4d38:	4eba 21ec      	jsr 6f26 <TestRow>(pc)
+    4d3c:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4bb6:	7430           	moveq #48,d2
-    4bb8:	d5af 01c8      	add.l d2,456(sp)
+    4d40:	7030           	moveq #48,d0
+    4d42:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    4bbc:	466f 01c6      	not.w 454(sp)
+    4d46:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 18);
-    4bc0:	7000           	moveq #0,d0
-    4bc2:	302f 01c6      	move.w 454(sp),d0
-    4bc6:	4878 0012      	pea 12 <GetVBR+0xa>
-    4bca:	2f00           	move.l d0,-(sp)
-    4bcc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4bd0:	2f2f 002e      	move.l 46(sp),-(sp)
-    4bd4:	4eba 21ca      	jsr 6da0 <TestRow>(pc)
-    4bd8:	4fef 0010      	lea 16(sp),sp
+    4d4a:	7000           	moveq #0,d0
+    4d4c:	302f 01c6      	move.w 454(sp),d0
+    4d50:	4878 0012      	pea 12 <_start+0x12>
+    4d54:	2f00           	move.l d0,-(sp)
+    4d56:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4d5a:	2f2f 0056      	move.l 86(sp),-(sp)
+    4d5e:	4eba 21c6      	jsr 6f26 <TestRow>(pc)
+    4d62:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4bdc:	7030           	moveq #48,d0
-    4bde:	d1af 01c8      	add.l d0,456(sp)
+    4d66:	7230           	moveq #48,d1
+    4d68:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, mask, 19);
-    4be2:	7000           	moveq #0,d0
-    4be4:	302f 01c6      	move.w 454(sp),d0
-    4be8:	4878 0013      	pea 13 <GetVBR+0xb>
-    4bec:	2f00           	move.l d0,-(sp)
-    4bee:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4bf2:	2f2f 002e      	move.l 46(sp),-(sp)
-    4bf6:	4eba 21a8      	jsr 6da0 <TestRow>(pc)
-    4bfa:	4fef 0010      	lea 16(sp),sp
+    4d6c:	7000           	moveq #0,d0
+    4d6e:	302f 01c6      	move.w 454(sp),d0
+    4d72:	4878 0013      	pea 13 <_start+0x13>
+    4d76:	2f00           	move.l d0,-(sp)
+    4d78:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4d7c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4d80:	4eba 21a4      	jsr 6f26 <TestRow>(pc)
+    4d84:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4bfe:	7230           	moveq #48,d1
-    4c00:	d3af 01c8      	add.l d1,456(sp)
+    4d88:	7030           	moveq #48,d0
+    4d8a:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    4c04:	466f 01c6      	not.w 454(sp)
+    4d8e:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 20);
-    4c08:	7000           	moveq #0,d0
-    4c0a:	302f 01c6      	move.w 454(sp),d0
-    4c0e:	4878 0014      	pea 14 <GetVBR+0xc>
-    4c12:	2f00           	move.l d0,-(sp)
-    4c14:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4c18:	2f2f 002e      	move.l 46(sp),-(sp)
-    4c1c:	4eba 2182      	jsr 6da0 <TestRow>(pc)
-    4c20:	4fef 0010      	lea 16(sp),sp
+    4d92:	7000           	moveq #0,d0
+    4d94:	302f 01c6      	move.w 454(sp),d0
+    4d98:	4878 0014      	pea 14 <_start+0x14>
+    4d9c:	2f00           	move.l d0,-(sp)
+    4d9e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4da2:	2f2f 0056      	move.l 86(sp),-(sp)
+    4da6:	4eba 217e      	jsr 6f26 <TestRow>(pc)
+    4daa:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4c24:	7430           	moveq #48,d2
-    4c26:	d5af 01c8      	add.l d2,456(sp)
+    4dae:	7230           	moveq #48,d1
+    4db0:	d3af 01c8      	add.l d1,456(sp)
   TestRow( valsupposed, valactual, mask, 21);
-    4c2a:	7000           	moveq #0,d0
-    4c2c:	302f 01c6      	move.w 454(sp),d0
-    4c30:	4878 0015      	pea 15 <GetVBR+0xd>
-    4c34:	2f00           	move.l d0,-(sp)
-    4c36:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4c3a:	2f2f 002e      	move.l 46(sp),-(sp)
-    4c3e:	4eba 2160      	jsr 6da0 <TestRow>(pc)
-    4c42:	4fef 0010      	lea 16(sp),sp
+    4db4:	7000           	moveq #0,d0
+    4db6:	302f 01c6      	move.w 454(sp),d0
+    4dba:	4878 0015      	pea 15 <_start+0x15>
+    4dbe:	2f00           	move.l d0,-(sp)
+    4dc0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4dc4:	2f2f 0056      	move.l 86(sp),-(sp)
+    4dc8:	4eba 215c      	jsr 6f26 <TestRow>(pc)
+    4dcc:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4c46:	7030           	moveq #48,d0
-    4c48:	d1af 01c8      	add.l d0,456(sp)
+    4dd0:	7030           	moveq #48,d0
+    4dd2:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    4c4c:	466f 01c6      	not.w 454(sp)
+    4dd6:	466f 01c6      	not.w 454(sp)
 
 
   for(int i=0;i<10;i++) {
-    4c50:	42af 018a      	clr.l 394(sp)
-    4c54:	6000 028a      	bra.w 4ee0 <TestZoom4Picture+0xfb6>
+    4dda:	42af 018a      	clr.l 394(sp)
+    4dde:	6000 0286      	bra.w 5066 <TestZoom4Picture+0xfa2>
     for(int i2=0;i2<13;i2++) {  
-    4c58:	42af 0186      	clr.l 390(sp)
-    4c5c:	6046           	bra.s 4ca4 <TestZoom4Picture+0xd7a>
+    4de2:	42af 0186      	clr.l 390(sp)
+    4de6:	6042           	bra.s 4e2a <TestZoom4Picture+0xd66>
       TestRow( valsupposed, valactual, mask, i2+i*21+22);
-    4c5e:	222f 018a      	move.l 394(sp),d1
-    4c62:	2001           	move.l d1,d0
-    4c64:	d080           	add.l d0,d0
-    4c66:	d081           	add.l d1,d0
-    4c68:	2200           	move.l d0,d1
-    4c6a:	e789           	lsl.l #3,d1
-    4c6c:	2401           	move.l d1,d2
-    4c6e:	9480           	sub.l d0,d2
-    4c70:	2002           	move.l d2,d0
-    4c72:	2040           	movea.l d0,a0
-    4c74:	d1ef 0186      	adda.l 390(sp),a0
-    4c78:	41e8 0016      	lea 22(a0),a0
-    4c7c:	7000           	moveq #0,d0
-    4c7e:	302f 01c6      	move.w 454(sp),d0
-    4c82:	2f08           	move.l a0,-(sp)
-    4c84:	2f00           	move.l d0,-(sp)
-    4c86:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4c8a:	2f2f 002e      	move.l 46(sp),-(sp)
-    4c8e:	4eba 2110      	jsr 6da0 <TestRow>(pc)
-    4c92:	4fef 0010      	lea 16(sp),sp
+    4de8:	222f 018a      	move.l 394(sp),d1
+    4dec:	2001           	move.l d1,d0
+    4dee:	d080           	add.l d0,d0
+    4df0:	d081           	add.l d1,d0
+    4df2:	2200           	move.l d0,d1
+    4df4:	e789           	lsl.l #3,d1
+    4df6:	9280           	sub.l d0,d1
+    4df8:	2041           	movea.l d1,a0
+    4dfa:	d1ef 0186      	adda.l 390(sp),a0
+    4dfe:	41e8 0016      	lea 22(a0),a0
+    4e02:	7000           	moveq #0,d0
+    4e04:	302f 01c6      	move.w 454(sp),d0
+    4e08:	2f08           	move.l a0,-(sp)
+    4e0a:	2f00           	move.l d0,-(sp)
+    4e0c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4e10:	2f2f 0056      	move.l 86(sp),-(sp)
+    4e14:	4eba 2110      	jsr 6f26 <TestRow>(pc)
+    4e18:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    4c96:	7030           	moveq #48,d0
-    4c98:	d1af 01c8      	add.l d0,456(sp)
+    4e1c:	7230           	moveq #48,d1
+    4e1e:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    4c9c:	466f 01c6      	not.w 454(sp)
+    4e22:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<13;i2++) {  
-    4ca0:	52af 0186      	addq.l #1,390(sp)
-    4ca4:	720c           	moveq #12,d1
-    4ca6:	b2af 0186      	cmp.l 390(sp),d1
-    4caa:	6cb2           	bge.s 4c5e <TestZoom4Picture+0xd34>
+    4e26:	52af 0186      	addq.l #1,390(sp)
+    4e2a:	700c           	moveq #12,d0
+    4e2c:	b0af 0186      	cmp.l 390(sp),d0
+    4e30:	6cb6           	bge.s 4de8 <TestZoom4Picture+0xd24>
     }
 
     TestRow( valsupposed, valactual, mask, i*21+22+13);
-    4cac:	222f 018a      	move.l 394(sp),d1
-    4cb0:	2001           	move.l d1,d0
-    4cb2:	d080           	add.l d0,d0
-    4cb4:	d081           	add.l d1,d0
-    4cb6:	2200           	move.l d0,d1
-    4cb8:	e789           	lsl.l #3,d1
-    4cba:	2041           	movea.l d1,a0
-    4cbc:	91c0           	suba.l d0,a0
-    4cbe:	41e8 0023      	lea 35(a0),a0
-    4cc2:	7000           	moveq #0,d0
-    4cc4:	302f 01c6      	move.w 454(sp),d0
-    4cc8:	2f08           	move.l a0,-(sp)
-    4cca:	2f00           	move.l d0,-(sp)
-    4ccc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4cd0:	2f2f 002e      	move.l 46(sp),-(sp)
-    4cd4:	4eba 20ca      	jsr 6da0 <TestRow>(pc)
-    4cd8:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4cdc:	7430           	moveq #48,d2
-    4cde:	d5af 01c8      	add.l d2,456(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+14);
-    4ce2:	222f 018a      	move.l 394(sp),d1
-    4ce6:	2001           	move.l d1,d0
-    4ce8:	d080           	add.l d0,d0
-    4cea:	d081           	add.l d1,d0
-    4cec:	2200           	move.l d0,d1
-    4cee:	e789           	lsl.l #3,d1
-    4cf0:	2041           	movea.l d1,a0
-    4cf2:	91c0           	suba.l d0,a0
-    4cf4:	41e8 0024      	lea 36(a0),a0
-    4cf8:	7000           	moveq #0,d0
-    4cfa:	302f 01c6      	move.w 454(sp),d0
-    4cfe:	2f08           	move.l a0,-(sp)
-    4d00:	2f00           	move.l d0,-(sp)
-    4d02:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4d06:	2f2f 002e      	move.l 46(sp),-(sp)
-    4d0a:	4eba 2094      	jsr 6da0 <TestRow>(pc)
-    4d0e:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4d12:	7030           	moveq #48,d0
-    4d14:	d1af 01c8      	add.l d0,456(sp)
-    mask = mask ^ 0xffff;
-    4d18:	466f 01c6      	not.w 454(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+15);
-    4d1c:	222f 018a      	move.l 394(sp),d1
-    4d20:	2001           	move.l d1,d0
-    4d22:	d080           	add.l d0,d0
-    4d24:	d081           	add.l d1,d0
-    4d26:	2200           	move.l d0,d1
-    4d28:	e789           	lsl.l #3,d1
-    4d2a:	2041           	movea.l d1,a0
-    4d2c:	91c0           	suba.l d0,a0
-    4d2e:	41e8 0025      	lea 37(a0),a0
-    4d32:	7000           	moveq #0,d0
-    4d34:	302f 01c6      	move.w 454(sp),d0
-    4d38:	2f08           	move.l a0,-(sp)
-    4d3a:	2f00           	move.l d0,-(sp)
-    4d3c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4d40:	2f2f 002e      	move.l 46(sp),-(sp)
-    4d44:	4eba 205a      	jsr 6da0 <TestRow>(pc)
-    4d48:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4d4c:	7230           	moveq #48,d1
-    4d4e:	d3af 01c8      	add.l d1,456(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+16);
-    4d52:	222f 018a      	move.l 394(sp),d1
-    4d56:	2001           	move.l d1,d0
-    4d58:	d080           	add.l d0,d0
-    4d5a:	d081           	add.l d1,d0
-    4d5c:	2200           	move.l d0,d1
-    4d5e:	e789           	lsl.l #3,d1
-    4d60:	2041           	movea.l d1,a0
-    4d62:	91c0           	suba.l d0,a0
-    4d64:	41e8 0026      	lea 38(a0),a0
-    4d68:	7000           	moveq #0,d0
-    4d6a:	302f 01c6      	move.w 454(sp),d0
-    4d6e:	2f08           	move.l a0,-(sp)
-    4d70:	2f00           	move.l d0,-(sp)
-    4d72:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4d76:	2f2f 002e      	move.l 46(sp),-(sp)
-    4d7a:	4eba 2024      	jsr 6da0 <TestRow>(pc)
-    4d7e:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4d82:	7430           	moveq #48,d2
-    4d84:	d5af 01c8      	add.l d2,456(sp)
-    mask = mask ^ 0xffff;
-    4d88:	466f 01c6      	not.w 454(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+17);
-    4d8c:	222f 018a      	move.l 394(sp),d1
-    4d90:	2001           	move.l d1,d0
-    4d92:	d080           	add.l d0,d0
-    4d94:	d081           	add.l d1,d0
-    4d96:	2200           	move.l d0,d1
-    4d98:	e789           	lsl.l #3,d1
-    4d9a:	2041           	movea.l d1,a0
-    4d9c:	91c0           	suba.l d0,a0
-    4d9e:	41e8 0027      	lea 39(a0),a0
-    4da2:	7000           	moveq #0,d0
-    4da4:	302f 01c6      	move.w 454(sp),d0
-    4da8:	2f08           	move.l a0,-(sp)
-    4daa:	2f00           	move.l d0,-(sp)
-    4dac:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4db0:	2f2f 002e      	move.l 46(sp),-(sp)
-    4db4:	4eba 1fea      	jsr 6da0 <TestRow>(pc)
-    4db8:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4dbc:	7030           	moveq #48,d0
-    4dbe:	d1af 01c8      	add.l d0,456(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+18);
-    4dc2:	222f 018a      	move.l 394(sp),d1
-    4dc6:	2001           	move.l d1,d0
-    4dc8:	d080           	add.l d0,d0
-    4dca:	d081           	add.l d1,d0
-    4dcc:	2200           	move.l d0,d1
-    4dce:	e789           	lsl.l #3,d1
-    4dd0:	2041           	movea.l d1,a0
-    4dd2:	91c0           	suba.l d0,a0
-    4dd4:	41e8 0028      	lea 40(a0),a0
-    4dd8:	7000           	moveq #0,d0
-    4dda:	302f 01c6      	move.w 454(sp),d0
-    4dde:	2f08           	move.l a0,-(sp)
-    4de0:	2f00           	move.l d0,-(sp)
-    4de2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4de6:	2f2f 002e      	move.l 46(sp),-(sp)
-    4dea:	4eba 1fb4      	jsr 6da0 <TestRow>(pc)
-    4dee:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4df2:	7230           	moveq #48,d1
-    4df4:	d3af 01c8      	add.l d1,456(sp)
-    mask = mask ^ 0xffff;
-    4df8:	466f 01c6      	not.w 454(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+19);
-    4dfc:	222f 018a      	move.l 394(sp),d1
-    4e00:	2001           	move.l d1,d0
-    4e02:	d080           	add.l d0,d0
-    4e04:	d081           	add.l d1,d0
-    4e06:	2200           	move.l d0,d1
-    4e08:	e789           	lsl.l #3,d1
-    4e0a:	2041           	movea.l d1,a0
-    4e0c:	91c0           	suba.l d0,a0
-    4e0e:	41e8 0029      	lea 41(a0),a0
-    4e12:	7000           	moveq #0,d0
-    4e14:	302f 01c6      	move.w 454(sp),d0
-    4e18:	2f08           	move.l a0,-(sp)
-    4e1a:	2f00           	move.l d0,-(sp)
-    4e1c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4e20:	2f2f 002e      	move.l 46(sp),-(sp)
-    4e24:	4eba 1f7a      	jsr 6da0 <TestRow>(pc)
-    4e28:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    4e2c:	7430           	moveq #48,d2
-    4e2e:	d5af 01c8      	add.l d2,456(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+20);
     4e32:	222f 018a      	move.l 394(sp),d1
     4e36:	2001           	move.l d1,d0
     4e38:	d080           	add.l d0,d0
@@ -7464,42 +7473,42 @@ void TestZoom4Picture() {
     4e3e:	e789           	lsl.l #3,d1
     4e40:	2041           	movea.l d1,a0
     4e42:	91c0           	suba.l d0,a0
-    4e44:	41e8 002a      	lea 42(a0),a0
+    4e44:	41e8 0023      	lea 35(a0),a0
     4e48:	7000           	moveq #0,d0
     4e4a:	302f 01c6      	move.w 454(sp),d0
     4e4e:	2f08           	move.l a0,-(sp)
     4e50:	2f00           	move.l d0,-(sp)
     4e52:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4e56:	2f2f 002e      	move.l 46(sp),-(sp)
-    4e5a:	4eba 1f44      	jsr 6da0 <TestRow>(pc)
+    4e56:	2f2f 0056      	move.l 86(sp),-(sp)
+    4e5a:	4eba 20ca      	jsr 6f26 <TestRow>(pc)
     4e5e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4e62:	7030           	moveq #48,d0
-    4e64:	d1af 01c8      	add.l d0,456(sp)
-    mask = mask ^ 0xffff;
-    4e68:	466f 01c6      	not.w 454(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+21);
-    4e6c:	222f 018a      	move.l 394(sp),d1
-    4e70:	2001           	move.l d1,d0
-    4e72:	d080           	add.l d0,d0
-    4e74:	d081           	add.l d1,d0
-    4e76:	2200           	move.l d0,d1
-    4e78:	e789           	lsl.l #3,d1
-    4e7a:	2041           	movea.l d1,a0
-    4e7c:	91c0           	suba.l d0,a0
-    4e7e:	41e8 002b      	lea 43(a0),a0
-    4e82:	7000           	moveq #0,d0
-    4e84:	302f 01c6      	move.w 454(sp),d0
-    4e88:	2f08           	move.l a0,-(sp)
-    4e8a:	2f00           	move.l d0,-(sp)
-    4e8c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4e90:	2f2f 002e      	move.l 46(sp),-(sp)
-    4e94:	4eba 1f0a      	jsr 6da0 <TestRow>(pc)
-    4e98:	4fef 0010      	lea 16(sp),sp
+    4e62:	7230           	moveq #48,d1
+    4e64:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+14);
+    4e68:	222f 018a      	move.l 394(sp),d1
+    4e6c:	2001           	move.l d1,d0
+    4e6e:	d080           	add.l d0,d0
+    4e70:	d081           	add.l d1,d0
+    4e72:	2200           	move.l d0,d1
+    4e74:	e789           	lsl.l #3,d1
+    4e76:	2041           	movea.l d1,a0
+    4e78:	91c0           	suba.l d0,a0
+    4e7a:	41e8 0024      	lea 36(a0),a0
+    4e7e:	7000           	moveq #0,d0
+    4e80:	302f 01c6      	move.w 454(sp),d0
+    4e84:	2f08           	move.l a0,-(sp)
+    4e86:	2f00           	move.l d0,-(sp)
+    4e88:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4e8c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4e90:	4eba 2094      	jsr 6f26 <TestRow>(pc)
+    4e94:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4e9c:	7230           	moveq #48,d1
-    4e9e:	d3af 01c8      	add.l d1,456(sp)
-    TestRow( valsupposed, valactual, mask, i*21+22+22);
+    4e98:	7030           	moveq #48,d0
+    4e9a:	d1af 01c8      	add.l d0,456(sp)
+    mask = mask ^ 0xffff;
+    4e9e:	466f 01c6      	not.w 454(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+15);
     4ea2:	222f 018a      	move.l 394(sp),d1
     4ea6:	2001           	move.l d1,d0
     4ea8:	d080           	add.l d0,d0
@@ -7508,4207 +7517,4201 @@ void TestZoom4Picture() {
     4eae:	e789           	lsl.l #3,d1
     4eb0:	2041           	movea.l d1,a0
     4eb2:	91c0           	suba.l d0,a0
-    4eb4:	41e8 002c      	lea 44(a0),a0
+    4eb4:	41e8 0025      	lea 37(a0),a0
     4eb8:	7000           	moveq #0,d0
     4eba:	302f 01c6      	move.w 454(sp),d0
     4ebe:	2f08           	move.l a0,-(sp)
     4ec0:	2f00           	move.l d0,-(sp)
     4ec2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4ec6:	2f2f 002e      	move.l 46(sp),-(sp)
-    4eca:	4eba 1ed4      	jsr 6da0 <TestRow>(pc)
+    4ec6:	2f2f 0056      	move.l 86(sp),-(sp)
+    4eca:	4eba 205a      	jsr 6f26 <TestRow>(pc)
     4ece:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4ed2:	7430           	moveq #48,d2
-    4ed4:	d5af 01c8      	add.l d2,456(sp)
+    4ed2:	7230           	moveq #48,d1
+    4ed4:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+16);
+    4ed8:	222f 018a      	move.l 394(sp),d1
+    4edc:	2001           	move.l d1,d0
+    4ede:	d080           	add.l d0,d0
+    4ee0:	d081           	add.l d1,d0
+    4ee2:	2200           	move.l d0,d1
+    4ee4:	e789           	lsl.l #3,d1
+    4ee6:	2041           	movea.l d1,a0
+    4ee8:	91c0           	suba.l d0,a0
+    4eea:	41e8 0026      	lea 38(a0),a0
+    4eee:	7000           	moveq #0,d0
+    4ef0:	302f 01c6      	move.w 454(sp),d0
+    4ef4:	2f08           	move.l a0,-(sp)
+    4ef6:	2f00           	move.l d0,-(sp)
+    4ef8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4efc:	2f2f 0056      	move.l 86(sp),-(sp)
+    4f00:	4eba 2024      	jsr 6f26 <TestRow>(pc)
+    4f04:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    4f08:	7030           	moveq #48,d0
+    4f0a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4ed8:	466f 01c6      	not.w 454(sp)
+    4f0e:	466f 01c6      	not.w 454(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+17);
+    4f12:	222f 018a      	move.l 394(sp),d1
+    4f16:	2001           	move.l d1,d0
+    4f18:	d080           	add.l d0,d0
+    4f1a:	d081           	add.l d1,d0
+    4f1c:	2200           	move.l d0,d1
+    4f1e:	e789           	lsl.l #3,d1
+    4f20:	2041           	movea.l d1,a0
+    4f22:	91c0           	suba.l d0,a0
+    4f24:	41e8 0027      	lea 39(a0),a0
+    4f28:	7000           	moveq #0,d0
+    4f2a:	302f 01c6      	move.w 454(sp),d0
+    4f2e:	2f08           	move.l a0,-(sp)
+    4f30:	2f00           	move.l d0,-(sp)
+    4f32:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4f36:	2f2f 0056      	move.l 86(sp),-(sp)
+    4f3a:	4eba 1fea      	jsr 6f26 <TestRow>(pc)
+    4f3e:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    4f42:	7230           	moveq #48,d1
+    4f44:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+18);
+    4f48:	222f 018a      	move.l 394(sp),d1
+    4f4c:	2001           	move.l d1,d0
+    4f4e:	d080           	add.l d0,d0
+    4f50:	d081           	add.l d1,d0
+    4f52:	2200           	move.l d0,d1
+    4f54:	e789           	lsl.l #3,d1
+    4f56:	2041           	movea.l d1,a0
+    4f58:	91c0           	suba.l d0,a0
+    4f5a:	41e8 0028      	lea 40(a0),a0
+    4f5e:	7000           	moveq #0,d0
+    4f60:	302f 01c6      	move.w 454(sp),d0
+    4f64:	2f08           	move.l a0,-(sp)
+    4f66:	2f00           	move.l d0,-(sp)
+    4f68:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4f6c:	2f2f 0056      	move.l 86(sp),-(sp)
+    4f70:	4eba 1fb4      	jsr 6f26 <TestRow>(pc)
+    4f74:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    4f78:	7030           	moveq #48,d0
+    4f7a:	d1af 01c8      	add.l d0,456(sp)
+    mask = mask ^ 0xffff;
+    4f7e:	466f 01c6      	not.w 454(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+19);
+    4f82:	222f 018a      	move.l 394(sp),d1
+    4f86:	2001           	move.l d1,d0
+    4f88:	d080           	add.l d0,d0
+    4f8a:	d081           	add.l d1,d0
+    4f8c:	2200           	move.l d0,d1
+    4f8e:	e789           	lsl.l #3,d1
+    4f90:	2041           	movea.l d1,a0
+    4f92:	91c0           	suba.l d0,a0
+    4f94:	41e8 0029      	lea 41(a0),a0
+    4f98:	7000           	moveq #0,d0
+    4f9a:	302f 01c6      	move.w 454(sp),d0
+    4f9e:	2f08           	move.l a0,-(sp)
+    4fa0:	2f00           	move.l d0,-(sp)
+    4fa2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4fa6:	2f2f 0056      	move.l 86(sp),-(sp)
+    4faa:	4eba 1f7a      	jsr 6f26 <TestRow>(pc)
+    4fae:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    4fb2:	7230           	moveq #48,d1
+    4fb4:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+20);
+    4fb8:	222f 018a      	move.l 394(sp),d1
+    4fbc:	2001           	move.l d1,d0
+    4fbe:	d080           	add.l d0,d0
+    4fc0:	d081           	add.l d1,d0
+    4fc2:	2200           	move.l d0,d1
+    4fc4:	e789           	lsl.l #3,d1
+    4fc6:	2041           	movea.l d1,a0
+    4fc8:	91c0           	suba.l d0,a0
+    4fca:	41e8 002a      	lea 42(a0),a0
+    4fce:	7000           	moveq #0,d0
+    4fd0:	302f 01c6      	move.w 454(sp),d0
+    4fd4:	2f08           	move.l a0,-(sp)
+    4fd6:	2f00           	move.l d0,-(sp)
+    4fd8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    4fdc:	2f2f 0056      	move.l 86(sp),-(sp)
+    4fe0:	4eba 1f44      	jsr 6f26 <TestRow>(pc)
+    4fe4:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    4fe8:	7030           	moveq #48,d0
+    4fea:	d1af 01c8      	add.l d0,456(sp)
+    mask = mask ^ 0xffff;
+    4fee:	466f 01c6      	not.w 454(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+21);
+    4ff2:	222f 018a      	move.l 394(sp),d1
+    4ff6:	2001           	move.l d1,d0
+    4ff8:	d080           	add.l d0,d0
+    4ffa:	d081           	add.l d1,d0
+    4ffc:	2200           	move.l d0,d1
+    4ffe:	e789           	lsl.l #3,d1
+    5000:	2041           	movea.l d1,a0
+    5002:	91c0           	suba.l d0,a0
+    5004:	41e8 002b      	lea 43(a0),a0
+    5008:	7000           	moveq #0,d0
+    500a:	302f 01c6      	move.w 454(sp),d0
+    500e:	2f08           	move.l a0,-(sp)
+    5010:	2f00           	move.l d0,-(sp)
+    5012:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5016:	2f2f 0056      	move.l 86(sp),-(sp)
+    501a:	4eba 1f0a      	jsr 6f26 <TestRow>(pc)
+    501e:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    5022:	7230           	moveq #48,d1
+    5024:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, i*21+22+22);
+    5028:	222f 018a      	move.l 394(sp),d1
+    502c:	2001           	move.l d1,d0
+    502e:	d080           	add.l d0,d0
+    5030:	d081           	add.l d1,d0
+    5032:	2200           	move.l d0,d1
+    5034:	e789           	lsl.l #3,d1
+    5036:	2041           	movea.l d1,a0
+    5038:	91c0           	suba.l d0,a0
+    503a:	41e8 002c      	lea 44(a0),a0
+    503e:	7000           	moveq #0,d0
+    5040:	302f 01c6      	move.w 454(sp),d0
+    5044:	2f08           	move.l a0,-(sp)
+    5046:	2f00           	move.l d0,-(sp)
+    5048:	2f2f 01d0      	move.l 464(sp),-(sp)
+    504c:	2f2f 0056      	move.l 86(sp),-(sp)
+    5050:	4eba 1ed4      	jsr 6f26 <TestRow>(pc)
+    5054:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    5058:	7030           	moveq #48,d0
+    505a:	d1af 01c8      	add.l d0,456(sp)
+    mask = mask ^ 0xffff;
+    505e:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<10;i++) {
-    4edc:	52af 018a      	addq.l #1,394(sp)
-    4ee0:	7009           	moveq #9,d0
-    4ee2:	b0af 018a      	cmp.l 394(sp),d0
-    4ee6:	6c00 fd70      	bge.w 4c58 <TestZoom4Picture+0xd2e>
+    5062:	52af 018a      	addq.l #1,394(sp)
+    5066:	7209           	moveq #9,d1
+    5068:	b2af 018a      	cmp.l 394(sp),d1
+    506c:	6c00 fd74      	bge.w 4de2 <TestZoom4Picture+0xd1e>
   }
 
   for(int i2=0;i2<13;i2++) {  
-    4eea:	42af 0182      	clr.l 386(sp)
-    4eee:	6032           	bra.s 4f22 <TestZoom4Picture+0xff8>
+    5070:	42af 0182      	clr.l 386(sp)
+    5074:	6032           	bra.s 50a8 <TestZoom4Picture+0xfe4>
     TestRow( valsupposed, valactual, mask, i2+253);
-    4ef0:	222f 0182      	move.l 386(sp),d1
-    4ef4:	0681 0000 00fd 	addi.l #253,d1
-    4efa:	7000           	moveq #0,d0
-    4efc:	302f 01c6      	move.w 454(sp),d0
-    4f00:	2f01           	move.l d1,-(sp)
-    4f02:	2f00           	move.l d0,-(sp)
-    4f04:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4f08:	2f2f 002e      	move.l 46(sp),-(sp)
-    4f0c:	4eba 1e92      	jsr 6da0 <TestRow>(pc)
-    4f10:	4fef 0010      	lea 16(sp),sp
+    5076:	222f 0182      	move.l 386(sp),d1
+    507a:	0681 0000 00fd 	addi.l #253,d1
+    5080:	7000           	moveq #0,d0
+    5082:	302f 01c6      	move.w 454(sp),d0
+    5086:	2f01           	move.l d1,-(sp)
+    5088:	2f00           	move.l d0,-(sp)
+    508a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    508e:	2f2f 0056      	move.l 86(sp),-(sp)
+    5092:	4eba 1e92      	jsr 6f26 <TestRow>(pc)
+    5096:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    4f14:	7230           	moveq #48,d1
-    4f16:	d3af 01c8      	add.l d1,456(sp)
+    509a:	7030           	moveq #48,d0
+    509c:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    4f1a:	466f 01c6      	not.w 454(sp)
+    50a0:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<13;i2++) {  
-    4f1e:	52af 0182      	addq.l #1,386(sp)
-    4f22:	740c           	moveq #12,d2
-    4f24:	b4af 0182      	cmp.l 386(sp),d2
-    4f28:	6cc6           	bge.s 4ef0 <TestZoom4Picture+0xfc6>
+    50a4:	52af 0182      	addq.l #1,386(sp)
+    50a8:	720c           	moveq #12,d1
+    50aa:	b2af 0182      	cmp.l 386(sp),d1
+    50ae:	6cc6           	bge.s 5076 <TestZoom4Picture+0xfb2>
   }
 
   TestRow( valsupposed, valactual, mask, 266);
-    4f2a:	7000           	moveq #0,d0
-    4f2c:	302f 01c6      	move.w 454(sp),d0
-    4f30:	4878 010a      	pea 10a <WaitBlt+0x2a>
-    4f34:	2f00           	move.l d0,-(sp)
-    4f36:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4f3a:	2f2f 002e      	move.l 46(sp),-(sp)
-    4f3e:	4eba 1e60      	jsr 6da0 <TestRow>(pc)
-    4f42:	4fef 0010      	lea 16(sp),sp
+    50b0:	7000           	moveq #0,d0
+    50b2:	302f 01c6      	move.w 454(sp),d0
+    50b6:	4878 010a      	pea 10a <FreeDisplay+0x2a>
+    50ba:	2f00           	move.l d0,-(sp)
+    50bc:	2f2f 01d0      	move.l 464(sp),-(sp)
+    50c0:	2f2f 0056      	move.l 86(sp),-(sp)
+    50c4:	4eba 1e60      	jsr 6f26 <TestRow>(pc)
+    50c8:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4f46:	7030           	moveq #48,d0
-    4f48:	d1af 01c8      	add.l d0,456(sp)
+    50cc:	7030           	moveq #48,d0
+    50ce:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, mask, 267);
-    4f4c:	7000           	moveq #0,d0
-    4f4e:	302f 01c6      	move.w 454(sp),d0
-    4f52:	4878 010b      	pea 10b <WaitBlt+0x2b>
-    4f56:	2f00           	move.l d0,-(sp)
-    4f58:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4f5c:	2f2f 002e      	move.l 46(sp),-(sp)
-    4f60:	4eba 1e3e      	jsr 6da0 <TestRow>(pc)
-    4f64:	4fef 0010      	lea 16(sp),sp
+    50d2:	7000           	moveq #0,d0
+    50d4:	302f 01c6      	move.w 454(sp),d0
+    50d8:	4878 010b      	pea 10b <FreeDisplay+0x2b>
+    50dc:	2f00           	move.l d0,-(sp)
+    50de:	2f2f 01d0      	move.l 464(sp),-(sp)
+    50e2:	2f2f 0056      	move.l 86(sp),-(sp)
+    50e6:	4eba 1e3e      	jsr 6f26 <TestRow>(pc)
+    50ea:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4f68:	7230           	moveq #48,d1
-    4f6a:	d3af 01c8      	add.l d1,456(sp)
+    50ee:	7230           	moveq #48,d1
+    50f0:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    4f6e:	466f 01c6      	not.w 454(sp)
+    50f4:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 268);
-    4f72:	7000           	moveq #0,d0
-    4f74:	302f 01c6      	move.w 454(sp),d0
-    4f78:	4878 010c      	pea 10c <WaitBlt+0x2c>
-    4f7c:	2f00           	move.l d0,-(sp)
-    4f7e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4f82:	2f2f 002e      	move.l 46(sp),-(sp)
-    4f86:	4eba 1e18      	jsr 6da0 <TestRow>(pc)
-    4f8a:	4fef 0010      	lea 16(sp),sp
+    50f8:	7000           	moveq #0,d0
+    50fa:	302f 01c6      	move.w 454(sp),d0
+    50fe:	4878 010c      	pea 10c <FreeDisplay+0x2c>
+    5102:	2f00           	move.l d0,-(sp)
+    5104:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5108:	2f2f 0056      	move.l 86(sp),-(sp)
+    510c:	4eba 1e18      	jsr 6f26 <TestRow>(pc)
+    5110:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4f8e:	7430           	moveq #48,d2
-    4f90:	d5af 01c8      	add.l d2,456(sp)
+    5114:	7030           	moveq #48,d0
+    5116:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, mask, 269);
-    4f94:	7000           	moveq #0,d0
-    4f96:	302f 01c6      	move.w 454(sp),d0
-    4f9a:	4878 010d      	pea 10d <WaitBlt+0x2d>
-    4f9e:	2f00           	move.l d0,-(sp)
-    4fa0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    4fa4:	2f2f 002e      	move.l 46(sp),-(sp)
-    4fa8:	4eba 1df6      	jsr 6da0 <TestRow>(pc)
-    4fac:	4fef 0010      	lea 16(sp),sp
+    511a:	7000           	moveq #0,d0
+    511c:	302f 01c6      	move.w 454(sp),d0
+    5120:	4878 010d      	pea 10d <FreeDisplay+0x2d>
+    5124:	2f00           	move.l d0,-(sp)
+    5126:	2f2f 01d0      	move.l 464(sp),-(sp)
+    512a:	2f2f 0056      	move.l 86(sp),-(sp)
+    512e:	4eba 1df6      	jsr 6f26 <TestRow>(pc)
+    5132:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    4fb0:	7030           	moveq #48,d0
-    4fb2:	d1af 01c8      	add.l d0,456(sp)
+    5136:	7230           	moveq #48,d1
+    5138:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    4fb6:	466f 01c6      	not.w 454(sp)
+    513c:	466f 01c6      	not.w 454(sp)
 
   tmp = source;
-    4fba:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    5140:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    4fc0:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    5146:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    4fc6:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    514c:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 5, 1);
-    4fcc:	4878 0001      	pea 1 <_start+0x1>
-    4fd0:	4878 0005      	pea 5 <_start+0x5>
-    4fd4:	2f2f 0042      	move.l 66(sp),-(sp)
-    4fd8:	2f2f 006a      	move.l 106(sp),-(sp)
-    4fdc:	4eba ca7e      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    4fe0:	4fef 0010      	lea 16(sp),sp
+    5152:	4878 0001      	pea 1 <_start+0x1>
+    5156:	4878 0005      	pea 5 <_start+0x5>
+    515a:	2f2f 0056      	move.l 86(sp),-(sp)
+    515e:	2f2f 006a      	move.l 106(sp),-(sp)
+    5162:	4eba cb74      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5166:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    4fe4:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    4fea:	2c40           	movea.l d0,a6
-    4fec:	4eae ff1c      	jsr -228(a6)
+    516a:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    5170:	2c40           	movea.l d0,a6
+    5172:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    4ff0:	222f 003a      	move.l 58(sp),d1
-    4ff4:	5881           	addq.l #4,d1
-    4ff6:	2f41 01c8      	move.l d1,456(sp)
+    5176:	202f 004e      	move.l 78(sp),d0
+    517a:	5880           	addq.l #4,d0
+    517c:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom6;
-    4ffa:	2f7c 0001 b840 	move.l #112704,34(sp)
-    5000:	0022 
+    5180:	2f7c 0001 bac0 	move.l #113344,74(sp)
+    5186:	004a 
   mask = 0x0000;
-    5002:	426f 01c6      	clr.w 454(sp)
+    5188:	426f 01c6      	clr.w 454(sp)
  
   for(int i2=0;i2<7;i2++) {  
-    5006:	42af 017e      	clr.l 382(sp)
-    500a:	602a           	bra.s 5036 <TestZoom4Picture+0x110c>
+    518c:	42af 017e      	clr.l 382(sp)
+    5190:	602a           	bra.s 51bc <TestZoom4Picture+0x10f8>
     TestRow( valsupposed, valactual, mask, i2);
-    500c:	7000           	moveq #0,d0
-    500e:	302f 01c6      	move.w 454(sp),d0
-    5012:	2f2f 017e      	move.l 382(sp),-(sp)
-    5016:	2f00           	move.l d0,-(sp)
-    5018:	2f2f 01d0      	move.l 464(sp),-(sp)
-    501c:	2f2f 002e      	move.l 46(sp),-(sp)
-    5020:	4eba 1d7e      	jsr 6da0 <TestRow>(pc)
-    5024:	4fef 0010      	lea 16(sp),sp
+    5192:	7000           	moveq #0,d0
+    5194:	302f 01c6      	move.w 454(sp),d0
+    5198:	2f2f 017e      	move.l 382(sp),-(sp)
+    519c:	2f00           	move.l d0,-(sp)
+    519e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    51a2:	2f2f 0056      	move.l 86(sp),-(sp)
+    51a6:	4eba 1d7e      	jsr 6f26 <TestRow>(pc)
+    51aa:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5028:	7430           	moveq #48,d2
-    502a:	d5af 01c8      	add.l d2,456(sp)
+    51ae:	7230           	moveq #48,d1
+    51b0:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    502e:	466f 01c6      	not.w 454(sp)
+    51b4:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<7;i2++) {  
-    5032:	52af 017e      	addq.l #1,382(sp)
-    5036:	7006           	moveq #6,d0
-    5038:	b0af 017e      	cmp.l 382(sp),d0
-    503c:	6cce           	bge.s 500c <TestZoom4Picture+0x10e2>
+    51b8:	52af 017e      	addq.l #1,382(sp)
+    51bc:	7006           	moveq #6,d0
+    51be:	b0af 017e      	cmp.l 382(sp),d0
+    51c2:	6cce           	bge.s 5192 <TestZoom4Picture+0x10ce>
   }
 
   for(int i=0;i<6;i++) {
-    503e:	42af 017a      	clr.l 378(sp)
-    5042:	605c           	bra.s 50a0 <TestZoom4Picture+0x1176>
+    51c4:	42af 017a      	clr.l 378(sp)
+    51c8:	605c           	bra.s 5226 <TestZoom4Picture+0x1162>
     TestRow( valsupposed, valactual, mask, 7+i*2);   
-    5044:	202f 017a      	move.l 378(sp),d0
-    5048:	d080           	add.l d0,d0
-    504a:	2200           	move.l d0,d1
-    504c:	5e81           	addq.l #7,d1
-    504e:	7000           	moveq #0,d0
-    5050:	302f 01c6      	move.w 454(sp),d0
-    5054:	2f01           	move.l d1,-(sp)
-    5056:	2f00           	move.l d0,-(sp)
-    5058:	2f2f 01d0      	move.l 464(sp),-(sp)
-    505c:	2f2f 002e      	move.l 46(sp),-(sp)
-    5060:	4eba 1d3e      	jsr 6da0 <TestRow>(pc)
-    5064:	4fef 0010      	lea 16(sp),sp
+    51ca:	202f 017a      	move.l 378(sp),d0
+    51ce:	d080           	add.l d0,d0
+    51d0:	2200           	move.l d0,d1
+    51d2:	5e81           	addq.l #7,d1
+    51d4:	7000           	moveq #0,d0
+    51d6:	302f 01c6      	move.w 454(sp),d0
+    51da:	2f01           	move.l d1,-(sp)
+    51dc:	2f00           	move.l d0,-(sp)
+    51de:	2f2f 01d0      	move.l 464(sp),-(sp)
+    51e2:	2f2f 0056      	move.l 86(sp),-(sp)
+    51e6:	4eba 1d3e      	jsr 6f26 <TestRow>(pc)
+    51ea:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5068:	7230           	moveq #48,d1
-    506a:	d3af 01c8      	add.l d1,456(sp)
+    51ee:	7230           	moveq #48,d1
+    51f0:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 7+i*2+1);
-    506e:	202f 017a      	move.l 378(sp),d0
-    5072:	5880           	addq.l #4,d0
-    5074:	d080           	add.l d0,d0
-    5076:	2200           	move.l d0,d1
-    5078:	7000           	moveq #0,d0
-    507a:	302f 01c6      	move.w 454(sp),d0
-    507e:	2f01           	move.l d1,-(sp)
-    5080:	2f00           	move.l d0,-(sp)
-    5082:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5086:	2f2f 002e      	move.l 46(sp),-(sp)
-    508a:	4eba 1d14      	jsr 6da0 <TestRow>(pc)
-    508e:	4fef 0010      	lea 16(sp),sp
+    51f4:	202f 017a      	move.l 378(sp),d0
+    51f8:	5880           	addq.l #4,d0
+    51fa:	d080           	add.l d0,d0
+    51fc:	2200           	move.l d0,d1
+    51fe:	7000           	moveq #0,d0
+    5200:	302f 01c6      	move.w 454(sp),d0
+    5204:	2f01           	move.l d1,-(sp)
+    5206:	2f00           	move.l d0,-(sp)
+    5208:	2f2f 01d0      	move.l 464(sp),-(sp)
+    520c:	2f2f 0056      	move.l 86(sp),-(sp)
+    5210:	4eba 1d14      	jsr 6f26 <TestRow>(pc)
+    5214:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5092:	7430           	moveq #48,d2
-    5094:	d5af 01c8      	add.l d2,456(sp)
+    5218:	7030           	moveq #48,d0
+    521a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5098:	466f 01c6      	not.w 454(sp)
+    521e:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<6;i++) {
-    509c:	52af 017a      	addq.l #1,378(sp)
-    50a0:	7005           	moveq #5,d0
-    50a2:	b0af 017a      	cmp.l 378(sp),d0
-    50a6:	6c9c           	bge.s 5044 <TestZoom4Picture+0x111a>
+    5222:	52af 017a      	addq.l #1,378(sp)
+    5226:	7205           	moveq #5,d1
+    5228:	b2af 017a      	cmp.l 378(sp),d1
+    522c:	6c9c           	bge.s 51ca <TestZoom4Picture+0x1106>
   }
 
   for(int i=0;i<10;i++) {
-    50a8:	42af 0176      	clr.l 374(sp)
-    50ac:	6000 00ce      	bra.w 517c <TestZoom4Picture+0x1252>
+    522e:	42af 0176      	clr.l 374(sp)
+    5232:	6000 00ce      	bra.w 5302 <TestZoom4Picture+0x123e>
     for(int i2=0;i2<12;i2++) {  
-    50b0:	42af 0172      	clr.l 370(sp)
-    50b4:	6040           	bra.s 50f6 <TestZoom4Picture+0x11cc>
+    5236:	42af 0172      	clr.l 370(sp)
+    523a:	6040           	bra.s 527c <TestZoom4Picture+0x11b8>
       TestRow( valsupposed, valactual, mask, 19+i2+i*24);
-    50b6:	307c 0013      	movea.w #19,a0
-    50ba:	d1ef 0172      	adda.l 370(sp),a0
-    50be:	222f 0176      	move.l 374(sp),d1
-    50c2:	2001           	move.l d1,d0
-    50c4:	d080           	add.l d0,d0
-    50c6:	d081           	add.l d1,d0
-    50c8:	e788           	lsl.l #3,d0
-    50ca:	2208           	move.l a0,d1
-    50cc:	d280           	add.l d0,d1
-    50ce:	7000           	moveq #0,d0
-    50d0:	302f 01c6      	move.w 454(sp),d0
-    50d4:	2f01           	move.l d1,-(sp)
-    50d6:	2f00           	move.l d0,-(sp)
-    50d8:	2f2f 01d0      	move.l 464(sp),-(sp)
-    50dc:	2f2f 002e      	move.l 46(sp),-(sp)
-    50e0:	4eba 1cbe      	jsr 6da0 <TestRow>(pc)
-    50e4:	4fef 0010      	lea 16(sp),sp
+    523c:	307c 0013      	movea.w #19,a0
+    5240:	d1ef 0172      	adda.l 370(sp),a0
+    5244:	222f 0176      	move.l 374(sp),d1
+    5248:	2001           	move.l d1,d0
+    524a:	d080           	add.l d0,d0
+    524c:	d081           	add.l d1,d0
+    524e:	e788           	lsl.l #3,d0
+    5250:	2208           	move.l a0,d1
+    5252:	d280           	add.l d0,d1
+    5254:	7000           	moveq #0,d0
+    5256:	302f 01c6      	move.w 454(sp),d0
+    525a:	2f01           	move.l d1,-(sp)
+    525c:	2f00           	move.l d0,-(sp)
+    525e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5262:	2f2f 0056      	move.l 86(sp),-(sp)
+    5266:	4eba 1cbe      	jsr 6f26 <TestRow>(pc)
+    526a:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    50e8:	7230           	moveq #48,d1
-    50ea:	d3af 01c8      	add.l d1,456(sp)
+    526e:	7030           	moveq #48,d0
+    5270:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    50ee:	466f 01c6      	not.w 454(sp)
+    5274:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<12;i2++) {  
-    50f2:	52af 0172      	addq.l #1,370(sp)
-    50f6:	740b           	moveq #11,d2
-    50f8:	b4af 0172      	cmp.l 370(sp),d2
-    50fc:	6cb8           	bge.s 50b6 <TestZoom4Picture+0x118c>
+    5278:	52af 0172      	addq.l #1,370(sp)
+    527c:	720b           	moveq #11,d1
+    527e:	b2af 0172      	cmp.l 370(sp),d1
+    5282:	6cb8           	bge.s 523c <TestZoom4Picture+0x1178>
     }
     for(int i=0;i<6;i++) {
-    50fe:	42af 016e      	clr.l 366(sp)
-    5102:	606c           	bra.s 5170 <TestZoom4Picture+0x1246>
+    5284:	42af 016e      	clr.l 366(sp)
+    5288:	606c           	bra.s 52f6 <TestZoom4Picture+0x1232>
       TestRow( valsupposed, valactual, mask, 31+i*24);   
-    5104:	222f 016e      	move.l 366(sp),d1
-    5108:	2001           	move.l d1,d0
-    510a:	d080           	add.l d0,d0
-    510c:	d081           	add.l d1,d0
-    510e:	e788           	lsl.l #3,d0
-    5110:	2040           	movea.l d0,a0
-    5112:	41e8 001f      	lea 31(a0),a0
-    5116:	7000           	moveq #0,d0
-    5118:	302f 01c6      	move.w 454(sp),d0
-    511c:	2f08           	move.l a0,-(sp)
-    511e:	2f00           	move.l d0,-(sp)
-    5120:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5124:	2f2f 002e      	move.l 46(sp),-(sp)
-    5128:	4eba 1c76      	jsr 6da0 <TestRow>(pc)
-    512c:	4fef 0010      	lea 16(sp),sp
+    528a:	222f 016e      	move.l 366(sp),d1
+    528e:	2001           	move.l d1,d0
+    5290:	d080           	add.l d0,d0
+    5292:	d081           	add.l d1,d0
+    5294:	e788           	lsl.l #3,d0
+    5296:	2040           	movea.l d0,a0
+    5298:	41e8 001f      	lea 31(a0),a0
+    529c:	7000           	moveq #0,d0
+    529e:	302f 01c6      	move.w 454(sp),d0
+    52a2:	2f08           	move.l a0,-(sp)
+    52a4:	2f00           	move.l d0,-(sp)
+    52a6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    52aa:	2f2f 0056      	move.l 86(sp),-(sp)
+    52ae:	4eba 1c76      	jsr 6f26 <TestRow>(pc)
+    52b2:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5130:	7030           	moveq #48,d0
-    5132:	d1af 01c8      	add.l d0,456(sp)
+    52b6:	7030           	moveq #48,d0
+    52b8:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 32+i*24);
-    5136:	222f 016e      	move.l 366(sp),d1
-    513a:	2001           	move.l d1,d0
-    513c:	d080           	add.l d0,d0
-    513e:	d081           	add.l d1,d0
-    5140:	e788           	lsl.l #3,d0
-    5142:	2040           	movea.l d0,a0
-    5144:	41e8 0020      	lea 32(a0),a0
-    5148:	7000           	moveq #0,d0
-    514a:	302f 01c6      	move.w 454(sp),d0
-    514e:	2f08           	move.l a0,-(sp)
-    5150:	2f00           	move.l d0,-(sp)
-    5152:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5156:	2f2f 002e      	move.l 46(sp),-(sp)
-    515a:	4eba 1c44      	jsr 6da0 <TestRow>(pc)
-    515e:	4fef 0010      	lea 16(sp),sp
+    52bc:	222f 016e      	move.l 366(sp),d1
+    52c0:	2001           	move.l d1,d0
+    52c2:	d080           	add.l d0,d0
+    52c4:	d081           	add.l d1,d0
+    52c6:	e788           	lsl.l #3,d0
+    52c8:	2040           	movea.l d0,a0
+    52ca:	41e8 0020      	lea 32(a0),a0
+    52ce:	7000           	moveq #0,d0
+    52d0:	302f 01c6      	move.w 454(sp),d0
+    52d4:	2f08           	move.l a0,-(sp)
+    52d6:	2f00           	move.l d0,-(sp)
+    52d8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    52dc:	2f2f 0056      	move.l 86(sp),-(sp)
+    52e0:	4eba 1c44      	jsr 6f26 <TestRow>(pc)
+    52e4:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5162:	7230           	moveq #48,d1
-    5164:	d3af 01c8      	add.l d1,456(sp)
+    52e8:	7230           	moveq #48,d1
+    52ea:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    5168:	466f 01c6      	not.w 454(sp)
+    52ee:	466f 01c6      	not.w 454(sp)
     for(int i=0;i<6;i++) {
-    516c:	52af 016e      	addq.l #1,366(sp)
-    5170:	7405           	moveq #5,d2
-    5172:	b4af 016e      	cmp.l 366(sp),d2
-    5176:	6c8c           	bge.s 5104 <TestZoom4Picture+0x11da>
+    52f2:	52af 016e      	addq.l #1,366(sp)
+    52f6:	7005           	moveq #5,d0
+    52f8:	b0af 016e      	cmp.l 366(sp),d0
+    52fc:	6c8c           	bge.s 528a <TestZoom4Picture+0x11c6>
   for(int i=0;i<10;i++) {
-    5178:	52af 0176      	addq.l #1,374(sp)
-    517c:	7009           	moveq #9,d0
-    517e:	b0af 0176      	cmp.l 374(sp),d0
-    5182:	6c00 ff2c      	bge.w 50b0 <TestZoom4Picture+0x1186>
+    52fe:	52af 0176      	addq.l #1,374(sp)
+    5302:	7209           	moveq #9,d1
+    5304:	b2af 0176      	cmp.l 374(sp),d1
+    5308:	6c00 ff2c      	bge.w 5236 <TestZoom4Picture+0x1172>
     }
   }
 
   for(int i2=0;i2<11;i2++) {  
-    5186:	42af 016a      	clr.l 362(sp)
-    518a:	6032           	bra.s 51be <TestZoom4Picture+0x1294>
+    530c:	42af 016a      	clr.l 362(sp)
+    5310:	6032           	bra.s 5344 <TestZoom4Picture+0x1280>
     TestRow( valsupposed, valactual, mask, 258+i2);
-    518c:	222f 016a      	move.l 362(sp),d1
-    5190:	0681 0000 0102 	addi.l #258,d1
-    5196:	7000           	moveq #0,d0
-    5198:	302f 01c6      	move.w 454(sp),d0
-    519c:	2f01           	move.l d1,-(sp)
-    519e:	2f00           	move.l d0,-(sp)
-    51a0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    51a4:	2f2f 002e      	move.l 46(sp),-(sp)
-    51a8:	4eba 1bf6      	jsr 6da0 <TestRow>(pc)
-    51ac:	4fef 0010      	lea 16(sp),sp
+    5312:	222f 016a      	move.l 362(sp),d1
+    5316:	0681 0000 0102 	addi.l #258,d1
+    531c:	7000           	moveq #0,d0
+    531e:	302f 01c6      	move.w 454(sp),d0
+    5322:	2f01           	move.l d1,-(sp)
+    5324:	2f00           	move.l d0,-(sp)
+    5326:	2f2f 01d0      	move.l 464(sp),-(sp)
+    532a:	2f2f 0056      	move.l 86(sp),-(sp)
+    532e:	4eba 1bf6      	jsr 6f26 <TestRow>(pc)
+    5332:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    51b0:	7230           	moveq #48,d1
-    51b2:	d3af 01c8      	add.l d1,456(sp)
+    5336:	7030           	moveq #48,d0
+    5338:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    51b6:	466f 01c6      	not.w 454(sp)
+    533c:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<11;i2++) {  
-    51ba:	52af 016a      	addq.l #1,362(sp)
-    51be:	740a           	moveq #10,d2
-    51c0:	b4af 016a      	cmp.l 362(sp),d2
-    51c4:	6cc6           	bge.s 518c <TestZoom4Picture+0x1262>
+    5340:	52af 016a      	addq.l #1,362(sp)
+    5344:	720a           	moveq #10,d1
+    5346:	b2af 016a      	cmp.l 362(sp),d1
+    534a:	6cc6           	bge.s 5312 <TestZoom4Picture+0x124e>
   }
 
   tmp = source;
-    51c6:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    534c:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    51cc:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    5352:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    51d2:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    5358:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 6, 1);
-    51d8:	4878 0001      	pea 1 <_start+0x1>
-    51dc:	4878 0006      	pea 6 <_start+0x6>
-    51e0:	2f2f 0042      	move.l 66(sp),-(sp)
-    51e4:	2f2f 006a      	move.l 106(sp),-(sp)
-    51e8:	4eba c872      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    51ec:	4fef 0010      	lea 16(sp),sp
+    535e:	4878 0001      	pea 1 <_start+0x1>
+    5362:	4878 0006      	pea 6 <_start+0x6>
+    5366:	2f2f 0056      	move.l 86(sp),-(sp)
+    536a:	2f2f 006a      	move.l 106(sp),-(sp)
+    536e:	4eba c968      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5372:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    51f0:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    51f6:	2c40           	movea.l d0,a6
-    51f8:	4eae ff1c      	jsr -228(a6)
+    5376:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    537c:	2c40           	movea.l d0,a6
+    537e:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    51fc:	202f 003a      	move.l 58(sp),d0
-    5200:	5880           	addq.l #4,d0
-    5202:	2f40 01c8      	move.l d0,456(sp)
+    5382:	202f 004e      	move.l 78(sp),d0
+    5386:	5880           	addq.l #4,d0
+    5388:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom7;
-    5206:	2f7c 0001 b86c 	move.l #112748,34(sp)
-    520c:	0022 
+    538c:	2f7c 0001 baec 	move.l #113388,74(sp)
+    5392:	004a 
   mask = 0x0000;
-    520e:	426f 01c6      	clr.w 454(sp)
+    5394:	426f 01c6      	clr.w 454(sp)
  
   TestRow( valsupposed, valactual, mask, 0);
-    5212:	7000           	moveq #0,d0
-    5214:	302f 01c6      	move.w 454(sp),d0
-    5218:	42a7           	clr.l -(sp)
-    521a:	2f00           	move.l d0,-(sp)
-    521c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5220:	2f2f 002e      	move.l 46(sp),-(sp)
-    5224:	4eba 1b7a      	jsr 6da0 <TestRow>(pc)
-    5228:	4fef 0010      	lea 16(sp),sp
+    5398:	7000           	moveq #0,d0
+    539a:	302f 01c6      	move.w 454(sp),d0
+    539e:	42a7           	clr.l -(sp)
+    53a0:	2f00           	move.l d0,-(sp)
+    53a2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    53a6:	2f2f 0056      	move.l 86(sp),-(sp)
+    53aa:	4eba 1b7a      	jsr 6f26 <TestRow>(pc)
+    53ae:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    522c:	7230           	moveq #48,d1
-    522e:	d3af 01c8      	add.l d1,456(sp)
+    53b2:	7230           	moveq #48,d1
+    53b4:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    5232:	466f 01c6      	not.w 454(sp)
+    53b8:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<7;i++) {
-    5236:	42af 0166      	clr.l 358(sp)
-    523a:	605c           	bra.s 5298 <TestZoom4Picture+0x136e>
+    53bc:	42af 0166      	clr.l 358(sp)
+    53c0:	605c           	bra.s 541e <TestZoom4Picture+0x135a>
     TestRow( valsupposed, valactual, mask, 1+i*2);   
-    523c:	202f 0166      	move.l 358(sp),d0
-    5240:	d080           	add.l d0,d0
-    5242:	2200           	move.l d0,d1
-    5244:	5281           	addq.l #1,d1
-    5246:	7000           	moveq #0,d0
-    5248:	302f 01c6      	move.w 454(sp),d0
-    524c:	2f01           	move.l d1,-(sp)
-    524e:	2f00           	move.l d0,-(sp)
-    5250:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5254:	2f2f 002e      	move.l 46(sp),-(sp)
-    5258:	4eba 1b46      	jsr 6da0 <TestRow>(pc)
-    525c:	4fef 0010      	lea 16(sp),sp
+    53c2:	202f 0166      	move.l 358(sp),d0
+    53c6:	d080           	add.l d0,d0
+    53c8:	2200           	move.l d0,d1
+    53ca:	5281           	addq.l #1,d1
+    53cc:	7000           	moveq #0,d0
+    53ce:	302f 01c6      	move.w 454(sp),d0
+    53d2:	2f01           	move.l d1,-(sp)
+    53d4:	2f00           	move.l d0,-(sp)
+    53d6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    53da:	2f2f 0056      	move.l 86(sp),-(sp)
+    53de:	4eba 1b46      	jsr 6f26 <TestRow>(pc)
+    53e2:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5260:	7430           	moveq #48,d2
-    5262:	d5af 01c8      	add.l d2,456(sp)
+    53e6:	7030           	moveq #48,d0
+    53e8:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, 1+i*2+1);
-    5266:	202f 0166      	move.l 358(sp),d0
-    526a:	5280           	addq.l #1,d0
-    526c:	d080           	add.l d0,d0
-    526e:	2200           	move.l d0,d1
-    5270:	7000           	moveq #0,d0
-    5272:	302f 01c6      	move.w 454(sp),d0
-    5276:	2f01           	move.l d1,-(sp)
-    5278:	2f00           	move.l d0,-(sp)
-    527a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    527e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5282:	4eba 1b1c      	jsr 6da0 <TestRow>(pc)
-    5286:	4fef 0010      	lea 16(sp),sp
+    53ec:	202f 0166      	move.l 358(sp),d0
+    53f0:	5280           	addq.l #1,d0
+    53f2:	d080           	add.l d0,d0
+    53f4:	2200           	move.l d0,d1
+    53f6:	7000           	moveq #0,d0
+    53f8:	302f 01c6      	move.w 454(sp),d0
+    53fc:	2f01           	move.l d1,-(sp)
+    53fe:	2f00           	move.l d0,-(sp)
+    5400:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5404:	2f2f 0056      	move.l 86(sp),-(sp)
+    5408:	4eba 1b1c      	jsr 6f26 <TestRow>(pc)
+    540c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    528a:	7030           	moveq #48,d0
-    528c:	d1af 01c8      	add.l d0,456(sp)
+    5410:	7230           	moveq #48,d1
+    5412:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    5290:	466f 01c6      	not.w 454(sp)
+    5416:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<7;i++) {
-    5294:	52af 0166      	addq.l #1,358(sp)
-    5298:	7206           	moveq #6,d1
-    529a:	b2af 0166      	cmp.l 358(sp),d1
-    529e:	6c9c           	bge.s 523c <TestZoom4Picture+0x1312>
+    541a:	52af 0166      	addq.l #1,358(sp)
+    541e:	7006           	moveq #6,d0
+    5420:	b0af 0166      	cmp.l 358(sp),d0
+    5424:	6c9c           	bge.s 53c2 <TestZoom4Picture+0x12fe>
   }
 
   for(int i=0;i<10;i++) {
-    52a0:	42af 0162      	clr.l 354(sp)
-    52a4:	6000 00d4      	bra.w 537a <TestZoom4Picture+0x1450>
+    5426:	42af 0162      	clr.l 354(sp)
+    542a:	6000 00d4      	bra.w 5500 <TestZoom4Picture+0x143c>
     for(int i2=0;i2<11;i2++) {  
-    52a8:	42af 015e      	clr.l 350(sp)
-    52ac:	6042           	bra.s 52f0 <TestZoom4Picture+0x13c6>
+    542e:	42af 015e      	clr.l 350(sp)
+    5432:	6042           	bra.s 5476 <TestZoom4Picture+0x13b2>
       TestRow( valsupposed, valactual, mask, 15+i2+i*25);
-    52ae:	307c 000f      	movea.w #15,a0
-    52b2:	d1ef 015e      	adda.l 350(sp),a0
-    52b6:	222f 0162      	move.l 354(sp),d1
-    52ba:	2001           	move.l d1,d0
-    52bc:	d080           	add.l d0,d0
-    52be:	d081           	add.l d1,d0
-    52c0:	e788           	lsl.l #3,d0
-    52c2:	d081           	add.l d1,d0
-    52c4:	2208           	move.l a0,d1
-    52c6:	d280           	add.l d0,d1
-    52c8:	7000           	moveq #0,d0
-    52ca:	302f 01c6      	move.w 454(sp),d0
-    52ce:	2f01           	move.l d1,-(sp)
-    52d0:	2f00           	move.l d0,-(sp)
-    52d2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    52d6:	2f2f 002e      	move.l 46(sp),-(sp)
-    52da:	4eba 1ac4      	jsr 6da0 <TestRow>(pc)
-    52de:	4fef 0010      	lea 16(sp),sp
+    5434:	307c 000f      	movea.w #15,a0
+    5438:	d1ef 015e      	adda.l 350(sp),a0
+    543c:	222f 0162      	move.l 354(sp),d1
+    5440:	2001           	move.l d1,d0
+    5442:	d080           	add.l d0,d0
+    5444:	d081           	add.l d1,d0
+    5446:	e788           	lsl.l #3,d0
+    5448:	d081           	add.l d1,d0
+    544a:	2208           	move.l a0,d1
+    544c:	d280           	add.l d0,d1
+    544e:	7000           	moveq #0,d0
+    5450:	302f 01c6      	move.w 454(sp),d0
+    5454:	2f01           	move.l d1,-(sp)
+    5456:	2f00           	move.l d0,-(sp)
+    5458:	2f2f 01d0      	move.l 464(sp),-(sp)
+    545c:	2f2f 0056      	move.l 86(sp),-(sp)
+    5460:	4eba 1ac4      	jsr 6f26 <TestRow>(pc)
+    5464:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    52e2:	7430           	moveq #48,d2
-    52e4:	d5af 01c8      	add.l d2,456(sp)
+    5468:	7230           	moveq #48,d1
+    546a:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    52e8:	466f 01c6      	not.w 454(sp)
+    546e:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<11;i2++) {  
-    52ec:	52af 015e      	addq.l #1,350(sp)
-    52f0:	700a           	moveq #10,d0
-    52f2:	b0af 015e      	cmp.l 350(sp),d0
-    52f6:	6cb6           	bge.s 52ae <TestZoom4Picture+0x1384>
+    5472:	52af 015e      	addq.l #1,350(sp)
+    5476:	700a           	moveq #10,d0
+    5478:	b0af 015e      	cmp.l 350(sp),d0
+    547c:	6cb6           	bge.s 5434 <TestZoom4Picture+0x1370>
     }
     for(int i=0;i<7;i++) {
-    52f8:	42af 015a      	clr.l 346(sp)
-    52fc:	6070           	bra.s 536e <TestZoom4Picture+0x1444>
+    547e:	42af 015a      	clr.l 346(sp)
+    5482:	6070           	bra.s 54f4 <TestZoom4Picture+0x1430>
       TestRow( valsupposed, valactual, mask, 26+i*25);   
-    52fe:	222f 015a      	move.l 346(sp),d1
-    5302:	2001           	move.l d1,d0
-    5304:	d080           	add.l d0,d0
-    5306:	d081           	add.l d1,d0
-    5308:	e788           	lsl.l #3,d0
-    530a:	2040           	movea.l d0,a0
-    530c:	d1c1           	adda.l d1,a0
-    530e:	41e8 001a      	lea 26(a0),a0
-    5312:	7000           	moveq #0,d0
-    5314:	302f 01c6      	move.w 454(sp),d0
-    5318:	2f08           	move.l a0,-(sp)
-    531a:	2f00           	move.l d0,-(sp)
-    531c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5320:	2f2f 002e      	move.l 46(sp),-(sp)
-    5324:	4eba 1a7a      	jsr 6da0 <TestRow>(pc)
-    5328:	4fef 0010      	lea 16(sp),sp
+    5484:	222f 015a      	move.l 346(sp),d1
+    5488:	2001           	move.l d1,d0
+    548a:	d080           	add.l d0,d0
+    548c:	d081           	add.l d1,d0
+    548e:	e788           	lsl.l #3,d0
+    5490:	2040           	movea.l d0,a0
+    5492:	d1c1           	adda.l d1,a0
+    5494:	41e8 001a      	lea 26(a0),a0
+    5498:	7000           	moveq #0,d0
+    549a:	302f 01c6      	move.w 454(sp),d0
+    549e:	2f08           	move.l a0,-(sp)
+    54a0:	2f00           	move.l d0,-(sp)
+    54a2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    54a6:	2f2f 0056      	move.l 86(sp),-(sp)
+    54aa:	4eba 1a7a      	jsr 6f26 <TestRow>(pc)
+    54ae:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    532c:	7230           	moveq #48,d1
-    532e:	d3af 01c8      	add.l d1,456(sp)
+    54b2:	7230           	moveq #48,d1
+    54b4:	d3af 01c8      	add.l d1,456(sp)
       TestRow( valsupposed, valactual, mask, 26+i*25);
-    5332:	222f 015a      	move.l 346(sp),d1
-    5336:	2001           	move.l d1,d0
-    5338:	d080           	add.l d0,d0
-    533a:	d081           	add.l d1,d0
-    533c:	e788           	lsl.l #3,d0
-    533e:	2040           	movea.l d0,a0
-    5340:	d1c1           	adda.l d1,a0
-    5342:	41e8 001a      	lea 26(a0),a0
-    5346:	7000           	moveq #0,d0
-    5348:	302f 01c6      	move.w 454(sp),d0
-    534c:	2f08           	move.l a0,-(sp)
-    534e:	2f00           	move.l d0,-(sp)
-    5350:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5354:	2f2f 002e      	move.l 46(sp),-(sp)
-    5358:	4eba 1a46      	jsr 6da0 <TestRow>(pc)
-    535c:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    5360:	7430           	moveq #48,d2
-    5362:	d5af 01c8      	add.l d2,456(sp)
-      mask = mask ^ 0xffff;
-    5366:	466f 01c6      	not.w 454(sp)
-    for(int i=0;i<7;i++) {
-    536a:	52af 015a      	addq.l #1,346(sp)
-    536e:	7006           	moveq #6,d0
-    5370:	b0af 015a      	cmp.l 346(sp),d0
-    5374:	6c88           	bge.s 52fe <TestZoom4Picture+0x13d4>
-  for(int i=0;i<10;i++) {
-    5376:	52af 0162      	addq.l #1,354(sp)
-    537a:	7209           	moveq #9,d1
-    537c:	b2af 0162      	cmp.l 354(sp),d1
-    5380:	6c00 ff26      	bge.w 52a8 <TestZoom4Picture+0x137e>
-    }
-  }
-
-  for(int i2=0;i2<5;i2++) {  
-    5384:	42af 0156      	clr.l 342(sp)
-    5388:	6032           	bra.s 53bc <TestZoom4Picture+0x1492>
-    TestRow( valsupposed, valactual, mask, 256+i2);
-    538a:	222f 0156      	move.l 342(sp),d1
-    538e:	0681 0000 0100 	addi.l #256,d1
-    5394:	7000           	moveq #0,d0
-    5396:	302f 01c6      	move.w 454(sp),d0
-    539a:	2f01           	move.l d1,-(sp)
-    539c:	2f00           	move.l d0,-(sp)
-    539e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    53a2:	2f2f 002e      	move.l 46(sp),-(sp)
-    53a6:	4eba 19f8      	jsr 6da0 <TestRow>(pc)
-    53aa:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    53ae:	7430           	moveq #48,d2
-    53b0:	d5af 01c8      	add.l d2,456(sp)
-    mask = mask ^ 0xffff;
-    53b4:	466f 01c6      	not.w 454(sp)
-  for(int i2=0;i2<5;i2++) {  
-    53b8:	52af 0156      	addq.l #1,342(sp)
-    53bc:	7004           	moveq #4,d0
-    53be:	b0af 0156      	cmp.l 342(sp),d0
-    53c2:	6cc6           	bge.s 538a <TestZoom4Picture+0x1460>
-  }
-
-  tmp = source;
-    53c4:	2f6f 005e 001e 	move.l 94(sp),30(sp)
-  source = destination;
-    53ca:	2f6f 003a 005e 	move.l 58(sp),94(sp)
-  destination = tmp;
-    53d0:	2f6f 001e 003a 	move.l 30(sp),58(sp)
-
-  Zoom_ZoomIntoPicture( source, destination, 7, 1);
-    53d6:	4878 0001      	pea 1 <_start+0x1>
-    53da:	4878 0007      	pea 7 <_start+0x7>
-    53de:	2f2f 0042      	move.l 66(sp),-(sp)
-    53e2:	2f2f 006a      	move.l 106(sp),-(sp)
-    53e6:	4eba c674      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    53ea:	4fef 0010      	lea 16(sp),sp
-  WaitBlit();
-    53ee:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    53f4:	2c40           	movea.l d0,a6
-    53f6:	4eae ff1c      	jsr -228(a6)
-  valactual = destination+2; 
-    53fa:	222f 003a      	move.l 58(sp),d1
-    53fe:	5881           	addq.l #4,d1
-    5400:	2f41 01c8      	move.l d1,456(sp)
-  valsupposed = destlinezoom8;
-    5404:	2f7c 0001 b898 	move.l #112792,34(sp)
-    540a:	0022 
-  mask = 0xffff;
-    540c:	3f7c ffff 01c6 	move.w #-1,454(sp)
- 
-  TestRow( valsupposed, valactual, mask, 0);
-    5412:	7000           	moveq #0,d0
-    5414:	302f 01c6      	move.w 454(sp),d0
-    5418:	42a7           	clr.l -(sp)
-    541a:	2f00           	move.l d0,-(sp)
-    541c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5420:	2f2f 002e      	move.l 46(sp),-(sp)
-    5424:	4eba 197a      	jsr 6da0 <TestRow>(pc)
-    5428:	4fef 0010      	lea 16(sp),sp
-  valactual += ZMLINESIZE/2;
-    542c:	7430           	moveq #48,d2
-    542e:	d5af 01c8      	add.l d2,456(sp)
-  mask = mask ^ 0xffff;
-    5432:	466f 01c6      	not.w 454(sp)
-  for(int i=0;i<5;i++) {
-    5436:	42af 0152      	clr.l 338(sp)
-    543a:	605c           	bra.s 5498 <TestZoom4Picture+0x156e>
-    TestRow( valsupposed, valactual, mask, 1+i*2);   
-    543c:	202f 0152      	move.l 338(sp),d0
-    5440:	d080           	add.l d0,d0
-    5442:	2200           	move.l d0,d1
-    5444:	5281           	addq.l #1,d1
-    5446:	7000           	moveq #0,d0
-    5448:	302f 01c6      	move.w 454(sp),d0
-    544c:	2f01           	move.l d1,-(sp)
-    544e:	2f00           	move.l d0,-(sp)
-    5450:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5454:	2f2f 002e      	move.l 46(sp),-(sp)
-    5458:	4eba 1946      	jsr 6da0 <TestRow>(pc)
-    545c:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    5460:	7030           	moveq #48,d0
-    5462:	d1af 01c8      	add.l d0,456(sp)
-    TestRow( valsupposed, valactual, mask, 1+i*2+1);
-    5466:	202f 0152      	move.l 338(sp),d0
-    546a:	5280           	addq.l #1,d0
-    546c:	d080           	add.l d0,d0
-    546e:	2200           	move.l d0,d1
-    5470:	7000           	moveq #0,d0
-    5472:	302f 01c6      	move.w 454(sp),d0
-    5476:	2f01           	move.l d1,-(sp)
-    5478:	2f00           	move.l d0,-(sp)
-    547a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    547e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5482:	4eba 191c      	jsr 6da0 <TestRow>(pc)
-    5486:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    548a:	7230           	moveq #48,d1
-    548c:	d3af 01c8      	add.l d1,456(sp)
-    mask = mask ^ 0xffff;
-    5490:	466f 01c6      	not.w 454(sp)
-  for(int i=0;i<5;i++) {
-    5494:	52af 0152      	addq.l #1,338(sp)
-    5498:	7404           	moveq #4,d2
-    549a:	b4af 0152      	cmp.l 338(sp),d2
-    549e:	6c9c           	bge.s 543c <TestZoom4Picture+0x1512>
-  }
-
-  for(int i=0;i<9;i++) {
-    54a0:	42af 014e      	clr.l 334(sp)
-    54a4:	6000 00f0      	bra.w 5596 <TestZoom4Picture+0x166c>
-    for(int i2=0;i2<10;i2++) {  
-    54a8:	42af 014a      	clr.l 330(sp)
-    54ac:	6046           	bra.s 54f4 <TestZoom4Picture+0x15ca>
-      TestRow( valsupposed, valactual, mask, 11+i2+i*26);
-    54ae:	307c 000b      	movea.w #11,a0
-    54b2:	d1ef 014a      	adda.l 330(sp),a0
-    54b6:	222f 014e      	move.l 334(sp),d1
-    54ba:	2001           	move.l d1,d0
-    54bc:	d080           	add.l d0,d0
-    54be:	d081           	add.l d1,d0
-    54c0:	d080           	add.l d0,d0
-    54c2:	d080           	add.l d0,d0
-    54c4:	d081           	add.l d1,d0
-    54c6:	d080           	add.l d0,d0
-    54c8:	2208           	move.l a0,d1
-    54ca:	d280           	add.l d0,d1
+    54b8:	222f 015a      	move.l 346(sp),d1
+    54bc:	2001           	move.l d1,d0
+    54be:	d080           	add.l d0,d0
+    54c0:	d081           	add.l d1,d0
+    54c2:	e788           	lsl.l #3,d0
+    54c4:	2040           	movea.l d0,a0
+    54c6:	d1c1           	adda.l d1,a0
+    54c8:	41e8 001a      	lea 26(a0),a0
     54cc:	7000           	moveq #0,d0
     54ce:	302f 01c6      	move.w 454(sp),d0
-    54d2:	2f01           	move.l d1,-(sp)
+    54d2:	2f08           	move.l a0,-(sp)
     54d4:	2f00           	move.l d0,-(sp)
     54d6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    54da:	2f2f 002e      	move.l 46(sp),-(sp)
-    54de:	4eba 18c0      	jsr 6da0 <TestRow>(pc)
+    54da:	2f2f 0056      	move.l 86(sp),-(sp)
+    54de:	4eba 1a46      	jsr 6f26 <TestRow>(pc)
     54e2:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
     54e6:	7030           	moveq #48,d0
     54e8:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
     54ec:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<10;i2++) {  
-    54f0:	52af 014a      	addq.l #1,330(sp)
-    54f4:	7209           	moveq #9,d1
-    54f6:	b2af 014a      	cmp.l 330(sp),d1
-    54fa:	6cb2           	bge.s 54ae <TestZoom4Picture+0x1584>
-    }
-    for(int i2=0;i2<8;i2++) {
-    54fc:	42af 0146      	clr.l 326(sp)
-    5500:	6000 0086      	bra.w 5588 <TestZoom4Picture+0x165e>
-      TestRow( valsupposed, valactual, mask, 21+i*26+i2);   
-    5504:	222f 014e      	move.l 334(sp),d1
-    5508:	2001           	move.l d1,d0
-    550a:	d080           	add.l d0,d0
-    550c:	d081           	add.l d1,d0
-    550e:	d080           	add.l d0,d0
-    5510:	d080           	add.l d0,d0
-    5512:	d081           	add.l d1,d0
-    5514:	d080           	add.l d0,d0
-    5516:	2040           	movea.l d0,a0
-    5518:	41e8 0015      	lea 21(a0),a0
-    551c:	2208           	move.l a0,d1
-    551e:	d2af 0146      	add.l 326(sp),d1
-    5522:	7000           	moveq #0,d0
-    5524:	302f 01c6      	move.w 454(sp),d0
-    5528:	2f01           	move.l d1,-(sp)
-    552a:	2f00           	move.l d0,-(sp)
-    552c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5530:	2f2f 002e      	move.l 46(sp),-(sp)
-    5534:	4eba 186a      	jsr 6da0 <TestRow>(pc)
-    5538:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    553c:	7430           	moveq #48,d2
-    553e:	d5af 01c8      	add.l d2,456(sp)
-      TestRow( valsupposed, valactual, mask, 21+i*26+i2);
-    5542:	222f 014e      	move.l 334(sp),d1
-    5546:	2001           	move.l d1,d0
-    5548:	d080           	add.l d0,d0
-    554a:	d081           	add.l d1,d0
-    554c:	d080           	add.l d0,d0
-    554e:	d080           	add.l d0,d0
-    5550:	d081           	add.l d1,d0
-    5552:	d080           	add.l d0,d0
-    5554:	2040           	movea.l d0,a0
-    5556:	41e8 0015      	lea 21(a0),a0
-    555a:	2208           	move.l a0,d1
-    555c:	d2af 0146      	add.l 326(sp),d1
-    5560:	7000           	moveq #0,d0
-    5562:	302f 01c6      	move.w 454(sp),d0
-    5566:	2f01           	move.l d1,-(sp)
-    5568:	2f00           	move.l d0,-(sp)
-    556a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    556e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5572:	4eba 182c      	jsr 6da0 <TestRow>(pc)
-    5576:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    557a:	7030           	moveq #48,d0
-    557c:	d1af 01c8      	add.l d0,456(sp)
-      mask = mask ^ 0xffff;
-    5580:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<8;i2++) {
-    5584:	52af 0146      	addq.l #1,326(sp)
-    5588:	7207           	moveq #7,d1
-    558a:	b2af 0146      	cmp.l 326(sp),d1
-    558e:	6c00 ff74      	bge.w 5504 <TestZoom4Picture+0x15da>
-  for(int i=0;i<9;i++) {
-    5592:	52af 014e      	addq.l #1,334(sp)
-    5596:	7408           	moveq #8,d2
-    5598:	b4af 014e      	cmp.l 334(sp),d2
-    559c:	6c00 ff0a      	bge.w 54a8 <TestZoom4Picture+0x157e>
+    for(int i=0;i<7;i++) {
+    54f0:	52af 015a      	addq.l #1,346(sp)
+    54f4:	7206           	moveq #6,d1
+    54f6:	b2af 015a      	cmp.l 346(sp),d1
+    54fa:	6c88           	bge.s 5484 <TestZoom4Picture+0x13c0>
+  for(int i=0;i<10;i++) {
+    54fc:	52af 0162      	addq.l #1,354(sp)
+    5500:	7009           	moveq #9,d0
+    5502:	b0af 0162      	cmp.l 354(sp),d0
+    5506:	6c00 ff26      	bge.w 542e <TestZoom4Picture+0x136a>
     }
   }
 
-  for(int i2=0;i2<10;i2++) {  
-    55a0:	42af 0142      	clr.l 322(sp)
-    55a4:	6032           	bra.s 55d8 <TestZoom4Picture+0x16ae>
-    TestRow( valsupposed, valactual, mask, 245+i2);
-    55a6:	222f 0142      	move.l 322(sp),d1
-    55aa:	0681 0000 00f5 	addi.l #245,d1
-    55b0:	7000           	moveq #0,d0
-    55b2:	302f 01c6      	move.w 454(sp),d0
-    55b6:	2f01           	move.l d1,-(sp)
-    55b8:	2f00           	move.l d0,-(sp)
-    55ba:	2f2f 01d0      	move.l 464(sp),-(sp)
-    55be:	2f2f 002e      	move.l 46(sp),-(sp)
-    55c2:	4eba 17dc      	jsr 6da0 <TestRow>(pc)
-    55c6:	4fef 0010      	lea 16(sp),sp
+  for(int i2=0;i2<5;i2++) {  
+    550a:	42af 0156      	clr.l 342(sp)
+    550e:	6032           	bra.s 5542 <TestZoom4Picture+0x147e>
+    TestRow( valsupposed, valactual, mask, 256+i2);
+    5510:	222f 0156      	move.l 342(sp),d1
+    5514:	0681 0000 0100 	addi.l #256,d1
+    551a:	7000           	moveq #0,d0
+    551c:	302f 01c6      	move.w 454(sp),d0
+    5520:	2f01           	move.l d1,-(sp)
+    5522:	2f00           	move.l d0,-(sp)
+    5524:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5528:	2f2f 0056      	move.l 86(sp),-(sp)
+    552c:	4eba 19f8      	jsr 6f26 <TestRow>(pc)
+    5530:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    55ca:	7030           	moveq #48,d0
-    55cc:	d1af 01c8      	add.l d0,456(sp)
+    5534:	7230           	moveq #48,d1
+    5536:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    55d0:	466f 01c6      	not.w 454(sp)
-  for(int i2=0;i2<10;i2++) {  
-    55d4:	52af 0142      	addq.l #1,322(sp)
-    55d8:	7209           	moveq #9,d1
-    55da:	b2af 0142      	cmp.l 322(sp),d1
-    55de:	6cc6           	bge.s 55a6 <TestZoom4Picture+0x167c>
+    553a:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<5;i2++) {  
+    553e:	52af 0156      	addq.l #1,342(sp)
+    5542:	7004           	moveq #4,d0
+    5544:	b0af 0156      	cmp.l 342(sp),d0
+    5548:	6cc6           	bge.s 5510 <TestZoom4Picture+0x144c>
   }
-  for(int i=0;i<7;i++) {
-    55e0:	42af 013e      	clr.l 318(sp)
-    55e4:	6064           	bra.s 564a <TestZoom4Picture+0x1720>
-    TestRow( valsupposed, valactual, mask, 255+i*2);   
-    55e6:	202f 013e      	move.l 318(sp),d0
-    55ea:	d080           	add.l d0,d0
-    55ec:	2200           	move.l d0,d1
-    55ee:	0681 0000 00ff 	addi.l #255,d1
-    55f4:	7000           	moveq #0,d0
-    55f6:	302f 01c6      	move.w 454(sp),d0
-    55fa:	2f01           	move.l d1,-(sp)
-    55fc:	2f00           	move.l d0,-(sp)
-    55fe:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5602:	2f2f 002e      	move.l 46(sp),-(sp)
-    5606:	4eba 1798      	jsr 6da0 <TestRow>(pc)
-    560a:	4fef 0010      	lea 16(sp),sp
+
+  tmp = source;
+    554a:	2f6f 005e 0046 	move.l 94(sp),70(sp)
+  source = destination;
+    5550:	2f6f 004e 005e 	move.l 78(sp),94(sp)
+  destination = tmp;
+    5556:	2f6f 0046 004e 	move.l 70(sp),78(sp)
+
+  Zoom_ZoomIntoPicture( source, destination, 7, 1);
+    555c:	4878 0001      	pea 1 <_start+0x1>
+    5560:	4878 0007      	pea 7 <_start+0x7>
+    5564:	2f2f 0056      	move.l 86(sp),-(sp)
+    5568:	2f2f 006a      	move.l 106(sp),-(sp)
+    556c:	4eba c76a      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5570:	4fef 0010      	lea 16(sp),sp
+  WaitBlit();
+    5574:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    557a:	2c40           	movea.l d0,a6
+    557c:	4eae ff1c      	jsr -228(a6)
+  valactual = destination+2; 
+    5580:	222f 004e      	move.l 78(sp),d1
+    5584:	5881           	addq.l #4,d1
+    5586:	2f41 01c8      	move.l d1,456(sp)
+  valsupposed = destlinezoom8;
+    558a:	2f7c 0001 bb18 	move.l #113432,74(sp)
+    5590:	004a 
+  mask = 0xffff;
+    5592:	3f7c ffff 01c6 	move.w #-1,454(sp)
+ 
+  TestRow( valsupposed, valactual, mask, 0);
+    5598:	7000           	moveq #0,d0
+    559a:	302f 01c6      	move.w 454(sp),d0
+    559e:	42a7           	clr.l -(sp)
+    55a0:	2f00           	move.l d0,-(sp)
+    55a2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    55a6:	2f2f 0056      	move.l 86(sp),-(sp)
+    55aa:	4eba 197a      	jsr 6f26 <TestRow>(pc)
+    55ae:	4fef 0010      	lea 16(sp),sp
+  valactual += ZMLINESIZE/2;
+    55b2:	7030           	moveq #48,d0
+    55b4:	d1af 01c8      	add.l d0,456(sp)
+  mask = mask ^ 0xffff;
+    55b8:	466f 01c6      	not.w 454(sp)
+  for(int i=0;i<5;i++) {
+    55bc:	42af 0152      	clr.l 338(sp)
+    55c0:	605c           	bra.s 561e <TestZoom4Picture+0x155a>
+    TestRow( valsupposed, valactual, mask, 1+i*2);   
+    55c2:	202f 0152      	move.l 338(sp),d0
+    55c6:	d080           	add.l d0,d0
+    55c8:	2200           	move.l d0,d1
+    55ca:	5281           	addq.l #1,d1
+    55cc:	7000           	moveq #0,d0
+    55ce:	302f 01c6      	move.w 454(sp),d0
+    55d2:	2f01           	move.l d1,-(sp)
+    55d4:	2f00           	move.l d0,-(sp)
+    55d6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    55da:	2f2f 0056      	move.l 86(sp),-(sp)
+    55de:	4eba 1946      	jsr 6f26 <TestRow>(pc)
+    55e2:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    560e:	7430           	moveq #48,d2
-    5610:	d5af 01c8      	add.l d2,456(sp)
-    TestRow( valsupposed, valactual, mask, 256+i*2);
-    5614:	202f 013e      	move.l 318(sp),d0
-    5618:	0680 0000 0080 	addi.l #128,d0
-    561e:	d080           	add.l d0,d0
-    5620:	2200           	move.l d0,d1
-    5622:	7000           	moveq #0,d0
-    5624:	302f 01c6      	move.w 454(sp),d0
-    5628:	2f01           	move.l d1,-(sp)
-    562a:	2f00           	move.l d0,-(sp)
-    562c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5630:	2f2f 002e      	move.l 46(sp),-(sp)
-    5634:	4eba 176a      	jsr 6da0 <TestRow>(pc)
-    5638:	4fef 0010      	lea 16(sp),sp
+    55e6:	7230           	moveq #48,d1
+    55e8:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, 1+i*2+1);
+    55ec:	202f 0152      	move.l 338(sp),d0
+    55f0:	5280           	addq.l #1,d0
+    55f2:	d080           	add.l d0,d0
+    55f4:	2200           	move.l d0,d1
+    55f6:	7000           	moveq #0,d0
+    55f8:	302f 01c6      	move.w 454(sp),d0
+    55fc:	2f01           	move.l d1,-(sp)
+    55fe:	2f00           	move.l d0,-(sp)
+    5600:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5604:	2f2f 0056      	move.l 86(sp),-(sp)
+    5608:	4eba 191c      	jsr 6f26 <TestRow>(pc)
+    560c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    563c:	7030           	moveq #48,d0
-    563e:	d1af 01c8      	add.l d0,456(sp)
+    5610:	7030           	moveq #48,d0
+    5612:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5642:	466f 01c6      	not.w 454(sp)
-  for(int i=0;i<7;i++) {
-    5646:	52af 013e      	addq.l #1,318(sp)
-    564a:	7206           	moveq #6,d1
-    564c:	b2af 013e      	cmp.l 318(sp),d1
-    5650:	6c94           	bge.s 55e6 <TestZoom4Picture+0x16bc>
+    5616:	466f 01c6      	not.w 454(sp)
+  for(int i=0;i<5;i++) {
+    561a:	52af 0152      	addq.l #1,338(sp)
+    561e:	7204           	moveq #4,d1
+    5620:	b2af 0152      	cmp.l 338(sp),d1
+    5624:	6c9c           	bge.s 55c2 <TestZoom4Picture+0x14fe>
   }
-  TestRow( valsupposed, valactual, mask, 269);
+
+  for(int i=0;i<9;i++) {
+    5626:	42af 014e      	clr.l 334(sp)
+    562a:	6000 00f0      	bra.w 571c <TestZoom4Picture+0x1658>
+    for(int i2=0;i2<10;i2++) {  
+    562e:	42af 014a      	clr.l 330(sp)
+    5632:	6046           	bra.s 567a <TestZoom4Picture+0x15b6>
+      TestRow( valsupposed, valactual, mask, 11+i2+i*26);
+    5634:	307c 000b      	movea.w #11,a0
+    5638:	d1ef 014a      	adda.l 330(sp),a0
+    563c:	222f 014e      	move.l 334(sp),d1
+    5640:	2001           	move.l d1,d0
+    5642:	d080           	add.l d0,d0
+    5644:	d081           	add.l d1,d0
+    5646:	d080           	add.l d0,d0
+    5648:	d080           	add.l d0,d0
+    564a:	d081           	add.l d1,d0
+    564c:	d080           	add.l d0,d0
+    564e:	2208           	move.l a0,d1
+    5650:	d280           	add.l d0,d1
     5652:	7000           	moveq #0,d0
     5654:	302f 01c6      	move.w 454(sp),d0
-    5658:	4878 010d      	pea 10d <WaitBlt+0x2d>
-    565c:	2f00           	move.l d0,-(sp)
-    565e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5662:	2f2f 002e      	move.l 46(sp),-(sp)
-    5666:	4eba 1738      	jsr 6da0 <TestRow>(pc)
-    566a:	4fef 0010      	lea 16(sp),sp
-  valactual += ZMLINESIZE/2;
-    566e:	7430           	moveq #48,d2
-    5670:	d5af 01c8      	add.l d2,456(sp)
-  mask = mask ^ 0xffff;
-    5674:	466f 01c6      	not.w 454(sp)
- 
-  tmp = source;
-    5678:	2f6f 005e 001e 	move.l 94(sp),30(sp)
-  source = destination;
-    567e:	2f6f 003a 005e 	move.l 58(sp),94(sp)
-  destination = tmp;
-    5684:	2f6f 001e 003a 	move.l 30(sp),58(sp)
-
-  Zoom_ZoomIntoPicture( source, destination, 8, 1);
-    568a:	4878 0001      	pea 1 <_start+0x1>
-    568e:	4878 0008      	pea 8 <GetVBR>
-    5692:	2f2f 0042      	move.l 66(sp),-(sp)
-    5696:	2f2f 006a      	move.l 106(sp),-(sp)
-    569a:	4eba c3c0      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    569e:	4fef 0010      	lea 16(sp),sp
-  WaitBlit();
-    56a2:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    56a8:	2c40           	movea.l d0,a6
-    56aa:	4eae ff1c      	jsr -228(a6)
-  valactual = destination+2; 
-    56ae:	202f 003a      	move.l 58(sp),d0
-    56b2:	5880           	addq.l #4,d0
-    56b4:	2f40 01c8      	move.l d0,456(sp)
-  valsupposed = destlinezoom9;
-    56b8:	2f7c 0001 b8c4 	move.l #112836,34(sp)
-    56be:	0022 
-  mask = 0x0000;
-    56c0:	426f 01c6      	clr.w 454(sp)
- 
-  TestRow( valsupposed, valactual, mask, 0);
-    56c4:	7000           	moveq #0,d0
-    56c6:	302f 01c6      	move.w 454(sp),d0
-    56ca:	42a7           	clr.l -(sp)
-    56cc:	2f00           	move.l d0,-(sp)
-    56ce:	2f2f 01d0      	move.l 464(sp),-(sp)
-    56d2:	2f2f 002e      	move.l 46(sp),-(sp)
-    56d6:	4eba 16c8      	jsr 6da0 <TestRow>(pc)
-    56da:	4fef 0010      	lea 16(sp),sp
-  valactual += ZMLINESIZE/2;
-    56de:	7230           	moveq #48,d1
-    56e0:	d3af 01c8      	add.l d1,456(sp)
-  mask = mask ^ 0xffff;
-    56e4:	466f 01c6      	not.w 454(sp)
-  
-  for(int i=0;i<3;i++) {
-    56e8:	42af 013a      	clr.l 314(sp)
-    56ec:	605c           	bra.s 574a <TestZoom4Picture+0x1820>
-    TestRow( valsupposed, valactual, mask, 1+i*2);   
-    56ee:	202f 013a      	move.l 314(sp),d0
-    56f2:	d080           	add.l d0,d0
-    56f4:	2200           	move.l d0,d1
-    56f6:	5281           	addq.l #1,d1
-    56f8:	7000           	moveq #0,d0
-    56fa:	302f 01c6      	move.w 454(sp),d0
-    56fe:	2f01           	move.l d1,-(sp)
-    5700:	2f00           	move.l d0,-(sp)
-    5702:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5706:	2f2f 002e      	move.l 46(sp),-(sp)
-    570a:	4eba 1694      	jsr 6da0 <TestRow>(pc)
-    570e:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    5712:	7430           	moveq #48,d2
-    5714:	d5af 01c8      	add.l d2,456(sp)
-    TestRow( valsupposed, valactual, mask, 1+i*2+1);
-    5718:	202f 013a      	move.l 314(sp),d0
-    571c:	5280           	addq.l #1,d0
-    571e:	d080           	add.l d0,d0
-    5720:	2200           	move.l d0,d1
-    5722:	7000           	moveq #0,d0
-    5724:	302f 01c6      	move.w 454(sp),d0
-    5728:	2f01           	move.l d1,-(sp)
-    572a:	2f00           	move.l d0,-(sp)
-    572c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5730:	2f2f 002e      	move.l 46(sp),-(sp)
-    5734:	4eba 166a      	jsr 6da0 <TestRow>(pc)
-    5738:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    573c:	7030           	moveq #48,d0
-    573e:	d1af 01c8      	add.l d0,456(sp)
-    mask = mask ^ 0xffff;
-    5742:	466f 01c6      	not.w 454(sp)
-  for(int i=0;i<3;i++) {
-    5746:	52af 013a      	addq.l #1,314(sp)
-    574a:	7202           	moveq #2,d1
-    574c:	b2af 013a      	cmp.l 314(sp),d1
-    5750:	6c9c           	bge.s 56ee <TestZoom4Picture+0x17c4>
-  }
-
-  for(int i=0;i<9;i++) {
-    5752:	42af 0136      	clr.l 310(sp)
-    5756:	6000 00ea      	bra.w 5842 <TestZoom4Picture+0x1918>
-    for(int i2=0;i2<9;i2++) {  
-    575a:	42af 0132      	clr.l 306(sp)
-    575e:	6044           	bra.s 57a4 <TestZoom4Picture+0x187a>
-      TestRow( valsupposed, valactual, mask, 11+i2+i*27);
-    5760:	307c 000b      	movea.w #11,a0
-    5764:	d1ef 0132      	adda.l 306(sp),a0
-    5768:	222f 0136      	move.l 310(sp),d1
-    576c:	2001           	move.l d1,d0
-    576e:	d080           	add.l d0,d0
-    5770:	d081           	add.l d1,d0
-    5772:	2200           	move.l d0,d1
-    5774:	e789           	lsl.l #3,d1
-    5776:	d081           	add.l d1,d0
-    5778:	2208           	move.l a0,d1
-    577a:	d280           	add.l d0,d1
-    577c:	7000           	moveq #0,d0
-    577e:	302f 01c6      	move.w 454(sp),d0
-    5782:	2f01           	move.l d1,-(sp)
-    5784:	2f00           	move.l d0,-(sp)
-    5786:	2f2f 01d0      	move.l 464(sp),-(sp)
-    578a:	2f2f 002e      	move.l 46(sp),-(sp)
-    578e:	4eba 1610      	jsr 6da0 <TestRow>(pc)
-    5792:	4fef 0010      	lea 16(sp),sp
+    5658:	2f01           	move.l d1,-(sp)
+    565a:	2f00           	move.l d0,-(sp)
+    565c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5660:	2f2f 0056      	move.l 86(sp),-(sp)
+    5664:	4eba 18c0      	jsr 6f26 <TestRow>(pc)
+    5668:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5796:	7430           	moveq #48,d2
-    5798:	d5af 01c8      	add.l d2,456(sp)
+    566c:	7030           	moveq #48,d0
+    566e:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    579c:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<9;i2++) {  
-    57a0:	52af 0132      	addq.l #1,306(sp)
-    57a4:	7008           	moveq #8,d0
-    57a6:	b0af 0132      	cmp.l 306(sp),d0
-    57aa:	6cb4           	bge.s 5760 <TestZoom4Picture+0x1836>
+    5672:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<10;i2++) {  
+    5676:	52af 014a      	addq.l #1,330(sp)
+    567a:	7209           	moveq #9,d1
+    567c:	b2af 014a      	cmp.l 330(sp),d1
+    5680:	6cb2           	bge.s 5634 <TestZoom4Picture+0x1570>
     }
-    
-    for(int i2=0;i2<9;i2++) {
-    57ac:	42af 012e      	clr.l 302(sp)
-    57b0:	6000 0082      	bra.w 5834 <TestZoom4Picture+0x190a>
-      TestRow( valsupposed, valactual, mask, 20+i*27+i2);   
-    57b4:	222f 0136      	move.l 310(sp),d1
-    57b8:	2001           	move.l d1,d0
-    57ba:	d080           	add.l d0,d0
-    57bc:	d081           	add.l d1,d0
-    57be:	2200           	move.l d0,d1
-    57c0:	e789           	lsl.l #3,d1
-    57c2:	2040           	movea.l d0,a0
-    57c4:	d1c1           	adda.l d1,a0
-    57c6:	41e8 0014      	lea 20(a0),a0
-    57ca:	2208           	move.l a0,d1
-    57cc:	d2af 012e      	add.l 302(sp),d1
-    57d0:	7000           	moveq #0,d0
-    57d2:	302f 01c6      	move.w 454(sp),d0
-    57d6:	2f01           	move.l d1,-(sp)
-    57d8:	2f00           	move.l d0,-(sp)
-    57da:	2f2f 01d0      	move.l 464(sp),-(sp)
-    57de:	2f2f 002e      	move.l 46(sp),-(sp)
-    57e2:	4eba 15bc      	jsr 6da0 <TestRow>(pc)
-    57e6:	4fef 0010      	lea 16(sp),sp
+    for(int i2=0;i2<8;i2++) {
+    5682:	42af 0146      	clr.l 326(sp)
+    5686:	6000 0086      	bra.w 570e <TestZoom4Picture+0x164a>
+      TestRow( valsupposed, valactual, mask, 21+i*26+i2);   
+    568a:	222f 014e      	move.l 334(sp),d1
+    568e:	2001           	move.l d1,d0
+    5690:	d080           	add.l d0,d0
+    5692:	d081           	add.l d1,d0
+    5694:	d080           	add.l d0,d0
+    5696:	d080           	add.l d0,d0
+    5698:	d081           	add.l d1,d0
+    569a:	d080           	add.l d0,d0
+    569c:	2040           	movea.l d0,a0
+    569e:	41e8 0015      	lea 21(a0),a0
+    56a2:	2208           	move.l a0,d1
+    56a4:	d2af 0146      	add.l 326(sp),d1
+    56a8:	7000           	moveq #0,d0
+    56aa:	302f 01c6      	move.w 454(sp),d0
+    56ae:	2f01           	move.l d1,-(sp)
+    56b0:	2f00           	move.l d0,-(sp)
+    56b2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    56b6:	2f2f 0056      	move.l 86(sp),-(sp)
+    56ba:	4eba 186a      	jsr 6f26 <TestRow>(pc)
+    56be:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    57ea:	7230           	moveq #48,d1
-    57ec:	d3af 01c8      	add.l d1,456(sp)
-      TestRow( valsupposed, valactual, mask, 21+i*27+i2);
-    57f0:	222f 0136      	move.l 310(sp),d1
-    57f4:	2001           	move.l d1,d0
-    57f6:	d080           	add.l d0,d0
-    57f8:	d081           	add.l d1,d0
-    57fa:	2200           	move.l d0,d1
-    57fc:	e789           	lsl.l #3,d1
-    57fe:	2040           	movea.l d0,a0
-    5800:	d1c1           	adda.l d1,a0
-    5802:	41e8 0015      	lea 21(a0),a0
-    5806:	2208           	move.l a0,d1
-    5808:	d2af 012e      	add.l 302(sp),d1
-    580c:	7000           	moveq #0,d0
-    580e:	302f 01c6      	move.w 454(sp),d0
-    5812:	2f01           	move.l d1,-(sp)
-    5814:	2f00           	move.l d0,-(sp)
-    5816:	2f2f 01d0      	move.l 464(sp),-(sp)
-    581a:	2f2f 002e      	move.l 46(sp),-(sp)
-    581e:	4eba 1580      	jsr 6da0 <TestRow>(pc)
-    5822:	4fef 0010      	lea 16(sp),sp
+    56c2:	7030           	moveq #48,d0
+    56c4:	d1af 01c8      	add.l d0,456(sp)
+      TestRow( valsupposed, valactual, mask, 21+i*26+i2);
+    56c8:	222f 014e      	move.l 334(sp),d1
+    56cc:	2001           	move.l d1,d0
+    56ce:	d080           	add.l d0,d0
+    56d0:	d081           	add.l d1,d0
+    56d2:	d080           	add.l d0,d0
+    56d4:	d080           	add.l d0,d0
+    56d6:	d081           	add.l d1,d0
+    56d8:	d080           	add.l d0,d0
+    56da:	2040           	movea.l d0,a0
+    56dc:	41e8 0015      	lea 21(a0),a0
+    56e0:	2208           	move.l a0,d1
+    56e2:	d2af 0146      	add.l 326(sp),d1
+    56e6:	7000           	moveq #0,d0
+    56e8:	302f 01c6      	move.w 454(sp),d0
+    56ec:	2f01           	move.l d1,-(sp)
+    56ee:	2f00           	move.l d0,-(sp)
+    56f0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    56f4:	2f2f 0056      	move.l 86(sp),-(sp)
+    56f8:	4eba 182c      	jsr 6f26 <TestRow>(pc)
+    56fc:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5826:	7430           	moveq #48,d2
-    5828:	d5af 01c8      	add.l d2,456(sp)
+    5700:	7230           	moveq #48,d1
+    5702:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    582c:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<9;i2++) {
-    5830:	52af 012e      	addq.l #1,302(sp)
-    5834:	7008           	moveq #8,d0
-    5836:	b0af 012e      	cmp.l 302(sp),d0
-    583a:	6c00 ff78      	bge.w 57b4 <TestZoom4Picture+0x188a>
+    5706:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<8;i2++) {
+    570a:	52af 0146      	addq.l #1,326(sp)
+    570e:	7007           	moveq #7,d0
+    5710:	b0af 0146      	cmp.l 326(sp),d0
+    5714:	6c00 ff74      	bge.w 568a <TestZoom4Picture+0x15c6>
   for(int i=0;i<9;i++) {
-    583e:	52af 0136      	addq.l #1,310(sp)
-    5842:	7208           	moveq #8,d1
-    5844:	b2af 0136      	cmp.l 310(sp),d1
-    5848:	6c00 ff10      	bge.w 575a <TestZoom4Picture+0x1830>
+    5718:	52af 014e      	addq.l #1,334(sp)
+    571c:	7208           	moveq #8,d1
+    571e:	b2af 014e      	cmp.l 334(sp),d1
+    5722:	6c00 ff0a      	bge.w 562e <TestZoom4Picture+0x156a>
     }
   }
 
-  for(int i2=0;i2<9;i2++) {  
-    584c:	42af 012a      	clr.l 298(sp)
-    5850:	6032           	bra.s 5884 <TestZoom4Picture+0x195a>
+  for(int i2=0;i2<10;i2++) {  
+    5726:	42af 0142      	clr.l 322(sp)
+    572a:	6032           	bra.s 575e <TestZoom4Picture+0x169a>
     TestRow( valsupposed, valactual, mask, 245+i2);
-    5852:	222f 012a      	move.l 298(sp),d1
-    5856:	0681 0000 00f5 	addi.l #245,d1
-    585c:	7000           	moveq #0,d0
-    585e:	302f 01c6      	move.w 454(sp),d0
-    5862:	2f01           	move.l d1,-(sp)
-    5864:	2f00           	move.l d0,-(sp)
-    5866:	2f2f 01d0      	move.l 464(sp),-(sp)
-    586a:	2f2f 002e      	move.l 46(sp),-(sp)
-    586e:	4eba 1530      	jsr 6da0 <TestRow>(pc)
-    5872:	4fef 0010      	lea 16(sp),sp
+    572c:	222f 0142      	move.l 322(sp),d1
+    5730:	0681 0000 00f5 	addi.l #245,d1
+    5736:	7000           	moveq #0,d0
+    5738:	302f 01c6      	move.w 454(sp),d0
+    573c:	2f01           	move.l d1,-(sp)
+    573e:	2f00           	move.l d0,-(sp)
+    5740:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5744:	2f2f 0056      	move.l 86(sp),-(sp)
+    5748:	4eba 17dc      	jsr 6f26 <TestRow>(pc)
+    574c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5876:	7430           	moveq #48,d2
-    5878:	d5af 01c8      	add.l d2,456(sp)
+    5750:	7030           	moveq #48,d0
+    5752:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    587c:	466f 01c6      	not.w 454(sp)
-  for(int i2=0;i2<9;i2++) {  
-    5880:	52af 012a      	addq.l #1,298(sp)
-    5884:	7008           	moveq #8,d0
-    5886:	b0af 012a      	cmp.l 298(sp),d0
-    588a:	6cc6           	bge.s 5852 <TestZoom4Picture+0x1928>
+    5756:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<10;i2++) {  
+    575a:	52af 0142      	addq.l #1,322(sp)
+    575e:	7209           	moveq #9,d1
+    5760:	b2af 0142      	cmp.l 322(sp),d1
+    5764:	6cc6           	bge.s 572c <TestZoom4Picture+0x1668>
   }
-  for(int i=0;i<5;i++) {
-    588c:	42af 0126      	clr.l 294(sp)
-    5890:	6064           	bra.s 58f6 <TestZoom4Picture+0x19cc>
-    TestRow( valsupposed, valactual, mask, 259+i*2);   
-    5892:	202f 0126      	move.l 294(sp),d0
-    5896:	d080           	add.l d0,d0
-    5898:	2200           	move.l d0,d1
-    589a:	0681 0000 0103 	addi.l #259,d1
-    58a0:	7000           	moveq #0,d0
-    58a2:	302f 01c6      	move.w 454(sp),d0
-    58a6:	2f01           	move.l d1,-(sp)
-    58a8:	2f00           	move.l d0,-(sp)
-    58aa:	2f2f 01d0      	move.l 464(sp),-(sp)
-    58ae:	2f2f 002e      	move.l 46(sp),-(sp)
-    58b2:	4eba 14ec      	jsr 6da0 <TestRow>(pc)
-    58b6:	4fef 0010      	lea 16(sp),sp
+  for(int i=0;i<7;i++) {
+    5766:	42af 013e      	clr.l 318(sp)
+    576a:	6064           	bra.s 57d0 <TestZoom4Picture+0x170c>
+    TestRow( valsupposed, valactual, mask, 255+i*2);   
+    576c:	202f 013e      	move.l 318(sp),d0
+    5770:	d080           	add.l d0,d0
+    5772:	2200           	move.l d0,d1
+    5774:	0681 0000 00ff 	addi.l #255,d1
+    577a:	7000           	moveq #0,d0
+    577c:	302f 01c6      	move.w 454(sp),d0
+    5780:	2f01           	move.l d1,-(sp)
+    5782:	2f00           	move.l d0,-(sp)
+    5784:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5788:	2f2f 0056      	move.l 86(sp),-(sp)
+    578c:	4eba 1798      	jsr 6f26 <TestRow>(pc)
+    5790:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    58ba:	7230           	moveq #48,d1
-    58bc:	d3af 01c8      	add.l d1,456(sp)
-    TestRow( valsupposed, valactual, mask, 260+i*2);
-    58c0:	202f 0126      	move.l 294(sp),d0
-    58c4:	0680 0000 0082 	addi.l #130,d0
-    58ca:	d080           	add.l d0,d0
-    58cc:	2200           	move.l d0,d1
-    58ce:	7000           	moveq #0,d0
-    58d0:	302f 01c6      	move.w 454(sp),d0
-    58d4:	2f01           	move.l d1,-(sp)
-    58d6:	2f00           	move.l d0,-(sp)
-    58d8:	2f2f 01d0      	move.l 464(sp),-(sp)
-    58dc:	2f2f 002e      	move.l 46(sp),-(sp)
-    58e0:	4eba 14be      	jsr 6da0 <TestRow>(pc)
-    58e4:	4fef 0010      	lea 16(sp),sp
+    5794:	7030           	moveq #48,d0
+    5796:	d1af 01c8      	add.l d0,456(sp)
+    TestRow( valsupposed, valactual, mask, 256+i*2);
+    579a:	202f 013e      	move.l 318(sp),d0
+    579e:	0680 0000 0080 	addi.l #128,d0
+    57a4:	d080           	add.l d0,d0
+    57a6:	2200           	move.l d0,d1
+    57a8:	7000           	moveq #0,d0
+    57aa:	302f 01c6      	move.w 454(sp),d0
+    57ae:	2f01           	move.l d1,-(sp)
+    57b0:	2f00           	move.l d0,-(sp)
+    57b2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    57b6:	2f2f 0056      	move.l 86(sp),-(sp)
+    57ba:	4eba 176a      	jsr 6f26 <TestRow>(pc)
+    57be:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    58e8:	7430           	moveq #48,d2
-    58ea:	d5af 01c8      	add.l d2,456(sp)
+    57c2:	7230           	moveq #48,d1
+    57c4:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    58ee:	466f 01c6      	not.w 454(sp)
-  for(int i=0;i<5;i++) {
-    58f2:	52af 0126      	addq.l #1,294(sp)
-    58f6:	7004           	moveq #4,d0
-    58f8:	b0af 0126      	cmp.l 294(sp),d0
-    58fc:	6c94           	bge.s 5892 <TestZoom4Picture+0x1968>
+    57c8:	466f 01c6      	not.w 454(sp)
+  for(int i=0;i<7;i++) {
+    57cc:	52af 013e      	addq.l #1,318(sp)
+    57d0:	7006           	moveq #6,d0
+    57d2:	b0af 013e      	cmp.l 318(sp),d0
+    57d6:	6c94           	bge.s 576c <TestZoom4Picture+0x16a8>
   }
   TestRow( valsupposed, valactual, mask, 269);
-    58fe:	7000           	moveq #0,d0
-    5900:	302f 01c6      	move.w 454(sp),d0
-    5904:	4878 010d      	pea 10d <WaitBlt+0x2d>
-    5908:	2f00           	move.l d0,-(sp)
-    590a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    590e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5912:	4eba 148c      	jsr 6da0 <TestRow>(pc)
-    5916:	4fef 0010      	lea 16(sp),sp
+    57d8:	7000           	moveq #0,d0
+    57da:	302f 01c6      	move.w 454(sp),d0
+    57de:	4878 010d      	pea 10d <FreeDisplay+0x2d>
+    57e2:	2f00           	move.l d0,-(sp)
+    57e4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    57e8:	2f2f 0056      	move.l 86(sp),-(sp)
+    57ec:	4eba 1738      	jsr 6f26 <TestRow>(pc)
+    57f0:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    591a:	7230           	moveq #48,d1
-    591c:	d3af 01c8      	add.l d1,456(sp)
+    57f4:	7230           	moveq #48,d1
+    57f6:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    5920:	466f 01c6      	not.w 454(sp)
-
+    57fa:	466f 01c6      	not.w 454(sp)
+ 
   tmp = source;
-    5924:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    57fe:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    592a:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    5804:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    5930:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    580a:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
-  Zoom_ZoomIntoPicture( source, destination, 9, 1);
-    5936:	4878 0001      	pea 1 <_start+0x1>
-    593a:	4878 0009      	pea 9 <GetVBR+0x1>
-    593e:	2f2f 0042      	move.l 66(sp),-(sp)
-    5942:	2f2f 006a      	move.l 106(sp),-(sp)
-    5946:	4eba c114      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    594a:	4fef 0010      	lea 16(sp),sp
+  Zoom_ZoomIntoPicture( source, destination, 8, 1);
+    5810:	4878 0001      	pea 1 <_start+0x1>
+    5814:	4878 0008      	pea 8 <_start+0x8>
+    5818:	2f2f 0056      	move.l 86(sp),-(sp)
+    581c:	2f2f 006a      	move.l 106(sp),-(sp)
+    5820:	4eba c4b6      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5824:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    594e:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    5954:	2c40           	movea.l d0,a6
-    5956:	4eae ff1c      	jsr -228(a6)
+    5828:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    582e:	2c40           	movea.l d0,a6
+    5830:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    595a:	242f 003a      	move.l 58(sp),d2
-    595e:	5882           	addq.l #4,d2
-    5960:	2f42 01c8      	move.l d2,456(sp)
-  valsupposed = destlinezoom10;
-    5964:	2f7c 0001 b8f0 	move.l #112880,34(sp)
-    596a:	0022 
-
-  mask = 0xffff;
-    596c:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    5834:	202f 004e      	move.l 78(sp),d0
+    5838:	5880           	addq.l #4,d0
+    583a:	2f40 01c8      	move.l d0,456(sp)
+  valsupposed = destlinezoom9;
+    583e:	2f7c 0001 bb44 	move.l #113476,74(sp)
+    5844:	004a 
+  mask = 0x0000;
+    5846:	426f 01c6      	clr.w 454(sp)
+ 
   TestRow( valsupposed, valactual, mask, 0);
-    5972:	7000           	moveq #0,d0
-    5974:	302f 01c6      	move.w 454(sp),d0
-    5978:	42a7           	clr.l -(sp)
-    597a:	2f00           	move.l d0,-(sp)
-    597c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5980:	2f2f 002e      	move.l 46(sp),-(sp)
-    5984:	4eba 141a      	jsr 6da0 <TestRow>(pc)
-    5988:	4fef 0010      	lea 16(sp),sp
+    584a:	7000           	moveq #0,d0
+    584c:	302f 01c6      	move.w 454(sp),d0
+    5850:	42a7           	clr.l -(sp)
+    5852:	2f00           	move.l d0,-(sp)
+    5854:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5858:	2f2f 0056      	move.l 86(sp),-(sp)
+    585c:	4eba 16c8      	jsr 6f26 <TestRow>(pc)
+    5860:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    598c:	7030           	moveq #48,d0
-    598e:	d1af 01c8      	add.l d0,456(sp)
+    5864:	7230           	moveq #48,d1
+    5866:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    5992:	466f 01c6      	not.w 454(sp)
-  TestRow( valsupposed, valactual, mask, 1);   
-    5996:	7000           	moveq #0,d0
-    5998:	302f 01c6      	move.w 454(sp),d0
-    599c:	4878 0001      	pea 1 <_start+0x1>
-    59a0:	2f00           	move.l d0,-(sp)
-    59a2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    59a6:	2f2f 002e      	move.l 46(sp),-(sp)
-    59aa:	4eba 13f4      	jsr 6da0 <TestRow>(pc)
-    59ae:	4fef 0010      	lea 16(sp),sp
-  valactual += ZMLINESIZE/2;
-    59b2:	7230           	moveq #48,d1
-    59b4:	d3af 01c8      	add.l d1,456(sp)
-  TestRow( valsupposed, valactual, mask, 2);
-    59b8:	7000           	moveq #0,d0
-    59ba:	302f 01c6      	move.w 454(sp),d0
-    59be:	4878 0002      	pea 2 <_start+0x2>
-    59c2:	2f00           	move.l d0,-(sp)
-    59c4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    59c8:	2f2f 002e      	move.l 46(sp),-(sp)
-    59cc:	4eba 13d2      	jsr 6da0 <TestRow>(pc)
-    59d0:	4fef 0010      	lea 16(sp),sp
-  valactual += ZMLINESIZE/2;
-    59d4:	7430           	moveq #48,d2
-    59d6:	d5af 01c8      	add.l d2,456(sp)
-  mask = mask ^ 0xffff;
-    59da:	466f 01c6      	not.w 454(sp)
+    586a:	466f 01c6      	not.w 454(sp)
+  
+  for(int i=0;i<3;i++) {
+    586e:	42af 013a      	clr.l 314(sp)
+    5872:	605c           	bra.s 58d0 <TestZoom4Picture+0x180c>
+    TestRow( valsupposed, valactual, mask, 1+i*2);   
+    5874:	202f 013a      	move.l 314(sp),d0
+    5878:	d080           	add.l d0,d0
+    587a:	2200           	move.l d0,d1
+    587c:	5281           	addq.l #1,d1
+    587e:	7000           	moveq #0,d0
+    5880:	302f 01c6      	move.w 454(sp),d0
+    5884:	2f01           	move.l d1,-(sp)
+    5886:	2f00           	move.l d0,-(sp)
+    5888:	2f2f 01d0      	move.l 464(sp),-(sp)
+    588c:	2f2f 0056      	move.l 86(sp),-(sp)
+    5890:	4eba 1694      	jsr 6f26 <TestRow>(pc)
+    5894:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    5898:	7030           	moveq #48,d0
+    589a:	d1af 01c8      	add.l d0,456(sp)
+    TestRow( valsupposed, valactual, mask, 1+i*2+1);
+    589e:	202f 013a      	move.l 314(sp),d0
+    58a2:	5280           	addq.l #1,d0
+    58a4:	d080           	add.l d0,d0
+    58a6:	2200           	move.l d0,d1
+    58a8:	7000           	moveq #0,d0
+    58aa:	302f 01c6      	move.w 454(sp),d0
+    58ae:	2f01           	move.l d1,-(sp)
+    58b0:	2f00           	move.l d0,-(sp)
+    58b2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    58b6:	2f2f 0056      	move.l 86(sp),-(sp)
+    58ba:	4eba 166a      	jsr 6f26 <TestRow>(pc)
+    58be:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    58c2:	7230           	moveq #48,d1
+    58c4:	d3af 01c8      	add.l d1,456(sp)
+    mask = mask ^ 0xffff;
+    58c8:	466f 01c6      	not.w 454(sp)
+  for(int i=0;i<3;i++) {
+    58cc:	52af 013a      	addq.l #1,314(sp)
+    58d0:	7002           	moveq #2,d0
+    58d2:	b0af 013a      	cmp.l 314(sp),d0
+    58d6:	6c9c           	bge.s 5874 <TestZoom4Picture+0x17b0>
+  }
 
   for(int i=0;i<9;i++) {
-    59de:	42af 0122      	clr.l 290(sp)
-    59e2:	6000 00e0      	bra.w 5ac4 <TestZoom4Picture+0x1b9a>
-    for(int i2=0;i2<8;i2++) {  
-    59e6:	42af 011e      	clr.l 286(sp)
-    59ea:	6040           	bra.s 5a2c <TestZoom4Picture+0x1b02>
-      TestRow( valsupposed, valactual, mask, 3+i2+i*28);
-    59ec:	206f 011e      	movea.l 286(sp),a0
-    59f0:	5688           	addq.l #3,a0
-    59f2:	222f 0122      	move.l 290(sp),d1
-    59f6:	2001           	move.l d1,d0
-    59f8:	e788           	lsl.l #3,d0
-    59fa:	9081           	sub.l d1,d0
-    59fc:	d080           	add.l d0,d0
-    59fe:	d080           	add.l d0,d0
-    5a00:	2208           	move.l a0,d1
-    5a02:	d280           	add.l d0,d1
-    5a04:	7000           	moveq #0,d0
-    5a06:	302f 01c6      	move.w 454(sp),d0
-    5a0a:	2f01           	move.l d1,-(sp)
-    5a0c:	2f00           	move.l d0,-(sp)
-    5a0e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5a12:	2f2f 002e      	move.l 46(sp),-(sp)
-    5a16:	4eba 1388      	jsr 6da0 <TestRow>(pc)
-    5a1a:	4fef 0010      	lea 16(sp),sp
+    58d8:	42af 0136      	clr.l 310(sp)
+    58dc:	6000 00ea      	bra.w 59c8 <TestZoom4Picture+0x1904>
+    for(int i2=0;i2<9;i2++) {  
+    58e0:	42af 0132      	clr.l 306(sp)
+    58e4:	6044           	bra.s 592a <TestZoom4Picture+0x1866>
+      TestRow( valsupposed, valactual, mask, 11+i2+i*27);
+    58e6:	307c 000b      	movea.w #11,a0
+    58ea:	d1ef 0132      	adda.l 306(sp),a0
+    58ee:	222f 0136      	move.l 310(sp),d1
+    58f2:	2001           	move.l d1,d0
+    58f4:	d080           	add.l d0,d0
+    58f6:	d081           	add.l d1,d0
+    58f8:	2200           	move.l d0,d1
+    58fa:	e789           	lsl.l #3,d1
+    58fc:	d081           	add.l d1,d0
+    58fe:	2208           	move.l a0,d1
+    5900:	d280           	add.l d0,d1
+    5902:	7000           	moveq #0,d0
+    5904:	302f 01c6      	move.w 454(sp),d0
+    5908:	2f01           	move.l d1,-(sp)
+    590a:	2f00           	move.l d0,-(sp)
+    590c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5910:	2f2f 0056      	move.l 86(sp),-(sp)
+    5914:	4eba 1610      	jsr 6f26 <TestRow>(pc)
+    5918:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5a1e:	7030           	moveq #48,d0
-    5a20:	d1af 01c8      	add.l d0,456(sp)
+    591c:	7230           	moveq #48,d1
+    591e:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    5a24:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<8;i2++) {  
-    5a28:	52af 011e      	addq.l #1,286(sp)
-    5a2c:	7207           	moveq #7,d1
-    5a2e:	b2af 011e      	cmp.l 286(sp),d1
-    5a32:	6cb8           	bge.s 59ec <TestZoom4Picture+0x1ac2>
+    5922:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<9;i2++) {  
+    5926:	52af 0132      	addq.l #1,306(sp)
+    592a:	7008           	moveq #8,d0
+    592c:	b0af 0132      	cmp.l 306(sp),d0
+    5930:	6cb4           	bge.s 58e6 <TestZoom4Picture+0x1822>
     }
     
-    for(int i2=0;i2<10;i2++) {
-    5a34:	42af 011a      	clr.l 282(sp)
-    5a38:	607c           	bra.s 5ab6 <TestZoom4Picture+0x1b8c>
-      TestRow( valsupposed, valactual, mask, 11+i*28+i2);   
-    5a3a:	222f 0122      	move.l 290(sp),d1
-    5a3e:	2001           	move.l d1,d0
-    5a40:	e788           	lsl.l #3,d0
-    5a42:	9081           	sub.l d1,d0
-    5a44:	d080           	add.l d0,d0
-    5a46:	d080           	add.l d0,d0
-    5a48:	2040           	movea.l d0,a0
-    5a4a:	41e8 000b      	lea 11(a0),a0
-    5a4e:	2208           	move.l a0,d1
-    5a50:	d2af 011a      	add.l 282(sp),d1
+    for(int i2=0;i2<9;i2++) {
+    5932:	42af 012e      	clr.l 302(sp)
+    5936:	6000 0082      	bra.w 59ba <TestZoom4Picture+0x18f6>
+      TestRow( valsupposed, valactual, mask, 20+i*27+i2);   
+    593a:	222f 0136      	move.l 310(sp),d1
+    593e:	2001           	move.l d1,d0
+    5940:	d080           	add.l d0,d0
+    5942:	d081           	add.l d1,d0
+    5944:	2200           	move.l d0,d1
+    5946:	e789           	lsl.l #3,d1
+    5948:	2040           	movea.l d0,a0
+    594a:	d1c1           	adda.l d1,a0
+    594c:	41e8 0014      	lea 20(a0),a0
+    5950:	2208           	move.l a0,d1
+    5952:	d2af 012e      	add.l 302(sp),d1
+    5956:	7000           	moveq #0,d0
+    5958:	302f 01c6      	move.w 454(sp),d0
+    595c:	2f01           	move.l d1,-(sp)
+    595e:	2f00           	move.l d0,-(sp)
+    5960:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5964:	2f2f 0056      	move.l 86(sp),-(sp)
+    5968:	4eba 15bc      	jsr 6f26 <TestRow>(pc)
+    596c:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    5970:	7230           	moveq #48,d1
+    5972:	d3af 01c8      	add.l d1,456(sp)
+      TestRow( valsupposed, valactual, mask, 21+i*27+i2);
+    5976:	222f 0136      	move.l 310(sp),d1
+    597a:	2001           	move.l d1,d0
+    597c:	d080           	add.l d0,d0
+    597e:	d081           	add.l d1,d0
+    5980:	2200           	move.l d0,d1
+    5982:	e789           	lsl.l #3,d1
+    5984:	2040           	movea.l d0,a0
+    5986:	d1c1           	adda.l d1,a0
+    5988:	41e8 0015      	lea 21(a0),a0
+    598c:	2208           	move.l a0,d1
+    598e:	d2af 012e      	add.l 302(sp),d1
+    5992:	7000           	moveq #0,d0
+    5994:	302f 01c6      	move.w 454(sp),d0
+    5998:	2f01           	move.l d1,-(sp)
+    599a:	2f00           	move.l d0,-(sp)
+    599c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    59a0:	2f2f 0056      	move.l 86(sp),-(sp)
+    59a4:	4eba 1580      	jsr 6f26 <TestRow>(pc)
+    59a8:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    59ac:	7030           	moveq #48,d0
+    59ae:	d1af 01c8      	add.l d0,456(sp)
+      mask = mask ^ 0xffff;
+    59b2:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<9;i2++) {
+    59b6:	52af 012e      	addq.l #1,302(sp)
+    59ba:	7208           	moveq #8,d1
+    59bc:	b2af 012e      	cmp.l 302(sp),d1
+    59c0:	6c00 ff78      	bge.w 593a <TestZoom4Picture+0x1876>
+  for(int i=0;i<9;i++) {
+    59c4:	52af 0136      	addq.l #1,310(sp)
+    59c8:	7008           	moveq #8,d0
+    59ca:	b0af 0136      	cmp.l 310(sp),d0
+    59ce:	6c00 ff10      	bge.w 58e0 <TestZoom4Picture+0x181c>
+    }
+  }
+
+  for(int i2=0;i2<9;i2++) {  
+    59d2:	42af 012a      	clr.l 298(sp)
+    59d6:	6032           	bra.s 5a0a <TestZoom4Picture+0x1946>
+    TestRow( valsupposed, valactual, mask, 245+i2);
+    59d8:	222f 012a      	move.l 298(sp),d1
+    59dc:	0681 0000 00f5 	addi.l #245,d1
+    59e2:	7000           	moveq #0,d0
+    59e4:	302f 01c6      	move.w 454(sp),d0
+    59e8:	2f01           	move.l d1,-(sp)
+    59ea:	2f00           	move.l d0,-(sp)
+    59ec:	2f2f 01d0      	move.l 464(sp),-(sp)
+    59f0:	2f2f 0056      	move.l 86(sp),-(sp)
+    59f4:	4eba 1530      	jsr 6f26 <TestRow>(pc)
+    59f8:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    59fc:	7230           	moveq #48,d1
+    59fe:	d3af 01c8      	add.l d1,456(sp)
+    mask = mask ^ 0xffff;
+    5a02:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<9;i2++) {  
+    5a06:	52af 012a      	addq.l #1,298(sp)
+    5a0a:	7008           	moveq #8,d0
+    5a0c:	b0af 012a      	cmp.l 298(sp),d0
+    5a10:	6cc6           	bge.s 59d8 <TestZoom4Picture+0x1914>
+  }
+  for(int i=0;i<5;i++) {
+    5a12:	42af 0126      	clr.l 294(sp)
+    5a16:	6064           	bra.s 5a7c <TestZoom4Picture+0x19b8>
+    TestRow( valsupposed, valactual, mask, 259+i*2);   
+    5a18:	202f 0126      	move.l 294(sp),d0
+    5a1c:	d080           	add.l d0,d0
+    5a1e:	2200           	move.l d0,d1
+    5a20:	0681 0000 0103 	addi.l #259,d1
+    5a26:	7000           	moveq #0,d0
+    5a28:	302f 01c6      	move.w 454(sp),d0
+    5a2c:	2f01           	move.l d1,-(sp)
+    5a2e:	2f00           	move.l d0,-(sp)
+    5a30:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5a34:	2f2f 0056      	move.l 86(sp),-(sp)
+    5a38:	4eba 14ec      	jsr 6f26 <TestRow>(pc)
+    5a3c:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    5a40:	7230           	moveq #48,d1
+    5a42:	d3af 01c8      	add.l d1,456(sp)
+    TestRow( valsupposed, valactual, mask, 260+i*2);
+    5a46:	202f 0126      	move.l 294(sp),d0
+    5a4a:	0680 0000 0082 	addi.l #130,d0
+    5a50:	d080           	add.l d0,d0
+    5a52:	2200           	move.l d0,d1
     5a54:	7000           	moveq #0,d0
     5a56:	302f 01c6      	move.w 454(sp),d0
     5a5a:	2f01           	move.l d1,-(sp)
     5a5c:	2f00           	move.l d0,-(sp)
     5a5e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5a62:	2f2f 002e      	move.l 46(sp),-(sp)
-    5a66:	4eba 1338      	jsr 6da0 <TestRow>(pc)
+    5a62:	2f2f 0056      	move.l 86(sp),-(sp)
+    5a66:	4eba 14be      	jsr 6f26 <TestRow>(pc)
     5a6a:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    5a6e:	7430           	moveq #48,d2
-    5a70:	d5af 01c8      	add.l d2,456(sp)
-      TestRow( valsupposed, valactual, mask, 11+i*28+i2);
-    5a74:	222f 0122      	move.l 290(sp),d1
-    5a78:	2001           	move.l d1,d0
-    5a7a:	e788           	lsl.l #3,d0
-    5a7c:	9081           	sub.l d1,d0
-    5a7e:	d080           	add.l d0,d0
-    5a80:	d080           	add.l d0,d0
-    5a82:	2040           	movea.l d0,a0
-    5a84:	41e8 000b      	lea 11(a0),a0
-    5a88:	2208           	move.l a0,d1
-    5a8a:	d2af 011a      	add.l 282(sp),d1
-    5a8e:	7000           	moveq #0,d0
-    5a90:	302f 01c6      	move.w 454(sp),d0
-    5a94:	2f01           	move.l d1,-(sp)
-    5a96:	2f00           	move.l d0,-(sp)
-    5a98:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5a9c:	2f2f 002e      	move.l 46(sp),-(sp)
-    5aa0:	4eba 12fe      	jsr 6da0 <TestRow>(pc)
-    5aa4:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    5aa8:	7030           	moveq #48,d0
-    5aaa:	d1af 01c8      	add.l d0,456(sp)
-      mask = mask ^ 0xffff;
-    5aae:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<10;i2++) {
-    5ab2:	52af 011a      	addq.l #1,282(sp)
-    5ab6:	7209           	moveq #9,d1
-    5ab8:	b2af 011a      	cmp.l 282(sp),d1
-    5abc:	6c00 ff7c      	bge.w 5a3a <TestZoom4Picture+0x1b10>
+    valactual += ZMLINESIZE/2;
+    5a6e:	7030           	moveq #48,d0
+    5a70:	d1af 01c8      	add.l d0,456(sp)
+    mask = mask ^ 0xffff;
+    5a74:	466f 01c6      	not.w 454(sp)
+  for(int i=0;i<5;i++) {
+    5a78:	52af 0126      	addq.l #1,294(sp)
+    5a7c:	7204           	moveq #4,d1
+    5a7e:	b2af 0126      	cmp.l 294(sp),d1
+    5a82:	6c94           	bge.s 5a18 <TestZoom4Picture+0x1954>
+  }
+  TestRow( valsupposed, valactual, mask, 269);
+    5a84:	7000           	moveq #0,d0
+    5a86:	302f 01c6      	move.w 454(sp),d0
+    5a8a:	4878 010d      	pea 10d <FreeDisplay+0x2d>
+    5a8e:	2f00           	move.l d0,-(sp)
+    5a90:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5a94:	2f2f 0056      	move.l 86(sp),-(sp)
+    5a98:	4eba 148c      	jsr 6f26 <TestRow>(pc)
+    5a9c:	4fef 0010      	lea 16(sp),sp
+  valactual += ZMLINESIZE/2;
+    5aa0:	7030           	moveq #48,d0
+    5aa2:	d1af 01c8      	add.l d0,456(sp)
+  mask = mask ^ 0xffff;
+    5aa6:	466f 01c6      	not.w 454(sp)
+
+  tmp = source;
+    5aaa:	2f6f 005e 0046 	move.l 94(sp),70(sp)
+  source = destination;
+    5ab0:	2f6f 004e 005e 	move.l 78(sp),94(sp)
+  destination = tmp;
+    5ab6:	2f6f 0046 004e 	move.l 70(sp),78(sp)
+
+  Zoom_ZoomIntoPicture( source, destination, 9, 1);
+    5abc:	4878 0001      	pea 1 <_start+0x1>
+    5ac0:	4878 0009      	pea 9 <_start+0x9>
+    5ac4:	2f2f 0056      	move.l 86(sp),-(sp)
+    5ac8:	2f2f 006a      	move.l 106(sp),-(sp)
+    5acc:	4eba c20a      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5ad0:	4fef 0010      	lea 16(sp),sp
+  WaitBlit();
+    5ad4:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    5ada:	2c40           	movea.l d0,a6
+    5adc:	4eae ff1c      	jsr -228(a6)
+  valactual = destination+2; 
+    5ae0:	222f 004e      	move.l 78(sp),d1
+    5ae4:	5881           	addq.l #4,d1
+    5ae6:	2f41 01c8      	move.l d1,456(sp)
+  valsupposed = destlinezoom10;
+    5aea:	2f7c 0001 bb70 	move.l #113520,74(sp)
+    5af0:	004a 
+
+  mask = 0xffff;
+    5af2:	3f7c ffff 01c6 	move.w #-1,454(sp)
+  TestRow( valsupposed, valactual, mask, 0);
+    5af8:	7000           	moveq #0,d0
+    5afa:	302f 01c6      	move.w 454(sp),d0
+    5afe:	42a7           	clr.l -(sp)
+    5b00:	2f00           	move.l d0,-(sp)
+    5b02:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5b06:	2f2f 0056      	move.l 86(sp),-(sp)
+    5b0a:	4eba 141a      	jsr 6f26 <TestRow>(pc)
+    5b0e:	4fef 0010      	lea 16(sp),sp
+  valactual += ZMLINESIZE/2;
+    5b12:	7030           	moveq #48,d0
+    5b14:	d1af 01c8      	add.l d0,456(sp)
+  mask = mask ^ 0xffff;
+    5b18:	466f 01c6      	not.w 454(sp)
+  TestRow( valsupposed, valactual, mask, 1);   
+    5b1c:	7000           	moveq #0,d0
+    5b1e:	302f 01c6      	move.w 454(sp),d0
+    5b22:	4878 0001      	pea 1 <_start+0x1>
+    5b26:	2f00           	move.l d0,-(sp)
+    5b28:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5b2c:	2f2f 0056      	move.l 86(sp),-(sp)
+    5b30:	4eba 13f4      	jsr 6f26 <TestRow>(pc)
+    5b34:	4fef 0010      	lea 16(sp),sp
+  valactual += ZMLINESIZE/2;
+    5b38:	7230           	moveq #48,d1
+    5b3a:	d3af 01c8      	add.l d1,456(sp)
+  TestRow( valsupposed, valactual, mask, 2);
+    5b3e:	7000           	moveq #0,d0
+    5b40:	302f 01c6      	move.w 454(sp),d0
+    5b44:	4878 0002      	pea 2 <_start+0x2>
+    5b48:	2f00           	move.l d0,-(sp)
+    5b4a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5b4e:	2f2f 0056      	move.l 86(sp),-(sp)
+    5b52:	4eba 13d2      	jsr 6f26 <TestRow>(pc)
+    5b56:	4fef 0010      	lea 16(sp),sp
+  valactual += ZMLINESIZE/2;
+    5b5a:	7030           	moveq #48,d0
+    5b5c:	d1af 01c8      	add.l d0,456(sp)
+  mask = mask ^ 0xffff;
+    5b60:	466f 01c6      	not.w 454(sp)
+
   for(int i=0;i<9;i++) {
-    5ac0:	52af 0122      	addq.l #1,290(sp)
-    5ac4:	7408           	moveq #8,d2
-    5ac6:	b4af 0122      	cmp.l 290(sp),d2
-    5aca:	6c00 ff1a      	bge.w 59e6 <TestZoom4Picture+0x1abc>
+    5b64:	42af 0122      	clr.l 290(sp)
+    5b68:	6000 00e0      	bra.w 5c4a <TestZoom4Picture+0x1b86>
+    for(int i2=0;i2<8;i2++) {  
+    5b6c:	42af 011e      	clr.l 286(sp)
+    5b70:	6040           	bra.s 5bb2 <TestZoom4Picture+0x1aee>
+      TestRow( valsupposed, valactual, mask, 3+i2+i*28);
+    5b72:	206f 011e      	movea.l 286(sp),a0
+    5b76:	5688           	addq.l #3,a0
+    5b78:	222f 0122      	move.l 290(sp),d1
+    5b7c:	2001           	move.l d1,d0
+    5b7e:	e788           	lsl.l #3,d0
+    5b80:	9081           	sub.l d1,d0
+    5b82:	d080           	add.l d0,d0
+    5b84:	d080           	add.l d0,d0
+    5b86:	2208           	move.l a0,d1
+    5b88:	d280           	add.l d0,d1
+    5b8a:	7000           	moveq #0,d0
+    5b8c:	302f 01c6      	move.w 454(sp),d0
+    5b90:	2f01           	move.l d1,-(sp)
+    5b92:	2f00           	move.l d0,-(sp)
+    5b94:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5b98:	2f2f 0056      	move.l 86(sp),-(sp)
+    5b9c:	4eba 1388      	jsr 6f26 <TestRow>(pc)
+    5ba0:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    5ba4:	7230           	moveq #48,d1
+    5ba6:	d3af 01c8      	add.l d1,456(sp)
+      mask = mask ^ 0xffff;
+    5baa:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<8;i2++) {  
+    5bae:	52af 011e      	addq.l #1,286(sp)
+    5bb2:	7007           	moveq #7,d0
+    5bb4:	b0af 011e      	cmp.l 286(sp),d0
+    5bb8:	6cb8           	bge.s 5b72 <TestZoom4Picture+0x1aae>
+    }
+    
+    for(int i2=0;i2<10;i2++) {
+    5bba:	42af 011a      	clr.l 282(sp)
+    5bbe:	607c           	bra.s 5c3c <TestZoom4Picture+0x1b78>
+      TestRow( valsupposed, valactual, mask, 11+i*28+i2);   
+    5bc0:	222f 0122      	move.l 290(sp),d1
+    5bc4:	2001           	move.l d1,d0
+    5bc6:	e788           	lsl.l #3,d0
+    5bc8:	9081           	sub.l d1,d0
+    5bca:	d080           	add.l d0,d0
+    5bcc:	d080           	add.l d0,d0
+    5bce:	2040           	movea.l d0,a0
+    5bd0:	41e8 000b      	lea 11(a0),a0
+    5bd4:	2208           	move.l a0,d1
+    5bd6:	d2af 011a      	add.l 282(sp),d1
+    5bda:	7000           	moveq #0,d0
+    5bdc:	302f 01c6      	move.w 454(sp),d0
+    5be0:	2f01           	move.l d1,-(sp)
+    5be2:	2f00           	move.l d0,-(sp)
+    5be4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5be8:	2f2f 0056      	move.l 86(sp),-(sp)
+    5bec:	4eba 1338      	jsr 6f26 <TestRow>(pc)
+    5bf0:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    5bf4:	7230           	moveq #48,d1
+    5bf6:	d3af 01c8      	add.l d1,456(sp)
+      TestRow( valsupposed, valactual, mask, 11+i*28+i2);
+    5bfa:	222f 0122      	move.l 290(sp),d1
+    5bfe:	2001           	move.l d1,d0
+    5c00:	e788           	lsl.l #3,d0
+    5c02:	9081           	sub.l d1,d0
+    5c04:	d080           	add.l d0,d0
+    5c06:	d080           	add.l d0,d0
+    5c08:	2040           	movea.l d0,a0
+    5c0a:	41e8 000b      	lea 11(a0),a0
+    5c0e:	2208           	move.l a0,d1
+    5c10:	d2af 011a      	add.l 282(sp),d1
+    5c14:	7000           	moveq #0,d0
+    5c16:	302f 01c6      	move.w 454(sp),d0
+    5c1a:	2f01           	move.l d1,-(sp)
+    5c1c:	2f00           	move.l d0,-(sp)
+    5c1e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5c22:	2f2f 0056      	move.l 86(sp),-(sp)
+    5c26:	4eba 12fe      	jsr 6f26 <TestRow>(pc)
+    5c2a:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    5c2e:	7030           	moveq #48,d0
+    5c30:	d1af 01c8      	add.l d0,456(sp)
+      mask = mask ^ 0xffff;
+    5c34:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<10;i2++) {
+    5c38:	52af 011a      	addq.l #1,282(sp)
+    5c3c:	7209           	moveq #9,d1
+    5c3e:	b2af 011a      	cmp.l 282(sp),d1
+    5c42:	6c00 ff7c      	bge.w 5bc0 <TestZoom4Picture+0x1afc>
+  for(int i=0;i<9;i++) {
+    5c46:	52af 0122      	addq.l #1,290(sp)
+    5c4a:	7008           	moveq #8,d0
+    5c4c:	b0af 0122      	cmp.l 290(sp),d0
+    5c50:	6c00 ff1a      	bge.w 5b6c <TestZoom4Picture+0x1aa8>
     }
   }
 
   for(int i2=0;i2<8;i2++) {  
-    5ace:	42af 0116      	clr.l 278(sp)
-    5ad2:	6032           	bra.s 5b06 <TestZoom4Picture+0x1bdc>
+    5c54:	42af 0116      	clr.l 278(sp)
+    5c58:	6032           	bra.s 5c8c <TestZoom4Picture+0x1bc8>
     TestRow( valsupposed, valactual, mask, 255+i2);
-    5ad4:	222f 0116      	move.l 278(sp),d1
-    5ad8:	0681 0000 00ff 	addi.l #255,d1
-    5ade:	7000           	moveq #0,d0
-    5ae0:	302f 01c6      	move.w 454(sp),d0
-    5ae4:	2f01           	move.l d1,-(sp)
-    5ae6:	2f00           	move.l d0,-(sp)
-    5ae8:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5aec:	2f2f 002e      	move.l 46(sp),-(sp)
-    5af0:	4eba 12ae      	jsr 6da0 <TestRow>(pc)
-    5af4:	4fef 0010      	lea 16(sp),sp
+    5c5a:	222f 0116      	move.l 278(sp),d1
+    5c5e:	0681 0000 00ff 	addi.l #255,d1
+    5c64:	7000           	moveq #0,d0
+    5c66:	302f 01c6      	move.w 454(sp),d0
+    5c6a:	2f01           	move.l d1,-(sp)
+    5c6c:	2f00           	move.l d0,-(sp)
+    5c6e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5c72:	2f2f 0056      	move.l 86(sp),-(sp)
+    5c76:	4eba 12ae      	jsr 6f26 <TestRow>(pc)
+    5c7a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5af8:	7030           	moveq #48,d0
-    5afa:	d1af 01c8      	add.l d0,456(sp)
+    5c7e:	7230           	moveq #48,d1
+    5c80:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    5afe:	466f 01c6      	not.w 454(sp)
+    5c84:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<8;i2++) {  
-    5b02:	52af 0116      	addq.l #1,278(sp)
-    5b06:	7207           	moveq #7,d1
-    5b08:	b2af 0116      	cmp.l 278(sp),d1
-    5b0c:	6cc6           	bge.s 5ad4 <TestZoom4Picture+0x1baa>
+    5c88:	52af 0116      	addq.l #1,278(sp)
+    5c8c:	7007           	moveq #7,d0
+    5c8e:	b0af 0116      	cmp.l 278(sp),d0
+    5c92:	6cc6           	bge.s 5c5a <TestZoom4Picture+0x1b96>
   }
   for(int i=0;i<3;i++) {
-    5b0e:	42af 0112      	clr.l 274(sp)
-    5b12:	6064           	bra.s 5b78 <TestZoom4Picture+0x1c4e>
+    5c94:	42af 0112      	clr.l 274(sp)
+    5c98:	6064           	bra.s 5cfe <TestZoom4Picture+0x1c3a>
     TestRow( valsupposed, valactual, mask, 263+i*2);   
-    5b14:	202f 0112      	move.l 274(sp),d0
-    5b18:	d080           	add.l d0,d0
-    5b1a:	2200           	move.l d0,d1
-    5b1c:	0681 0000 0107 	addi.l #263,d1
-    5b22:	7000           	moveq #0,d0
-    5b24:	302f 01c6      	move.w 454(sp),d0
-    5b28:	2f01           	move.l d1,-(sp)
-    5b2a:	2f00           	move.l d0,-(sp)
-    5b2c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5b30:	2f2f 002e      	move.l 46(sp),-(sp)
-    5b34:	4eba 126a      	jsr 6da0 <TestRow>(pc)
-    5b38:	4fef 0010      	lea 16(sp),sp
+    5c9a:	202f 0112      	move.l 274(sp),d0
+    5c9e:	d080           	add.l d0,d0
+    5ca0:	2200           	move.l d0,d1
+    5ca2:	0681 0000 0107 	addi.l #263,d1
+    5ca8:	7000           	moveq #0,d0
+    5caa:	302f 01c6      	move.w 454(sp),d0
+    5cae:	2f01           	move.l d1,-(sp)
+    5cb0:	2f00           	move.l d0,-(sp)
+    5cb2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5cb6:	2f2f 0056      	move.l 86(sp),-(sp)
+    5cba:	4eba 126a      	jsr 6f26 <TestRow>(pc)
+    5cbe:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5b3c:	7430           	moveq #48,d2
-    5b3e:	d5af 01c8      	add.l d2,456(sp)
+    5cc2:	7230           	moveq #48,d1
+    5cc4:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 264+i*2);
-    5b42:	202f 0112      	move.l 274(sp),d0
-    5b46:	0680 0000 0084 	addi.l #132,d0
-    5b4c:	d080           	add.l d0,d0
-    5b4e:	2200           	move.l d0,d1
-    5b50:	7000           	moveq #0,d0
-    5b52:	302f 01c6      	move.w 454(sp),d0
-    5b56:	2f01           	move.l d1,-(sp)
-    5b58:	2f00           	move.l d0,-(sp)
-    5b5a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5b5e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5b62:	4eba 123c      	jsr 6da0 <TestRow>(pc)
-    5b66:	4fef 0010      	lea 16(sp),sp
+    5cc8:	202f 0112      	move.l 274(sp),d0
+    5ccc:	0680 0000 0084 	addi.l #132,d0
+    5cd2:	d080           	add.l d0,d0
+    5cd4:	2200           	move.l d0,d1
+    5cd6:	7000           	moveq #0,d0
+    5cd8:	302f 01c6      	move.w 454(sp),d0
+    5cdc:	2f01           	move.l d1,-(sp)
+    5cde:	2f00           	move.l d0,-(sp)
+    5ce0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5ce4:	2f2f 0056      	move.l 86(sp),-(sp)
+    5ce8:	4eba 123c      	jsr 6f26 <TestRow>(pc)
+    5cec:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5b6a:	7030           	moveq #48,d0
-    5b6c:	d1af 01c8      	add.l d0,456(sp)
+    5cf0:	7030           	moveq #48,d0
+    5cf2:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5b70:	466f 01c6      	not.w 454(sp)
+    5cf6:	466f 01c6      	not.w 454(sp)
   for(int i=0;i<3;i++) {
-    5b74:	52af 0112      	addq.l #1,274(sp)
-    5b78:	7202           	moveq #2,d1
-    5b7a:	b2af 0112      	cmp.l 274(sp),d1
-    5b7e:	6c94           	bge.s 5b14 <TestZoom4Picture+0x1bea>
+    5cfa:	52af 0112      	addq.l #1,274(sp)
+    5cfe:	7202           	moveq #2,d1
+    5d00:	b2af 0112      	cmp.l 274(sp),d1
+    5d04:	6c94           	bge.s 5c9a <TestZoom4Picture+0x1bd6>
   }
 
   tmp = source;
-    5b80:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    5d06:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    5b86:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    5d0c:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    5b8c:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    5d12:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 10, 1);
-    5b92:	4878 0001      	pea 1 <_start+0x1>
-    5b96:	4878 000a      	pea a <GetVBR+0x2>
-    5b9a:	2f2f 0042      	move.l 66(sp),-(sp)
-    5b9e:	2f2f 006a      	move.l 106(sp),-(sp)
-    5ba2:	4eba beb8      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    5ba6:	4fef 0010      	lea 16(sp),sp
+    5d18:	4878 0001      	pea 1 <_start+0x1>
+    5d1c:	4878 000a      	pea a <_start+0xa>
+    5d20:	2f2f 0056      	move.l 86(sp),-(sp)
+    5d24:	2f2f 006a      	move.l 106(sp),-(sp)
+    5d28:	4eba bfae      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5d2c:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    5baa:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    5bb0:	2c40           	movea.l d0,a6
-    5bb2:	4eae ff1c      	jsr -228(a6)
+    5d30:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    5d36:	2c40           	movea.l d0,a6
+    5d38:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    5bb6:	242f 003a      	move.l 58(sp),d2
-    5bba:	5882           	addq.l #4,d2
-    5bbc:	2f42 01c8      	move.l d2,456(sp)
+    5d3c:	202f 004e      	move.l 78(sp),d0
+    5d40:	5880           	addq.l #4,d0
+    5d42:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom11;
-    5bc0:	2f7c 0001 b91c 	move.l #112924,34(sp)
-    5bc6:	0022 
+    5d46:	2f7c 0001 bb9c 	move.l #113564,74(sp)
+    5d4c:	004a 
 
   mask = 0xffff;
-    5bc8:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    5d4e:	3f7c ffff 01c6 	move.w #-1,454(sp)
  
   for(int i2=0;i2<6;i2++) {  
-    5bce:	42af 010e      	clr.l 270(sp)
-    5bd2:	602a           	bra.s 5bfe <TestZoom4Picture+0x1cd4>
+    5d54:	42af 010e      	clr.l 270(sp)
+    5d58:	602a           	bra.s 5d84 <TestZoom4Picture+0x1cc0>
     TestRow( valsupposed, valactual, mask, i2);
-    5bd4:	7000           	moveq #0,d0
-    5bd6:	302f 01c6      	move.w 454(sp),d0
-    5bda:	2f2f 010e      	move.l 270(sp),-(sp)
-    5bde:	2f00           	move.l d0,-(sp)
-    5be0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5be4:	2f2f 002e      	move.l 46(sp),-(sp)
-    5be8:	4eba 11b6      	jsr 6da0 <TestRow>(pc)
-    5bec:	4fef 0010      	lea 16(sp),sp
+    5d5a:	7000           	moveq #0,d0
+    5d5c:	302f 01c6      	move.w 454(sp),d0
+    5d60:	2f2f 010e      	move.l 270(sp),-(sp)
+    5d64:	2f00           	move.l d0,-(sp)
+    5d66:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5d6a:	2f2f 0056      	move.l 86(sp),-(sp)
+    5d6e:	4eba 11b6      	jsr 6f26 <TestRow>(pc)
+    5d72:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5bf0:	7030           	moveq #48,d0
-    5bf2:	d1af 01c8      	add.l d0,456(sp)
+    5d76:	7230           	moveq #48,d1
+    5d78:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    5bf6:	466f 01c6      	not.w 454(sp)
+    5d7c:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<6;i2++) {  
-    5bfa:	52af 010e      	addq.l #1,270(sp)
-    5bfe:	7205           	moveq #5,d1
-    5c00:	b2af 010e      	cmp.l 270(sp),d1
-    5c04:	6cce           	bge.s 5bd4 <TestZoom4Picture+0x1caa>
+    5d80:	52af 010e      	addq.l #1,270(sp)
+    5d84:	7005           	moveq #5,d0
+    5d86:	b0af 010e      	cmp.l 270(sp),d0
+    5d8a:	6cce           	bge.s 5d5a <TestZoom4Picture+0x1c96>
   }
 
   for(int i2=0;i2<11;i2++) {
-    5c06:	42af 010a      	clr.l 266(sp)
-    5c0a:	605c           	bra.s 5c68 <TestZoom4Picture+0x1d3e>
+    5d8c:	42af 010a      	clr.l 266(sp)
+    5d90:	605c           	bra.s 5dee <TestZoom4Picture+0x1d2a>
     TestRow( valsupposed, valactual, mask, 6+i2*2);   
-    5c0c:	202f 010a      	move.l 266(sp),d0
-    5c10:	5680           	addq.l #3,d0
-    5c12:	d080           	add.l d0,d0
-    5c14:	2200           	move.l d0,d1
-    5c16:	7000           	moveq #0,d0
-    5c18:	302f 01c6      	move.w 454(sp),d0
-    5c1c:	2f01           	move.l d1,-(sp)
-    5c1e:	2f00           	move.l d0,-(sp)
-    5c20:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5c24:	2f2f 002e      	move.l 46(sp),-(sp)
-    5c28:	4eba 1176      	jsr 6da0 <TestRow>(pc)
-    5c2c:	4fef 0010      	lea 16(sp),sp
+    5d92:	202f 010a      	move.l 266(sp),d0
+    5d96:	5680           	addq.l #3,d0
+    5d98:	d080           	add.l d0,d0
+    5d9a:	2200           	move.l d0,d1
+    5d9c:	7000           	moveq #0,d0
+    5d9e:	302f 01c6      	move.w 454(sp),d0
+    5da2:	2f01           	move.l d1,-(sp)
+    5da4:	2f00           	move.l d0,-(sp)
+    5da6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5daa:	2f2f 0056      	move.l 86(sp),-(sp)
+    5dae:	4eba 1176      	jsr 6f26 <TestRow>(pc)
+    5db2:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5c30:	7430           	moveq #48,d2
-    5c32:	d5af 01c8      	add.l d2,456(sp)
+    5db6:	7230           	moveq #48,d1
+    5db8:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 7+i2*2);
-    5c36:	202f 010a      	move.l 266(sp),d0
-    5c3a:	d080           	add.l d0,d0
-    5c3c:	2200           	move.l d0,d1
-    5c3e:	5e81           	addq.l #7,d1
-    5c40:	7000           	moveq #0,d0
-    5c42:	302f 01c6      	move.w 454(sp),d0
-    5c46:	2f01           	move.l d1,-(sp)
-    5c48:	2f00           	move.l d0,-(sp)
-    5c4a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5c4e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5c52:	4eba 114c      	jsr 6da0 <TestRow>(pc)
-    5c56:	4fef 0010      	lea 16(sp),sp
+    5dbc:	202f 010a      	move.l 266(sp),d0
+    5dc0:	d080           	add.l d0,d0
+    5dc2:	2200           	move.l d0,d1
+    5dc4:	5e81           	addq.l #7,d1
+    5dc6:	7000           	moveq #0,d0
+    5dc8:	302f 01c6      	move.w 454(sp),d0
+    5dcc:	2f01           	move.l d1,-(sp)
+    5dce:	2f00           	move.l d0,-(sp)
+    5dd0:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5dd4:	2f2f 0056      	move.l 86(sp),-(sp)
+    5dd8:	4eba 114c      	jsr 6f26 <TestRow>(pc)
+    5ddc:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5c5a:	7030           	moveq #48,d0
-    5c5c:	d1af 01c8      	add.l d0,456(sp)
+    5de0:	7030           	moveq #48,d0
+    5de2:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5c60:	466f 01c6      	not.w 454(sp)
+    5de6:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<11;i2++) {
-    5c64:	52af 010a      	addq.l #1,266(sp)
-    5c68:	720a           	moveq #10,d1
-    5c6a:	b2af 010a      	cmp.l 266(sp),d1
-    5c6e:	6c9c           	bge.s 5c0c <TestZoom4Picture+0x1ce2>
+    5dea:	52af 010a      	addq.l #1,266(sp)
+    5dee:	720a           	moveq #10,d1
+    5df0:	b2af 010a      	cmp.l 266(sp),d1
+    5df4:	6c9c           	bge.s 5d92 <TestZoom4Picture+0x1cce>
   }
 
   for(int i=0;i<8;i++) {
-    5c70:	42af 0106      	clr.l 262(sp)
-    5c74:	6000 00f2      	bra.w 5d68 <TestZoom4Picture+0x1e3e>
+    5df6:	42af 0106      	clr.l 262(sp)
+    5dfa:	6000 00f2      	bra.w 5eee <TestZoom4Picture+0x1e2a>
     for(int i2=0;i2<7;i2++) {  
-    5c78:	42af 0102      	clr.l 258(sp)
-    5c7c:	6044           	bra.s 5cc2 <TestZoom4Picture+0x1d98>
+    5dfe:	42af 0102      	clr.l 258(sp)
+    5e02:	6044           	bra.s 5e48 <TestZoom4Picture+0x1d84>
       TestRow( valsupposed, valactual, mask, 28+i2+i*29);
-    5c7e:	307c 001c      	movea.w #28,a0
-    5c82:	d1ef 0102      	adda.l 258(sp),a0
-    5c86:	222f 0106      	move.l 262(sp),d1
-    5c8a:	2001           	move.l d1,d0
-    5c8c:	e788           	lsl.l #3,d0
-    5c8e:	9081           	sub.l d1,d0
-    5c90:	d080           	add.l d0,d0
-    5c92:	d080           	add.l d0,d0
-    5c94:	d081           	add.l d1,d0
-    5c96:	2208           	move.l a0,d1
-    5c98:	d280           	add.l d0,d1
-    5c9a:	7000           	moveq #0,d0
-    5c9c:	302f 01c6      	move.w 454(sp),d0
-    5ca0:	2f01           	move.l d1,-(sp)
-    5ca2:	2f00           	move.l d0,-(sp)
-    5ca4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5ca8:	2f2f 002e      	move.l 46(sp),-(sp)
-    5cac:	4eba 10f2      	jsr 6da0 <TestRow>(pc)
-    5cb0:	4fef 0010      	lea 16(sp),sp
+    5e04:	307c 001c      	movea.w #28,a0
+    5e08:	d1ef 0102      	adda.l 258(sp),a0
+    5e0c:	222f 0106      	move.l 262(sp),d1
+    5e10:	2001           	move.l d1,d0
+    5e12:	e788           	lsl.l #3,d0
+    5e14:	9081           	sub.l d1,d0
+    5e16:	d080           	add.l d0,d0
+    5e18:	d080           	add.l d0,d0
+    5e1a:	d081           	add.l d1,d0
+    5e1c:	2208           	move.l a0,d1
+    5e1e:	d280           	add.l d0,d1
+    5e20:	7000           	moveq #0,d0
+    5e22:	302f 01c6      	move.w 454(sp),d0
+    5e26:	2f01           	move.l d1,-(sp)
+    5e28:	2f00           	move.l d0,-(sp)
+    5e2a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5e2e:	2f2f 0056      	move.l 86(sp),-(sp)
+    5e32:	4eba 10f2      	jsr 6f26 <TestRow>(pc)
+    5e36:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5cb4:	7430           	moveq #48,d2
-    5cb6:	d5af 01c8      	add.l d2,456(sp)
+    5e3a:	7030           	moveq #48,d0
+    5e3c:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    5cba:	466f 01c6      	not.w 454(sp)
+    5e40:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<7;i2++) {  
-    5cbe:	52af 0102      	addq.l #1,258(sp)
-    5cc2:	7006           	moveq #6,d0
-    5cc4:	b0af 0102      	cmp.l 258(sp),d0
-    5cc8:	6cb4           	bge.s 5c7e <TestZoom4Picture+0x1d54>
+    5e44:	52af 0102      	addq.l #1,258(sp)
+    5e48:	7206           	moveq #6,d1
+    5e4a:	b2af 0102      	cmp.l 258(sp),d1
+    5e4e:	6cb4           	bge.s 5e04 <TestZoom4Picture+0x1d40>
     }
     
     for(int i2=0;i2<11;i2++) {
-    5cca:	42af 00fe      	clr.l 254(sp)
-    5cce:	6000 008a      	bra.w 5d5a <TestZoom4Picture+0x1e30>
+    5e50:	42af 00fe      	clr.l 254(sp)
+    5e54:	6000 008a      	bra.w 5ee0 <TestZoom4Picture+0x1e1c>
       TestRow( valsupposed, valactual, mask, 35+i*29+i2*2);   
-    5cd2:	222f 0106      	move.l 262(sp),d1
-    5cd6:	2001           	move.l d1,d0
-    5cd8:	e788           	lsl.l #3,d0
-    5cda:	9081           	sub.l d1,d0
-    5cdc:	d080           	add.l d0,d0
-    5cde:	d080           	add.l d0,d0
-    5ce0:	2040           	movea.l d0,a0
-    5ce2:	d1c1           	adda.l d1,a0
-    5ce4:	41e8 0023      	lea 35(a0),a0
-    5ce8:	202f 00fe      	move.l 254(sp),d0
-    5cec:	d080           	add.l d0,d0
-    5cee:	2208           	move.l a0,d1
-    5cf0:	d280           	add.l d0,d1
-    5cf2:	7000           	moveq #0,d0
-    5cf4:	302f 01c6      	move.w 454(sp),d0
-    5cf8:	2f01           	move.l d1,-(sp)
-    5cfa:	2f00           	move.l d0,-(sp)
-    5cfc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5d00:	2f2f 002e      	move.l 46(sp),-(sp)
-    5d04:	4eba 109a      	jsr 6da0 <TestRow>(pc)
-    5d08:	4fef 0010      	lea 16(sp),sp
+    5e58:	222f 0106      	move.l 262(sp),d1
+    5e5c:	2001           	move.l d1,d0
+    5e5e:	e788           	lsl.l #3,d0
+    5e60:	9081           	sub.l d1,d0
+    5e62:	d080           	add.l d0,d0
+    5e64:	d080           	add.l d0,d0
+    5e66:	2040           	movea.l d0,a0
+    5e68:	d1c1           	adda.l d1,a0
+    5e6a:	41e8 0023      	lea 35(a0),a0
+    5e6e:	202f 00fe      	move.l 254(sp),d0
+    5e72:	d080           	add.l d0,d0
+    5e74:	2208           	move.l a0,d1
+    5e76:	d280           	add.l d0,d1
+    5e78:	7000           	moveq #0,d0
+    5e7a:	302f 01c6      	move.w 454(sp),d0
+    5e7e:	2f01           	move.l d1,-(sp)
+    5e80:	2f00           	move.l d0,-(sp)
+    5e82:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5e86:	2f2f 0056      	move.l 86(sp),-(sp)
+    5e8a:	4eba 109a      	jsr 6f26 <TestRow>(pc)
+    5e8e:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5d0c:	7230           	moveq #48,d1
-    5d0e:	d3af 01c8      	add.l d1,456(sp)
+    5e92:	7030           	moveq #48,d0
+    5e94:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 11+i*29+i2*2);
-    5d12:	222f 0106      	move.l 262(sp),d1
-    5d16:	2001           	move.l d1,d0
-    5d18:	e788           	lsl.l #3,d0
-    5d1a:	9081           	sub.l d1,d0
-    5d1c:	d080           	add.l d0,d0
-    5d1e:	d080           	add.l d0,d0
-    5d20:	2040           	movea.l d0,a0
-    5d22:	d1c1           	adda.l d1,a0
-    5d24:	41e8 000b      	lea 11(a0),a0
-    5d28:	202f 00fe      	move.l 254(sp),d0
-    5d2c:	d080           	add.l d0,d0
-    5d2e:	2208           	move.l a0,d1
-    5d30:	d280           	add.l d0,d1
-    5d32:	7000           	moveq #0,d0
-    5d34:	302f 01c6      	move.w 454(sp),d0
-    5d38:	2f01           	move.l d1,-(sp)
-    5d3a:	2f00           	move.l d0,-(sp)
-    5d3c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5d40:	2f2f 002e      	move.l 46(sp),-(sp)
-    5d44:	4eba 105a      	jsr 6da0 <TestRow>(pc)
-    5d48:	4fef 0010      	lea 16(sp),sp
+    5e98:	222f 0106      	move.l 262(sp),d1
+    5e9c:	2001           	move.l d1,d0
+    5e9e:	e788           	lsl.l #3,d0
+    5ea0:	9081           	sub.l d1,d0
+    5ea2:	d080           	add.l d0,d0
+    5ea4:	d080           	add.l d0,d0
+    5ea6:	2040           	movea.l d0,a0
+    5ea8:	d1c1           	adda.l d1,a0
+    5eaa:	41e8 000b      	lea 11(a0),a0
+    5eae:	202f 00fe      	move.l 254(sp),d0
+    5eb2:	d080           	add.l d0,d0
+    5eb4:	2208           	move.l a0,d1
+    5eb6:	d280           	add.l d0,d1
+    5eb8:	7000           	moveq #0,d0
+    5eba:	302f 01c6      	move.w 454(sp),d0
+    5ebe:	2f01           	move.l d1,-(sp)
+    5ec0:	2f00           	move.l d0,-(sp)
+    5ec2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5ec6:	2f2f 0056      	move.l 86(sp),-(sp)
+    5eca:	4eba 105a      	jsr 6f26 <TestRow>(pc)
+    5ece:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5d4c:	7430           	moveq #48,d2
-    5d4e:	d5af 01c8      	add.l d2,456(sp)
+    5ed2:	7230           	moveq #48,d1
+    5ed4:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    5d52:	466f 01c6      	not.w 454(sp)
+    5ed8:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<11;i2++) {
-    5d56:	52af 00fe      	addq.l #1,254(sp)
-    5d5a:	700a           	moveq #10,d0
-    5d5c:	b0af 00fe      	cmp.l 254(sp),d0
-    5d60:	6c00 ff70      	bge.w 5cd2 <TestZoom4Picture+0x1da8>
+    5edc:	52af 00fe      	addq.l #1,254(sp)
+    5ee0:	700a           	moveq #10,d0
+    5ee2:	b0af 00fe      	cmp.l 254(sp),d0
+    5ee6:	6c00 ff70      	bge.w 5e58 <TestZoom4Picture+0x1d94>
   for(int i=0;i<8;i++) {
-    5d64:	52af 0106      	addq.l #1,262(sp)
-    5d68:	7207           	moveq #7,d1
-    5d6a:	b2af 0106      	cmp.l 262(sp),d1
-    5d6e:	6c00 ff08      	bge.w 5c78 <TestZoom4Picture+0x1d4e>
+    5eea:	52af 0106      	addq.l #1,262(sp)
+    5eee:	7207           	moveq #7,d1
+    5ef0:	b2af 0106      	cmp.l 262(sp),d1
+    5ef4:	6c00 ff08      	bge.w 5dfe <TestZoom4Picture+0x1d3a>
     }
   } 
 
   for(int i2=0;i2<7;i2++) {  
-    5d72:	42af 00fa      	clr.l 250(sp)
-    5d76:	6032           	bra.s 5daa <TestZoom4Picture+0x1e80>
+    5ef8:	42af 00fa      	clr.l 250(sp)
+    5efc:	6032           	bra.s 5f30 <TestZoom4Picture+0x1e6c>
     TestRow( valsupposed, valactual, mask, 260+i2);
-    5d78:	222f 00fa      	move.l 250(sp),d1
-    5d7c:	0681 0000 0104 	addi.l #260,d1
-    5d82:	7000           	moveq #0,d0
-    5d84:	302f 01c6      	move.w 454(sp),d0
-    5d88:	2f01           	move.l d1,-(sp)
-    5d8a:	2f00           	move.l d0,-(sp)
-    5d8c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5d90:	2f2f 002e      	move.l 46(sp),-(sp)
-    5d94:	4eba 100a      	jsr 6da0 <TestRow>(pc)
-    5d98:	4fef 0010      	lea 16(sp),sp
+    5efe:	222f 00fa      	move.l 250(sp),d1
+    5f02:	0681 0000 0104 	addi.l #260,d1
+    5f08:	7000           	moveq #0,d0
+    5f0a:	302f 01c6      	move.w 454(sp),d0
+    5f0e:	2f01           	move.l d1,-(sp)
+    5f10:	2f00           	move.l d0,-(sp)
+    5f12:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5f16:	2f2f 0056      	move.l 86(sp),-(sp)
+    5f1a:	4eba 100a      	jsr 6f26 <TestRow>(pc)
+    5f1e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5d9c:	7430           	moveq #48,d2
-    5d9e:	d5af 01c8      	add.l d2,456(sp)
+    5f22:	7030           	moveq #48,d0
+    5f24:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5da2:	466f 01c6      	not.w 454(sp)
+    5f28:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<7;i2++) {  
-    5da6:	52af 00fa      	addq.l #1,250(sp)
-    5daa:	7006           	moveq #6,d0
-    5dac:	b0af 00fa      	cmp.l 250(sp),d0
-    5db0:	6cc6           	bge.s 5d78 <TestZoom4Picture+0x1e4e>
+    5f2c:	52af 00fa      	addq.l #1,250(sp)
+    5f30:	7206           	moveq #6,d1
+    5f32:	b2af 00fa      	cmp.l 250(sp),d1
+    5f36:	6cc6           	bge.s 5efe <TestZoom4Picture+0x1e3a>
   }
   TestRow( valsupposed, valactual, mask, 267);   
-    5db2:	7000           	moveq #0,d0
-    5db4:	302f 01c6      	move.w 454(sp),d0
-    5db8:	4878 010b      	pea 10b <WaitBlt+0x2b>
-    5dbc:	2f00           	move.l d0,-(sp)
-    5dbe:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5dc2:	2f2f 002e      	move.l 46(sp),-(sp)
-    5dc6:	4eba 0fd8      	jsr 6da0 <TestRow>(pc)
-    5dca:	4fef 0010      	lea 16(sp),sp
+    5f38:	7000           	moveq #0,d0
+    5f3a:	302f 01c6      	move.w 454(sp),d0
+    5f3e:	4878 010b      	pea 10b <FreeDisplay+0x2b>
+    5f42:	2f00           	move.l d0,-(sp)
+    5f44:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5f48:	2f2f 0056      	move.l 86(sp),-(sp)
+    5f4c:	4eba 0fd8      	jsr 6f26 <TestRow>(pc)
+    5f50:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    5dce:	7230           	moveq #48,d1
-    5dd0:	d3af 01c8      	add.l d1,456(sp)
+    5f54:	7030           	moveq #48,d0
+    5f56:	d1af 01c8      	add.l d0,456(sp)
   TestRow( valsupposed, valactual, mask, 268);
-    5dd4:	7000           	moveq #0,d0
-    5dd6:	302f 01c6      	move.w 454(sp),d0
-    5dda:	4878 010c      	pea 10c <WaitBlt+0x2c>
-    5dde:	2f00           	move.l d0,-(sp)
-    5de0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5de4:	2f2f 002e      	move.l 46(sp),-(sp)
-    5de8:	4eba 0fb6      	jsr 6da0 <TestRow>(pc)
-    5dec:	4fef 0010      	lea 16(sp),sp
+    5f5a:	7000           	moveq #0,d0
+    5f5c:	302f 01c6      	move.w 454(sp),d0
+    5f60:	4878 010c      	pea 10c <FreeDisplay+0x2c>
+    5f64:	2f00           	move.l d0,-(sp)
+    5f66:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5f6a:	2f2f 0056      	move.l 86(sp),-(sp)
+    5f6e:	4eba 0fb6      	jsr 6f26 <TestRow>(pc)
+    5f72:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    5df0:	7430           	moveq #48,d2
-    5df2:	d5af 01c8      	add.l d2,456(sp)
+    5f76:	7230           	moveq #48,d1
+    5f78:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    5df6:	466f 01c6      	not.w 454(sp)
+    5f7c:	466f 01c6      	not.w 454(sp)
   TestRow( valsupposed, valactual, mask, 269);
-    5dfa:	7000           	moveq #0,d0
-    5dfc:	302f 01c6      	move.w 454(sp),d0
-    5e00:	4878 010d      	pea 10d <WaitBlt+0x2d>
-    5e04:	2f00           	move.l d0,-(sp)
-    5e06:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5e0a:	2f2f 002e      	move.l 46(sp),-(sp)
-    5e0e:	4eba 0f90      	jsr 6da0 <TestRow>(pc)
-    5e12:	4fef 0010      	lea 16(sp),sp
+    5f80:	7000           	moveq #0,d0
+    5f82:	302f 01c6      	move.w 454(sp),d0
+    5f86:	4878 010d      	pea 10d <FreeDisplay+0x2d>
+    5f8a:	2f00           	move.l d0,-(sp)
+    5f8c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5f90:	2f2f 0056      	move.l 86(sp),-(sp)
+    5f94:	4eba 0f90      	jsr 6f26 <TestRow>(pc)
+    5f98:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    5e16:	7030           	moveq #48,d0
-    5e18:	d1af 01c8      	add.l d0,456(sp)
+    5f9c:	7030           	moveq #48,d0
+    5f9e:	d1af 01c8      	add.l d0,456(sp)
   
   tmp = source;
-    5e1c:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    5fa2:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    5e22:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    5fa8:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    5e28:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    5fae:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 11, 1);
-    5e2e:	4878 0001      	pea 1 <_start+0x1>
-    5e32:	4878 000b      	pea b <GetVBR+0x3>
-    5e36:	2f2f 0042      	move.l 66(sp),-(sp)
-    5e3a:	2f2f 006a      	move.l 106(sp),-(sp)
-    5e3e:	4eba bc1c      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    5e42:	4fef 0010      	lea 16(sp),sp
+    5fb4:	4878 0001      	pea 1 <_start+0x1>
+    5fb8:	4878 000b      	pea b <_start+0xb>
+    5fbc:	2f2f 0056      	move.l 86(sp),-(sp)
+    5fc0:	2f2f 006a      	move.l 106(sp),-(sp)
+    5fc4:	4eba bd12      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    5fc8:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    5e46:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    5e4c:	2c40           	movea.l d0,a6
-    5e4e:	4eae ff1c      	jsr -228(a6)
+    5fcc:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    5fd2:	2c40           	movea.l d0,a6
+    5fd4:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    5e52:	222f 003a      	move.l 58(sp),d1
-    5e56:	5881           	addq.l #4,d1
-    5e58:	2f41 01c8      	move.l d1,456(sp)
+    5fd8:	222f 004e      	move.l 78(sp),d1
+    5fdc:	5881           	addq.l #4,d1
+    5fde:	2f41 01c8      	move.l d1,456(sp)
   valsupposed = destlinezoom12;
-    5e5c:	2f7c 0001 b948 	move.l #112968,34(sp)
-    5e62:	0022 
+    5fe2:	2f7c 0001 bbc8 	move.l #113608,74(sp)
+    5fe8:	004a 
 
   mask = 0x0;
-    5e64:	426f 01c6      	clr.w 454(sp)
+    5fea:	426f 01c6      	clr.w 454(sp)
    
   TestRow( valsupposed, valactual, mask, 0);
-    5e68:	7000           	moveq #0,d0
-    5e6a:	302f 01c6      	move.w 454(sp),d0
-    5e6e:	42a7           	clr.l -(sp)
-    5e70:	2f00           	move.l d0,-(sp)
-    5e72:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5e76:	2f2f 002e      	move.l 46(sp),-(sp)
-    5e7a:	4eba 0f24      	jsr 6da0 <TestRow>(pc)
-    5e7e:	4fef 0010      	lea 16(sp),sp
+    5fee:	7000           	moveq #0,d0
+    5ff0:	302f 01c6      	move.w 454(sp),d0
+    5ff4:	42a7           	clr.l -(sp)
+    5ff6:	2f00           	move.l d0,-(sp)
+    5ff8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    5ffc:	2f2f 0056      	move.l 86(sp),-(sp)
+    6000:	4eba 0f24      	jsr 6f26 <TestRow>(pc)
+    6004:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    5e82:	7430           	moveq #48,d2
-    5e84:	d5af 01c8      	add.l d2,456(sp)
+    6008:	7030           	moveq #48,d0
+    600a:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    5e88:	466f 01c6      	not.w 454(sp)
+    600e:	466f 01c6      	not.w 454(sp)
 
   for(int i2=0;i2<12;i2++) {
-    5e8c:	42af 00f6      	clr.l 246(sp)
-    5e90:	605c           	bra.s 5eee <TestZoom4Picture+0x1fc4>
+    6012:	42af 00f6      	clr.l 246(sp)
+    6016:	605c           	bra.s 6074 <TestZoom4Picture+0x1fb0>
     TestRow( valsupposed, valactual, mask, 1+i2*2);   
-    5e92:	202f 00f6      	move.l 246(sp),d0
-    5e96:	d080           	add.l d0,d0
-    5e98:	2200           	move.l d0,d1
-    5e9a:	5281           	addq.l #1,d1
-    5e9c:	7000           	moveq #0,d0
-    5e9e:	302f 01c6      	move.w 454(sp),d0
-    5ea2:	2f01           	move.l d1,-(sp)
-    5ea4:	2f00           	move.l d0,-(sp)
-    5ea6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5eaa:	2f2f 002e      	move.l 46(sp),-(sp)
-    5eae:	4eba 0ef0      	jsr 6da0 <TestRow>(pc)
-    5eb2:	4fef 0010      	lea 16(sp),sp
+    6018:	202f 00f6      	move.l 246(sp),d0
+    601c:	d080           	add.l d0,d0
+    601e:	2200           	move.l d0,d1
+    6020:	5281           	addq.l #1,d1
+    6022:	7000           	moveq #0,d0
+    6024:	302f 01c6      	move.w 454(sp),d0
+    6028:	2f01           	move.l d1,-(sp)
+    602a:	2f00           	move.l d0,-(sp)
+    602c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6030:	2f2f 0056      	move.l 86(sp),-(sp)
+    6034:	4eba 0ef0      	jsr 6f26 <TestRow>(pc)
+    6038:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5eb6:	7030           	moveq #48,d0
-    5eb8:	d1af 01c8      	add.l d0,456(sp)
+    603c:	7230           	moveq #48,d1
+    603e:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 2+i2*2);
-    5ebc:	202f 00f6      	move.l 246(sp),d0
-    5ec0:	5280           	addq.l #1,d0
-    5ec2:	d080           	add.l d0,d0
-    5ec4:	2200           	move.l d0,d1
-    5ec6:	7000           	moveq #0,d0
-    5ec8:	302f 01c6      	move.w 454(sp),d0
-    5ecc:	2f01           	move.l d1,-(sp)
-    5ece:	2f00           	move.l d0,-(sp)
-    5ed0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5ed4:	2f2f 002e      	move.l 46(sp),-(sp)
-    5ed8:	4eba 0ec6      	jsr 6da0 <TestRow>(pc)
-    5edc:	4fef 0010      	lea 16(sp),sp
+    6042:	202f 00f6      	move.l 246(sp),d0
+    6046:	5280           	addq.l #1,d0
+    6048:	d080           	add.l d0,d0
+    604a:	2200           	move.l d0,d1
+    604c:	7000           	moveq #0,d0
+    604e:	302f 01c6      	move.w 454(sp),d0
+    6052:	2f01           	move.l d1,-(sp)
+    6054:	2f00           	move.l d0,-(sp)
+    6056:	2f2f 01d0      	move.l 464(sp),-(sp)
+    605a:	2f2f 0056      	move.l 86(sp),-(sp)
+    605e:	4eba 0ec6      	jsr 6f26 <TestRow>(pc)
+    6062:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    5ee0:	7230           	moveq #48,d1
-    5ee2:	d3af 01c8      	add.l d1,456(sp)
+    6066:	7030           	moveq #48,d0
+    6068:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    5ee6:	466f 01c6      	not.w 454(sp)
+    606c:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<12;i2++) {
-    5eea:	52af 00f6      	addq.l #1,246(sp)
-    5eee:	740b           	moveq #11,d2
-    5ef0:	b4af 00f6      	cmp.l 246(sp),d2
-    5ef4:	6c9c           	bge.s 5e92 <TestZoom4Picture+0x1f68>
+    6070:	52af 00f6      	addq.l #1,246(sp)
+    6074:	720b           	moveq #11,d1
+    6076:	b2af 00f6      	cmp.l 246(sp),d1
+    607a:	6c9c           	bge.s 6018 <TestZoom4Picture+0x1f54>
   } 
 
   for(int i=0;i<8;i++) {
-    5ef6:	42af 00f2      	clr.l 242(sp)
-    5efa:	6000 00e6      	bra.w 5fe2 <TestZoom4Picture+0x20b8>
+    607c:	42af 00f2      	clr.l 242(sp)
+    6080:	6000 00e6      	bra.w 6168 <TestZoom4Picture+0x20a4>
     for(int i2=0;i2<6;i2++) {  
-    5efe:	42af 00ee      	clr.l 238(sp)
-    5f02:	6040           	bra.s 5f44 <TestZoom4Picture+0x201a>
+    6084:	42af 00ee      	clr.l 238(sp)
+    6088:	6040           	bra.s 60ca <TestZoom4Picture+0x2006>
       TestRow( valsupposed, valactual, mask, 25+i2+i*30);
-    5f04:	307c 0019      	movea.w #25,a0
-    5f08:	d1ef 00ee      	adda.l 238(sp),a0
-    5f0c:	222f 00f2      	move.l 242(sp),d1
-    5f10:	2001           	move.l d1,d0
-    5f12:	e988           	lsl.l #4,d0
-    5f14:	9081           	sub.l d1,d0
-    5f16:	d080           	add.l d0,d0
-    5f18:	2208           	move.l a0,d1
-    5f1a:	d280           	add.l d0,d1
-    5f1c:	7000           	moveq #0,d0
-    5f1e:	302f 01c6      	move.w 454(sp),d0
-    5f22:	2f01           	move.l d1,-(sp)
-    5f24:	2f00           	move.l d0,-(sp)
-    5f26:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5f2a:	2f2f 002e      	move.l 46(sp),-(sp)
-    5f2e:	4eba 0e70      	jsr 6da0 <TestRow>(pc)
-    5f32:	4fef 0010      	lea 16(sp),sp
+    608a:	307c 0019      	movea.w #25,a0
+    608e:	d1ef 00ee      	adda.l 238(sp),a0
+    6092:	222f 00f2      	move.l 242(sp),d1
+    6096:	2001           	move.l d1,d0
+    6098:	e988           	lsl.l #4,d0
+    609a:	9081           	sub.l d1,d0
+    609c:	d080           	add.l d0,d0
+    609e:	2208           	move.l a0,d1
+    60a0:	d280           	add.l d0,d1
+    60a2:	7000           	moveq #0,d0
+    60a4:	302f 01c6      	move.w 454(sp),d0
+    60a8:	2f01           	move.l d1,-(sp)
+    60aa:	2f00           	move.l d0,-(sp)
+    60ac:	2f2f 01d0      	move.l 464(sp),-(sp)
+    60b0:	2f2f 0056      	move.l 86(sp),-(sp)
+    60b4:	4eba 0e70      	jsr 6f26 <TestRow>(pc)
+    60b8:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5f36:	7030           	moveq #48,d0
-    5f38:	d1af 01c8      	add.l d0,456(sp)
+    60bc:	7030           	moveq #48,d0
+    60be:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    5f3c:	466f 01c6      	not.w 454(sp)
+    60c2:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<6;i2++) {  
-    5f40:	52af 00ee      	addq.l #1,238(sp)
-    5f44:	7205           	moveq #5,d1
-    5f46:	b2af 00ee      	cmp.l 238(sp),d1
-    5f4a:	6cb8           	bge.s 5f04 <TestZoom4Picture+0x1fda>
+    60c6:	52af 00ee      	addq.l #1,238(sp)
+    60ca:	7205           	moveq #5,d1
+    60cc:	b2af 00ee      	cmp.l 238(sp),d1
+    60d0:	6cb8           	bge.s 608a <TestZoom4Picture+0x1fc6>
     }
     
     for(int i2=0;i2<12;i2++) {
-    5f4c:	42af 00ea      	clr.l 234(sp)
-    5f50:	6000 0082      	bra.w 5fd4 <TestZoom4Picture+0x20aa>
+    60d2:	42af 00ea      	clr.l 234(sp)
+    60d6:	6000 0082      	bra.w 615a <TestZoom4Picture+0x2096>
       TestRow( valsupposed, valactual, mask, 31+i*30+i2*2);   
-    5f54:	222f 00f2      	move.l 242(sp),d1
-    5f58:	2001           	move.l d1,d0
-    5f5a:	e988           	lsl.l #4,d0
-    5f5c:	9081           	sub.l d1,d0
-    5f5e:	d080           	add.l d0,d0
-    5f60:	2040           	movea.l d0,a0
-    5f62:	41e8 001f      	lea 31(a0),a0
-    5f66:	202f 00ea      	move.l 234(sp),d0
-    5f6a:	d080           	add.l d0,d0
-    5f6c:	2208           	move.l a0,d1
-    5f6e:	d280           	add.l d0,d1
-    5f70:	7000           	moveq #0,d0
-    5f72:	302f 01c6      	move.w 454(sp),d0
-    5f76:	2f01           	move.l d1,-(sp)
-    5f78:	2f00           	move.l d0,-(sp)
-    5f7a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5f7e:	2f2f 002e      	move.l 46(sp),-(sp)
-    5f82:	4eba 0e1c      	jsr 6da0 <TestRow>(pc)
-    5f86:	4fef 0010      	lea 16(sp),sp
+    60da:	222f 00f2      	move.l 242(sp),d1
+    60de:	2001           	move.l d1,d0
+    60e0:	e988           	lsl.l #4,d0
+    60e2:	9081           	sub.l d1,d0
+    60e4:	d080           	add.l d0,d0
+    60e6:	2040           	movea.l d0,a0
+    60e8:	41e8 001f      	lea 31(a0),a0
+    60ec:	202f 00ea      	move.l 234(sp),d0
+    60f0:	d080           	add.l d0,d0
+    60f2:	2208           	move.l a0,d1
+    60f4:	d280           	add.l d0,d1
+    60f6:	7000           	moveq #0,d0
+    60f8:	302f 01c6      	move.w 454(sp),d0
+    60fc:	2f01           	move.l d1,-(sp)
+    60fe:	2f00           	move.l d0,-(sp)
+    6100:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6104:	2f2f 0056      	move.l 86(sp),-(sp)
+    6108:	4eba 0e1c      	jsr 6f26 <TestRow>(pc)
+    610c:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5f8a:	7430           	moveq #48,d2
-    5f8c:	d5af 01c8      	add.l d2,456(sp)
+    6110:	7030           	moveq #48,d0
+    6112:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 32+i*30+i2*2);
-    5f90:	222f 00f2      	move.l 242(sp),d1
-    5f94:	2001           	move.l d1,d0
-    5f96:	e988           	lsl.l #4,d0
-    5f98:	9081           	sub.l d1,d0
-    5f9a:	d080           	add.l d0,d0
-    5f9c:	2040           	movea.l d0,a0
-    5f9e:	41e8 0020      	lea 32(a0),a0
-    5fa2:	202f 00ea      	move.l 234(sp),d0
-    5fa6:	d080           	add.l d0,d0
-    5fa8:	2208           	move.l a0,d1
-    5faa:	d280           	add.l d0,d1
-    5fac:	7000           	moveq #0,d0
-    5fae:	302f 01c6      	move.w 454(sp),d0
-    5fb2:	2f01           	move.l d1,-(sp)
-    5fb4:	2f00           	move.l d0,-(sp)
-    5fb6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    5fba:	2f2f 002e      	move.l 46(sp),-(sp)
-    5fbe:	4eba 0de0      	jsr 6da0 <TestRow>(pc)
-    5fc2:	4fef 0010      	lea 16(sp),sp
+    6116:	222f 00f2      	move.l 242(sp),d1
+    611a:	2001           	move.l d1,d0
+    611c:	e988           	lsl.l #4,d0
+    611e:	9081           	sub.l d1,d0
+    6120:	d080           	add.l d0,d0
+    6122:	2040           	movea.l d0,a0
+    6124:	41e8 0020      	lea 32(a0),a0
+    6128:	202f 00ea      	move.l 234(sp),d0
+    612c:	d080           	add.l d0,d0
+    612e:	2208           	move.l a0,d1
+    6130:	d280           	add.l d0,d1
+    6132:	7000           	moveq #0,d0
+    6134:	302f 01c6      	move.w 454(sp),d0
+    6138:	2f01           	move.l d1,-(sp)
+    613a:	2f00           	move.l d0,-(sp)
+    613c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6140:	2f2f 0056      	move.l 86(sp),-(sp)
+    6144:	4eba 0de0      	jsr 6f26 <TestRow>(pc)
+    6148:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    5fc6:	7030           	moveq #48,d0
-    5fc8:	d1af 01c8      	add.l d0,456(sp)
+    614c:	7230           	moveq #48,d1
+    614e:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    5fcc:	466f 01c6      	not.w 454(sp)
+    6152:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<12;i2++) {
-    5fd0:	52af 00ea      	addq.l #1,234(sp)
-    5fd4:	720b           	moveq #11,d1
-    5fd6:	b2af 00ea      	cmp.l 234(sp),d1
-    5fda:	6c00 ff78      	bge.w 5f54 <TestZoom4Picture+0x202a>
+    6156:	52af 00ea      	addq.l #1,234(sp)
+    615a:	700b           	moveq #11,d0
+    615c:	b0af 00ea      	cmp.l 234(sp),d0
+    6160:	6c00 ff78      	bge.w 60da <TestZoom4Picture+0x2016>
   for(int i=0;i<8;i++) {
-    5fde:	52af 00f2      	addq.l #1,242(sp)
-    5fe2:	7407           	moveq #7,d2
-    5fe4:	b4af 00f2      	cmp.l 242(sp),d2
-    5fe8:	6c00 ff14      	bge.w 5efe <TestZoom4Picture+0x1fd4>
+    6164:	52af 00f2      	addq.l #1,242(sp)
+    6168:	7207           	moveq #7,d1
+    616a:	b2af 00f2      	cmp.l 242(sp),d1
+    616e:	6c00 ff14      	bge.w 6084 <TestZoom4Picture+0x1fc0>
     }
   } 
 
   for(int i2=0;i2<5;i2++) {  
-    5fec:	42af 00e6      	clr.l 230(sp)
-    5ff0:	6032           	bra.s 6024 <TestZoom4Picture+0x20fa>
+    6172:	42af 00e6      	clr.l 230(sp)
+    6176:	6032           	bra.s 61aa <TestZoom4Picture+0x20e6>
     TestRow( valsupposed, valactual, mask, 260+i2);
-    5ff2:	222f 00e6      	move.l 230(sp),d1
-    5ff6:	0681 0000 0104 	addi.l #260,d1
-    5ffc:	7000           	moveq #0,d0
-    5ffe:	302f 01c6      	move.w 454(sp),d0
-    6002:	2f01           	move.l d1,-(sp)
-    6004:	2f00           	move.l d0,-(sp)
-    6006:	2f2f 01d0      	move.l 464(sp),-(sp)
-    600a:	2f2f 002e      	move.l 46(sp),-(sp)
-    600e:	4eba 0d90      	jsr 6da0 <TestRow>(pc)
-    6012:	4fef 0010      	lea 16(sp),sp
+    6178:	222f 00e6      	move.l 230(sp),d1
+    617c:	0681 0000 0104 	addi.l #260,d1
+    6182:	7000           	moveq #0,d0
+    6184:	302f 01c6      	move.w 454(sp),d0
+    6188:	2f01           	move.l d1,-(sp)
+    618a:	2f00           	move.l d0,-(sp)
+    618c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6190:	2f2f 0056      	move.l 86(sp),-(sp)
+    6194:	4eba 0d90      	jsr 6f26 <TestRow>(pc)
+    6198:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6016:	7030           	moveq #48,d0
-    6018:	d1af 01c8      	add.l d0,456(sp)
+    619c:	7030           	moveq #48,d0
+    619e:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    601c:	466f 01c6      	not.w 454(sp)
+    61a2:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<5;i2++) {  
-    6020:	52af 00e6      	addq.l #1,230(sp)
-    6024:	7204           	moveq #4,d1
-    6026:	b2af 00e6      	cmp.l 230(sp),d1
-    602a:	6cc6           	bge.s 5ff2 <TestZoom4Picture+0x20c8>
+    61a6:	52af 00e6      	addq.l #1,230(sp)
+    61aa:	7204           	moveq #4,d1
+    61ac:	b2af 00e6      	cmp.l 230(sp),d1
+    61b0:	6cc6           	bge.s 6178 <TestZoom4Picture+0x20b4>
   }
 
   tmp = source;
-    602c:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    61b2:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    6032:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    61b8:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    6038:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    61be:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 12, 1);
-    603e:	4878 0001      	pea 1 <_start+0x1>
-    6042:	4878 000c      	pea c <GetVBR+0x4>
-    6046:	2f2f 0042      	move.l 66(sp),-(sp)
-    604a:	2f2f 006a      	move.l 106(sp),-(sp)
-    604e:	4eba ba0c      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    6052:	4fef 0010      	lea 16(sp),sp
+    61c4:	4878 0001      	pea 1 <_start+0x1>
+    61c8:	4878 000c      	pea c <_start+0xc>
+    61cc:	2f2f 0056      	move.l 86(sp),-(sp)
+    61d0:	2f2f 006a      	move.l 106(sp),-(sp)
+    61d4:	4eba bb02      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    61d8:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    6056:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    605c:	2c40           	movea.l d0,a6
-    605e:	4eae ff1c      	jsr -228(a6)
+    61dc:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    61e2:	2c40           	movea.l d0,a6
+    61e4:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    6062:	242f 003a      	move.l 58(sp),d2
-    6066:	5882           	addq.l #4,d2
-    6068:	2f42 01c8      	move.l d2,456(sp)
+    61e8:	202f 004e      	move.l 78(sp),d0
+    61ec:	5880           	addq.l #4,d0
+    61ee:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom13;
-    606c:	2f7c 0001 b974 	move.l #113012,34(sp)
-    6072:	0022 
+    61f2:	2f7c 0001 bbf4 	move.l #113652,74(sp)
+    61f8:	004a 
 
   mask = 0xffff;
-    6074:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    61fa:	3f7c ffff 01c6 	move.w #-1,454(sp)
 
   for(int i2=0;i2<11;i2++) {
-    607a:	42af 00e2      	clr.l 226(sp)
-    607e:	605a           	bra.s 60da <TestZoom4Picture+0x21b0>
+    6200:	42af 00e2      	clr.l 226(sp)
+    6204:	605a           	bra.s 6260 <TestZoom4Picture+0x219c>
     TestRow( valsupposed, valactual, mask, 0+i2*2);   
-    6080:	202f 00e2      	move.l 226(sp),d0
-    6084:	d080           	add.l d0,d0
-    6086:	2200           	move.l d0,d1
-    6088:	7000           	moveq #0,d0
-    608a:	302f 01c6      	move.w 454(sp),d0
-    608e:	2f01           	move.l d1,-(sp)
-    6090:	2f00           	move.l d0,-(sp)
-    6092:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6096:	2f2f 002e      	move.l 46(sp),-(sp)
-    609a:	4eba 0d04      	jsr 6da0 <TestRow>(pc)
-    609e:	4fef 0010      	lea 16(sp),sp
+    6206:	202f 00e2      	move.l 226(sp),d0
+    620a:	d080           	add.l d0,d0
+    620c:	2200           	move.l d0,d1
+    620e:	7000           	moveq #0,d0
+    6210:	302f 01c6      	move.w 454(sp),d0
+    6214:	2f01           	move.l d1,-(sp)
+    6216:	2f00           	move.l d0,-(sp)
+    6218:	2f2f 01d0      	move.l 464(sp),-(sp)
+    621c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6220:	4eba 0d04      	jsr 6f26 <TestRow>(pc)
+    6224:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    60a2:	7030           	moveq #48,d0
-    60a4:	d1af 01c8      	add.l d0,456(sp)
+    6228:	7230           	moveq #48,d1
+    622a:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 1+i2*2);
-    60a8:	202f 00e2      	move.l 226(sp),d0
-    60ac:	d080           	add.l d0,d0
-    60ae:	2200           	move.l d0,d1
-    60b0:	5281           	addq.l #1,d1
-    60b2:	7000           	moveq #0,d0
-    60b4:	302f 01c6      	move.w 454(sp),d0
-    60b8:	2f01           	move.l d1,-(sp)
-    60ba:	2f00           	move.l d0,-(sp)
-    60bc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    60c0:	2f2f 002e      	move.l 46(sp),-(sp)
-    60c4:	4eba 0cda      	jsr 6da0 <TestRow>(pc)
-    60c8:	4fef 0010      	lea 16(sp),sp
+    622e:	202f 00e2      	move.l 226(sp),d0
+    6232:	d080           	add.l d0,d0
+    6234:	2200           	move.l d0,d1
+    6236:	5281           	addq.l #1,d1
+    6238:	7000           	moveq #0,d0
+    623a:	302f 01c6      	move.w 454(sp),d0
+    623e:	2f01           	move.l d1,-(sp)
+    6240:	2f00           	move.l d0,-(sp)
+    6242:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6246:	2f2f 0056      	move.l 86(sp),-(sp)
+    624a:	4eba 0cda      	jsr 6f26 <TestRow>(pc)
+    624e:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    60cc:	7230           	moveq #48,d1
-    60ce:	d3af 01c8      	add.l d1,456(sp)
+    6252:	7030           	moveq #48,d0
+    6254:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    60d2:	466f 01c6      	not.w 454(sp)
+    6258:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<11;i2++) {
-    60d6:	52af 00e2      	addq.l #1,226(sp)
-    60da:	740a           	moveq #10,d2
-    60dc:	b4af 00e2      	cmp.l 226(sp),d2
-    60e0:	6c9e           	bge.s 6080 <TestZoom4Picture+0x2156>
+    625c:	52af 00e2      	addq.l #1,226(sp)
+    6260:	720a           	moveq #10,d1
+    6262:	b2af 00e2      	cmp.l 226(sp),d1
+    6266:	6c9e           	bge.s 6206 <TestZoom4Picture+0x2142>
   } 
 
   for(int i=0;i<8;i++) {
-    60e2:	42af 00de      	clr.l 222(sp)
-    60e6:	6000 00de      	bra.w 61c6 <TestZoom4Picture+0x229c>
+    6268:	42af 00de      	clr.l 222(sp)
+    626c:	6000 00de      	bra.w 634c <TestZoom4Picture+0x2288>
     for(int i2=0;i2<5;i2++) {  
-    60ea:	42af 00da      	clr.l 218(sp)
-    60ee:	603e           	bra.s 612e <TestZoom4Picture+0x2204>
+    6270:	42af 00da      	clr.l 218(sp)
+    6274:	603e           	bra.s 62b4 <TestZoom4Picture+0x21f0>
       TestRow( valsupposed, valactual, mask, 22+i2+i*31);
-    60f0:	307c 0016      	movea.w #22,a0
-    60f4:	d1ef 00da      	adda.l 218(sp),a0
-    60f8:	222f 00de      	move.l 222(sp),d1
-    60fc:	2001           	move.l d1,d0
-    60fe:	eb88           	lsl.l #5,d0
-    6100:	9081           	sub.l d1,d0
-    6102:	2208           	move.l a0,d1
-    6104:	d280           	add.l d0,d1
-    6106:	7000           	moveq #0,d0
-    6108:	302f 01c6      	move.w 454(sp),d0
-    610c:	2f01           	move.l d1,-(sp)
-    610e:	2f00           	move.l d0,-(sp)
-    6110:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6114:	2f2f 002e      	move.l 46(sp),-(sp)
-    6118:	4eba 0c86      	jsr 6da0 <TestRow>(pc)
-    611c:	4fef 0010      	lea 16(sp),sp
+    6276:	307c 0016      	movea.w #22,a0
+    627a:	d1ef 00da      	adda.l 218(sp),a0
+    627e:	222f 00de      	move.l 222(sp),d1
+    6282:	2001           	move.l d1,d0
+    6284:	eb88           	lsl.l #5,d0
+    6286:	9081           	sub.l d1,d0
+    6288:	2208           	move.l a0,d1
+    628a:	d280           	add.l d0,d1
+    628c:	7000           	moveq #0,d0
+    628e:	302f 01c6      	move.w 454(sp),d0
+    6292:	2f01           	move.l d1,-(sp)
+    6294:	2f00           	move.l d0,-(sp)
+    6296:	2f2f 01d0      	move.l 464(sp),-(sp)
+    629a:	2f2f 0056      	move.l 86(sp),-(sp)
+    629e:	4eba 0c86      	jsr 6f26 <TestRow>(pc)
+    62a2:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6120:	7030           	moveq #48,d0
-    6122:	d1af 01c8      	add.l d0,456(sp)
+    62a6:	7030           	moveq #48,d0
+    62a8:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    6126:	466f 01c6      	not.w 454(sp)
+    62ac:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<5;i2++) {  
-    612a:	52af 00da      	addq.l #1,218(sp)
-    612e:	7204           	moveq #4,d1
-    6130:	b2af 00da      	cmp.l 218(sp),d1
-    6134:	6cba           	bge.s 60f0 <TestZoom4Picture+0x21c6>
+    62b0:	52af 00da      	addq.l #1,218(sp)
+    62b4:	7204           	moveq #4,d1
+    62b6:	b2af 00da      	cmp.l 218(sp),d1
+    62ba:	6cba           	bge.s 6276 <TestZoom4Picture+0x21b2>
     }
     
     for(int i2=0;i2<13;i2++) {
-    6136:	42af 00d6      	clr.l 214(sp)
-    613a:	607c           	bra.s 61b8 <TestZoom4Picture+0x228e>
+    62bc:	42af 00d6      	clr.l 214(sp)
+    62c0:	607c           	bra.s 633e <TestZoom4Picture+0x227a>
       TestRow( valsupposed, valactual, mask, 27+i*31+i2*2);   
-    613c:	222f 00de      	move.l 222(sp),d1
-    6140:	2001           	move.l d1,d0
-    6142:	eb88           	lsl.l #5,d0
-    6144:	2040           	movea.l d0,a0
-    6146:	91c1           	suba.l d1,a0
-    6148:	41e8 001b      	lea 27(a0),a0
-    614c:	202f 00d6      	move.l 214(sp),d0
-    6150:	d080           	add.l d0,d0
-    6152:	2208           	move.l a0,d1
-    6154:	d280           	add.l d0,d1
-    6156:	7000           	moveq #0,d0
-    6158:	302f 01c6      	move.w 454(sp),d0
-    615c:	2f01           	move.l d1,-(sp)
-    615e:	2f00           	move.l d0,-(sp)
-    6160:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6164:	2f2f 002e      	move.l 46(sp),-(sp)
-    6168:	4eba 0c36      	jsr 6da0 <TestRow>(pc)
-    616c:	4fef 0010      	lea 16(sp),sp
+    62c2:	222f 00de      	move.l 222(sp),d1
+    62c6:	2001           	move.l d1,d0
+    62c8:	eb88           	lsl.l #5,d0
+    62ca:	2040           	movea.l d0,a0
+    62cc:	91c1           	suba.l d1,a0
+    62ce:	41e8 001b      	lea 27(a0),a0
+    62d2:	202f 00d6      	move.l 214(sp),d0
+    62d6:	d080           	add.l d0,d0
+    62d8:	2208           	move.l a0,d1
+    62da:	d280           	add.l d0,d1
+    62dc:	7000           	moveq #0,d0
+    62de:	302f 01c6      	move.w 454(sp),d0
+    62e2:	2f01           	move.l d1,-(sp)
+    62e4:	2f00           	move.l d0,-(sp)
+    62e6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    62ea:	2f2f 0056      	move.l 86(sp),-(sp)
+    62ee:	4eba 0c36      	jsr 6f26 <TestRow>(pc)
+    62f2:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6170:	7430           	moveq #48,d2
-    6172:	d5af 01c8      	add.l d2,456(sp)
+    62f6:	7030           	moveq #48,d0
+    62f8:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 28+i*31+i2*2);
-    6176:	222f 00de      	move.l 222(sp),d1
-    617a:	2001           	move.l d1,d0
-    617c:	eb88           	lsl.l #5,d0
-    617e:	2040           	movea.l d0,a0
-    6180:	91c1           	suba.l d1,a0
-    6182:	41e8 001c      	lea 28(a0),a0
-    6186:	202f 00d6      	move.l 214(sp),d0
-    618a:	d080           	add.l d0,d0
-    618c:	2208           	move.l a0,d1
-    618e:	d280           	add.l d0,d1
-    6190:	7000           	moveq #0,d0
-    6192:	302f 01c6      	move.w 454(sp),d0
-    6196:	2f01           	move.l d1,-(sp)
-    6198:	2f00           	move.l d0,-(sp)
-    619a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    619e:	2f2f 002e      	move.l 46(sp),-(sp)
-    61a2:	4eba 0bfc      	jsr 6da0 <TestRow>(pc)
-    61a6:	4fef 0010      	lea 16(sp),sp
+    62fc:	222f 00de      	move.l 222(sp),d1
+    6300:	2001           	move.l d1,d0
+    6302:	eb88           	lsl.l #5,d0
+    6304:	2040           	movea.l d0,a0
+    6306:	91c1           	suba.l d1,a0
+    6308:	41e8 001c      	lea 28(a0),a0
+    630c:	202f 00d6      	move.l 214(sp),d0
+    6310:	d080           	add.l d0,d0
+    6312:	2208           	move.l a0,d1
+    6314:	d280           	add.l d0,d1
+    6316:	7000           	moveq #0,d0
+    6318:	302f 01c6      	move.w 454(sp),d0
+    631c:	2f01           	move.l d1,-(sp)
+    631e:	2f00           	move.l d0,-(sp)
+    6320:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6324:	2f2f 0056      	move.l 86(sp),-(sp)
+    6328:	4eba 0bfc      	jsr 6f26 <TestRow>(pc)
+    632c:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    61aa:	7030           	moveq #48,d0
-    61ac:	d1af 01c8      	add.l d0,456(sp)
+    6330:	7230           	moveq #48,d1
+    6332:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    61b0:	466f 01c6      	not.w 454(sp)
+    6336:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<13;i2++) {
-    61b4:	52af 00d6      	addq.l #1,214(sp)
-    61b8:	720c           	moveq #12,d1
-    61ba:	b2af 00d6      	cmp.l 214(sp),d1
-    61be:	6c00 ff7c      	bge.w 613c <TestZoom4Picture+0x2212>
+    633a:	52af 00d6      	addq.l #1,214(sp)
+    633e:	700c           	moveq #12,d0
+    6340:	b0af 00d6      	cmp.l 214(sp),d0
+    6344:	6c00 ff7c      	bge.w 62c2 <TestZoom4Picture+0x21fe>
   for(int i=0;i<8;i++) {
-    61c2:	52af 00de      	addq.l #1,222(sp)
-    61c6:	7407           	moveq #7,d2
-    61c8:	b4af 00de      	cmp.l 222(sp),d2
-    61cc:	6c00 ff1c      	bge.w 60ea <TestZoom4Picture+0x21c0>
+    6348:	52af 00de      	addq.l #1,222(sp)
+    634c:	7207           	moveq #7,d1
+    634e:	b2af 00de      	cmp.l 222(sp),d1
+    6352:	6c00 ff1c      	bge.w 6270 <TestZoom4Picture+0x21ac>
     }
   } 
 
   tmp = source;
-    61d0:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    6356:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    61d6:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    635c:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    61dc:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    6362:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 13, 1);
-    61e2:	4878 0001      	pea 1 <_start+0x1>
-    61e6:	4878 000d      	pea d <GetVBR+0x5>
-    61ea:	2f2f 0042      	move.l 66(sp),-(sp)
-    61ee:	2f2f 006a      	move.l 106(sp),-(sp)
-    61f2:	4eba b868      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    61f6:	4fef 0010      	lea 16(sp),sp
+    6368:	4878 0001      	pea 1 <_start+0x1>
+    636c:	4878 000d      	pea d <_start+0xd>
+    6370:	2f2f 0056      	move.l 86(sp),-(sp)
+    6374:	2f2f 006a      	move.l 106(sp),-(sp)
+    6378:	4eba b95e      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    637c:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    61fa:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    6200:	2c40           	movea.l d0,a6
-    6202:	4eae ff1c      	jsr -228(a6)
+    6380:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    6386:	2c40           	movea.l d0,a6
+    6388:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    6206:	202f 003a      	move.l 58(sp),d0
-    620a:	5880           	addq.l #4,d0
-    620c:	2f40 01c8      	move.l d0,456(sp)
+    638c:	202f 004e      	move.l 78(sp),d0
+    6390:	5880           	addq.l #4,d0
+    6392:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom14;
-    6210:	2f7c 0001 b9a0 	move.l #113056,34(sp)
-    6216:	0022 
+    6396:	2f7c 0001 bc20 	move.l #113696,74(sp)
+    639c:	004a 
 
   mask = 0xffff;
-    6218:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    639e:	3f7c ffff 01c6 	move.w #-1,454(sp)
 
   TestRow( valsupposed, valactual, mask, 0);   
-    621e:	7000           	moveq #0,d0
-    6220:	302f 01c6      	move.w 454(sp),d0
-    6224:	42a7           	clr.l -(sp)
-    6226:	2f00           	move.l d0,-(sp)
-    6228:	2f2f 01d0      	move.l 464(sp),-(sp)
-    622c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6230:	4eba 0b6e      	jsr 6da0 <TestRow>(pc)
-    6234:	4fef 0010      	lea 16(sp),sp
+    63a4:	7000           	moveq #0,d0
+    63a6:	302f 01c6      	move.w 454(sp),d0
+    63aa:	42a7           	clr.l -(sp)
+    63ac:	2f00           	move.l d0,-(sp)
+    63ae:	2f2f 01d0      	move.l 464(sp),-(sp)
+    63b2:	2f2f 0056      	move.l 86(sp),-(sp)
+    63b6:	4eba 0b6e      	jsr 6f26 <TestRow>(pc)
+    63ba:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2; 
-    6238:	7230           	moveq #48,d1
-    623a:	d3af 01c8      	add.l d1,456(sp)
+    63be:	7230           	moveq #48,d1
+    63c0:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff; 
-    623e:	466f 01c6      	not.w 454(sp)
+    63c4:	466f 01c6      	not.w 454(sp)
 
   for(int i2=0;i2<9;i2++) {
-    6242:	42af 00d2      	clr.l 210(sp)
-    6246:	605c           	bra.s 62a4 <TestZoom4Picture+0x237a>
+    63c8:	42af 00d2      	clr.l 210(sp)
+    63cc:	605c           	bra.s 642a <TestZoom4Picture+0x2366>
     TestRow( valsupposed, valactual, mask, 1+i2*2);   
-    6248:	202f 00d2      	move.l 210(sp),d0
-    624c:	d080           	add.l d0,d0
-    624e:	2200           	move.l d0,d1
-    6250:	5281           	addq.l #1,d1
-    6252:	7000           	moveq #0,d0
-    6254:	302f 01c6      	move.w 454(sp),d0
-    6258:	2f01           	move.l d1,-(sp)
-    625a:	2f00           	move.l d0,-(sp)
-    625c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6260:	2f2f 002e      	move.l 46(sp),-(sp)
-    6264:	4eba 0b3a      	jsr 6da0 <TestRow>(pc)
-    6268:	4fef 0010      	lea 16(sp),sp
+    63ce:	202f 00d2      	move.l 210(sp),d0
+    63d2:	d080           	add.l d0,d0
+    63d4:	2200           	move.l d0,d1
+    63d6:	5281           	addq.l #1,d1
+    63d8:	7000           	moveq #0,d0
+    63da:	302f 01c6      	move.w 454(sp),d0
+    63de:	2f01           	move.l d1,-(sp)
+    63e0:	2f00           	move.l d0,-(sp)
+    63e2:	2f2f 01d0      	move.l 464(sp),-(sp)
+    63e6:	2f2f 0056      	move.l 86(sp),-(sp)
+    63ea:	4eba 0b3a      	jsr 6f26 <TestRow>(pc)
+    63ee:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    626c:	7430           	moveq #48,d2
-    626e:	d5af 01c8      	add.l d2,456(sp)
+    63f2:	7030           	moveq #48,d0
+    63f4:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, 2+i2*2);
-    6272:	202f 00d2      	move.l 210(sp),d0
-    6276:	5280           	addq.l #1,d0
-    6278:	d080           	add.l d0,d0
-    627a:	2200           	move.l d0,d1
-    627c:	7000           	moveq #0,d0
-    627e:	302f 01c6      	move.w 454(sp),d0
-    6282:	2f01           	move.l d1,-(sp)
-    6284:	2f00           	move.l d0,-(sp)
-    6286:	2f2f 01d0      	move.l 464(sp),-(sp)
-    628a:	2f2f 002e      	move.l 46(sp),-(sp)
-    628e:	4eba 0b10      	jsr 6da0 <TestRow>(pc)
-    6292:	4fef 0010      	lea 16(sp),sp
+    63f8:	202f 00d2      	move.l 210(sp),d0
+    63fc:	5280           	addq.l #1,d0
+    63fe:	d080           	add.l d0,d0
+    6400:	2200           	move.l d0,d1
+    6402:	7000           	moveq #0,d0
+    6404:	302f 01c6      	move.w 454(sp),d0
+    6408:	2f01           	move.l d1,-(sp)
+    640a:	2f00           	move.l d0,-(sp)
+    640c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6410:	2f2f 0056      	move.l 86(sp),-(sp)
+    6414:	4eba 0b10      	jsr 6f26 <TestRow>(pc)
+    6418:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6296:	7030           	moveq #48,d0
-    6298:	d1af 01c8      	add.l d0,456(sp)
+    641c:	7230           	moveq #48,d1
+    641e:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    629c:	466f 01c6      	not.w 454(sp)
+    6422:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<9;i2++) {
-    62a0:	52af 00d2      	addq.l #1,210(sp)
-    62a4:	7208           	moveq #8,d1
-    62a6:	b2af 00d2      	cmp.l 210(sp),d1
-    62aa:	6c9c           	bge.s 6248 <TestZoom4Picture+0x231e>
+    6426:	52af 00d2      	addq.l #1,210(sp)
+    642a:	7008           	moveq #8,d0
+    642c:	b0af 00d2      	cmp.l 210(sp),d0
+    6430:	6c9c           	bge.s 63ce <TestZoom4Picture+0x230a>
   } 
 
   for(int i=0;i<7;i++) {
-    62ac:	42af 00ce      	clr.l 206(sp)
-    62b0:	6000 00cc      	bra.w 637e <TestZoom4Picture+0x2454>
+    6432:	42af 00ce      	clr.l 206(sp)
+    6436:	6000 00cc      	bra.w 6504 <TestZoom4Picture+0x2440>
     for(int i2=0;i2<4;i2++) {  
-    62b4:	42af 00ca      	clr.l 202(sp)
-    62b8:	6036           	bra.s 62f0 <TestZoom4Picture+0x23c6>
+    643a:	42af 00ca      	clr.l 202(sp)
+    643e:	6036           	bra.s 6476 <TestZoom4Picture+0x23b2>
       TestRow( valsupposed, valactual, mask, 19+i2+i*32);
-    62ba:	7213           	moveq #19,d1
-    62bc:	d2af 00ca      	add.l 202(sp),d1
-    62c0:	202f 00ce      	move.l 206(sp),d0
-    62c4:	eb88           	lsl.l #5,d0
-    62c6:	d280           	add.l d0,d1
-    62c8:	7000           	moveq #0,d0
-    62ca:	302f 01c6      	move.w 454(sp),d0
-    62ce:	2f01           	move.l d1,-(sp)
-    62d0:	2f00           	move.l d0,-(sp)
-    62d2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    62d6:	2f2f 002e      	move.l 46(sp),-(sp)
-    62da:	4eba 0ac4      	jsr 6da0 <TestRow>(pc)
-    62de:	4fef 0010      	lea 16(sp),sp
+    6440:	7213           	moveq #19,d1
+    6442:	d2af 00ca      	add.l 202(sp),d1
+    6446:	202f 00ce      	move.l 206(sp),d0
+    644a:	eb88           	lsl.l #5,d0
+    644c:	d280           	add.l d0,d1
+    644e:	7000           	moveq #0,d0
+    6450:	302f 01c6      	move.w 454(sp),d0
+    6454:	2f01           	move.l d1,-(sp)
+    6456:	2f00           	move.l d0,-(sp)
+    6458:	2f2f 01d0      	move.l 464(sp),-(sp)
+    645c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6460:	4eba 0ac4      	jsr 6f26 <TestRow>(pc)
+    6464:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    62e2:	7430           	moveq #48,d2
-    62e4:	d5af 01c8      	add.l d2,456(sp)
+    6468:	7230           	moveq #48,d1
+    646a:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    62e8:	466f 01c6      	not.w 454(sp)
+    646e:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<4;i2++) {  
-    62ec:	52af 00ca      	addq.l #1,202(sp)
-    62f0:	7003           	moveq #3,d0
-    62f2:	b0af 00ca      	cmp.l 202(sp),d0
-    62f6:	6cc2           	bge.s 62ba <TestZoom4Picture+0x2390>
+    6472:	52af 00ca      	addq.l #1,202(sp)
+    6476:	7003           	moveq #3,d0
+    6478:	b0af 00ca      	cmp.l 202(sp),d0
+    647c:	6cc2           	bge.s 6440 <TestZoom4Picture+0x237c>
     }
     
     for(int i2=0;i2<14;i2++) {
-    62f8:	42af 00c6      	clr.l 198(sp)
-    62fc:	6074           	bra.s 6372 <TestZoom4Picture+0x2448>
+    647e:	42af 00c6      	clr.l 198(sp)
+    6482:	6074           	bra.s 64f8 <TestZoom4Picture+0x2434>
       TestRow( valsupposed, valactual, mask, 23+i*32+i2*2);   
-    62fe:	202f 00ce      	move.l 206(sp),d0
-    6302:	eb88           	lsl.l #5,d0
-    6304:	307c 0017      	movea.w #23,a0
-    6308:	d1c0           	adda.l d0,a0
-    630a:	202f 00c6      	move.l 198(sp),d0
-    630e:	d080           	add.l d0,d0
-    6310:	2208           	move.l a0,d1
-    6312:	d280           	add.l d0,d1
-    6314:	7000           	moveq #0,d0
-    6316:	302f 01c6      	move.w 454(sp),d0
-    631a:	2f01           	move.l d1,-(sp)
-    631c:	2f00           	move.l d0,-(sp)
-    631e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6322:	2f2f 002e      	move.l 46(sp),-(sp)
-    6326:	4eba 0a78      	jsr 6da0 <TestRow>(pc)
-    632a:	4fef 0010      	lea 16(sp),sp
+    6484:	202f 00ce      	move.l 206(sp),d0
+    6488:	eb88           	lsl.l #5,d0
+    648a:	307c 0017      	movea.w #23,a0
+    648e:	d1c0           	adda.l d0,a0
+    6490:	202f 00c6      	move.l 198(sp),d0
+    6494:	d080           	add.l d0,d0
+    6496:	2208           	move.l a0,d1
+    6498:	d280           	add.l d0,d1
+    649a:	7000           	moveq #0,d0
+    649c:	302f 01c6      	move.w 454(sp),d0
+    64a0:	2f01           	move.l d1,-(sp)
+    64a2:	2f00           	move.l d0,-(sp)
+    64a4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    64a8:	2f2f 0056      	move.l 86(sp),-(sp)
+    64ac:	4eba 0a78      	jsr 6f26 <TestRow>(pc)
+    64b0:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    632e:	7230           	moveq #48,d1
-    6330:	d3af 01c8      	add.l d1,456(sp)
+    64b4:	7230           	moveq #48,d1
+    64b6:	d3af 01c8      	add.l d1,456(sp)
       TestRow( valsupposed, valactual, mask, 24+i*32+i2*2);
-    6334:	202f 00ce      	move.l 206(sp),d0
-    6338:	eb88           	lsl.l #5,d0
-    633a:	307c 0018      	movea.w #24,a0
-    633e:	d1c0           	adda.l d0,a0
-    6340:	202f 00c6      	move.l 198(sp),d0
-    6344:	d080           	add.l d0,d0
-    6346:	2208           	move.l a0,d1
-    6348:	d280           	add.l d0,d1
-    634a:	7000           	moveq #0,d0
-    634c:	302f 01c6      	move.w 454(sp),d0
-    6350:	2f01           	move.l d1,-(sp)
-    6352:	2f00           	move.l d0,-(sp)
-    6354:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6358:	2f2f 002e      	move.l 46(sp),-(sp)
-    635c:	4eba 0a42      	jsr 6da0 <TestRow>(pc)
-    6360:	4fef 0010      	lea 16(sp),sp
+    64ba:	202f 00ce      	move.l 206(sp),d0
+    64be:	eb88           	lsl.l #5,d0
+    64c0:	307c 0018      	movea.w #24,a0
+    64c4:	d1c0           	adda.l d0,a0
+    64c6:	202f 00c6      	move.l 198(sp),d0
+    64ca:	d080           	add.l d0,d0
+    64cc:	2208           	move.l a0,d1
+    64ce:	d280           	add.l d0,d1
+    64d0:	7000           	moveq #0,d0
+    64d2:	302f 01c6      	move.w 454(sp),d0
+    64d6:	2f01           	move.l d1,-(sp)
+    64d8:	2f00           	move.l d0,-(sp)
+    64da:	2f2f 01d0      	move.l 464(sp),-(sp)
+    64de:	2f2f 0056      	move.l 86(sp),-(sp)
+    64e2:	4eba 0a42      	jsr 6f26 <TestRow>(pc)
+    64e6:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6364:	7430           	moveq #48,d2
-    6366:	d5af 01c8      	add.l d2,456(sp)
+    64ea:	7030           	moveq #48,d0
+    64ec:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    636a:	466f 01c6      	not.w 454(sp)
+    64f0:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<14;i2++) {
-    636e:	52af 00c6      	addq.l #1,198(sp)
-    6372:	700d           	moveq #13,d0
-    6374:	b0af 00c6      	cmp.l 198(sp),d0
-    6378:	6c84           	bge.s 62fe <TestZoom4Picture+0x23d4>
+    64f4:	52af 00c6      	addq.l #1,198(sp)
+    64f8:	720d           	moveq #13,d1
+    64fa:	b2af 00c6      	cmp.l 198(sp),d1
+    64fe:	6c84           	bge.s 6484 <TestZoom4Picture+0x23c0>
   for(int i=0;i<7;i++) {
-    637a:	52af 00ce      	addq.l #1,206(sp)
-    637e:	7206           	moveq #6,d1
-    6380:	b2af 00ce      	cmp.l 206(sp),d1
-    6384:	6c00 ff2e      	bge.w 62b4 <TestZoom4Picture+0x238a>
+    6500:	52af 00ce      	addq.l #1,206(sp)
+    6504:	7006           	moveq #6,d0
+    6506:	b0af 00ce      	cmp.l 206(sp),d0
+    650a:	6c00 ff2e      	bge.w 643a <TestZoom4Picture+0x2376>
     }
   }
 
   for(int i2=0;i2<4;i2++) {  
-    6388:	42af 00c2      	clr.l 194(sp)
-    638c:	6032           	bra.s 63c0 <TestZoom4Picture+0x2496>
+    650e:	42af 00c2      	clr.l 194(sp)
+    6512:	6032           	bra.s 6546 <TestZoom4Picture+0x2482>
     TestRow( valsupposed, valactual, mask, 243+i2);
-    638e:	222f 00c2      	move.l 194(sp),d1
-    6392:	0681 0000 00f3 	addi.l #243,d1
-    6398:	7000           	moveq #0,d0
-    639a:	302f 01c6      	move.w 454(sp),d0
-    639e:	2f01           	move.l d1,-(sp)
-    63a0:	2f00           	move.l d0,-(sp)
-    63a2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    63a6:	2f2f 002e      	move.l 46(sp),-(sp)
-    63aa:	4eba 09f4      	jsr 6da0 <TestRow>(pc)
-    63ae:	4fef 0010      	lea 16(sp),sp
+    6514:	222f 00c2      	move.l 194(sp),d1
+    6518:	0681 0000 00f3 	addi.l #243,d1
+    651e:	7000           	moveq #0,d0
+    6520:	302f 01c6      	move.w 454(sp),d0
+    6524:	2f01           	move.l d1,-(sp)
+    6526:	2f00           	move.l d0,-(sp)
+    6528:	2f2f 01d0      	move.l 464(sp),-(sp)
+    652c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6530:	4eba 09f4      	jsr 6f26 <TestRow>(pc)
+    6534:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    63b2:	7430           	moveq #48,d2
-    63b4:	d5af 01c8      	add.l d2,456(sp)
+    6538:	7230           	moveq #48,d1
+    653a:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    63b8:	466f 01c6      	not.w 454(sp)
+    653e:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<4;i2++) {  
-    63bc:	52af 00c2      	addq.l #1,194(sp)
-    63c0:	7003           	moveq #3,d0
-    63c2:	b0af 00c2      	cmp.l 194(sp),d0
-    63c6:	6cc6           	bge.s 638e <TestZoom4Picture+0x2464>
+    6542:	52af 00c2      	addq.l #1,194(sp)
+    6546:	7003           	moveq #3,d0
+    6548:	b0af 00c2      	cmp.l 194(sp),d0
+    654c:	6cc6           	bge.s 6514 <TestZoom4Picture+0x2450>
   }
 
   for(int i2=0;i2<12;i2++) {
-    63c8:	42af 00be      	clr.l 190(sp)
-    63cc:	6060           	bra.s 642e <TestZoom4Picture+0x2504>
+    654e:	42af 00be      	clr.l 190(sp)
+    6552:	6060           	bra.s 65b4 <TestZoom4Picture+0x24f0>
     TestRow( valsupposed, valactual, mask, 247+i2*2);   
-    63ce:	202f 00be      	move.l 190(sp),d0
-    63d2:	d080           	add.l d0,d0
-    63d4:	2200           	move.l d0,d1
-    63d6:	0681 0000 00f7 	addi.l #247,d1
-    63dc:	7000           	moveq #0,d0
-    63de:	302f 01c6      	move.w 454(sp),d0
-    63e2:	2f01           	move.l d1,-(sp)
-    63e4:	2f00           	move.l d0,-(sp)
-    63e6:	2f2f 01d0      	move.l 464(sp),-(sp)
-    63ea:	2f2f 002e      	move.l 46(sp),-(sp)
-    63ee:	4eba 09b0      	jsr 6da0 <TestRow>(pc)
-    63f2:	4fef 0010      	lea 16(sp),sp
+    6554:	202f 00be      	move.l 190(sp),d0
+    6558:	d080           	add.l d0,d0
+    655a:	2200           	move.l d0,d1
+    655c:	0681 0000 00f7 	addi.l #247,d1
+    6562:	7000           	moveq #0,d0
+    6564:	302f 01c6      	move.w 454(sp),d0
+    6568:	2f01           	move.l d1,-(sp)
+    656a:	2f00           	move.l d0,-(sp)
+    656c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6570:	2f2f 0056      	move.l 86(sp),-(sp)
+    6574:	4eba 09b0      	jsr 6f26 <TestRow>(pc)
+    6578:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    63f6:	7230           	moveq #48,d1
-    63f8:	d3af 01c8      	add.l d1,456(sp)
+    657c:	7230           	moveq #48,d1
+    657e:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 248+i2*2);
-    63fc:	707c           	moveq #124,d0
-    63fe:	d0af 00be      	add.l 190(sp),d0
-    6402:	d080           	add.l d0,d0
-    6404:	2200           	move.l d0,d1
-    6406:	7000           	moveq #0,d0
-    6408:	302f 01c6      	move.w 454(sp),d0
-    640c:	2f01           	move.l d1,-(sp)
-    640e:	2f00           	move.l d0,-(sp)
-    6410:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6414:	2f2f 002e      	move.l 46(sp),-(sp)
-    6418:	4eba 0986      	jsr 6da0 <TestRow>(pc)
-    641c:	4fef 0010      	lea 16(sp),sp
+    6582:	707c           	moveq #124,d0
+    6584:	d0af 00be      	add.l 190(sp),d0
+    6588:	d080           	add.l d0,d0
+    658a:	2200           	move.l d0,d1
+    658c:	7000           	moveq #0,d0
+    658e:	302f 01c6      	move.w 454(sp),d0
+    6592:	2f01           	move.l d1,-(sp)
+    6594:	2f00           	move.l d0,-(sp)
+    6596:	2f2f 01d0      	move.l 464(sp),-(sp)
+    659a:	2f2f 0056      	move.l 86(sp),-(sp)
+    659e:	4eba 0986      	jsr 6f26 <TestRow>(pc)
+    65a2:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6420:	7430           	moveq #48,d2
-    6422:	d5af 01c8      	add.l d2,456(sp)
+    65a6:	7030           	moveq #48,d0
+    65a8:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    6426:	466f 01c6      	not.w 454(sp)
+    65ac:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<12;i2++) {
-    642a:	52af 00be      	addq.l #1,190(sp)
-    642e:	700b           	moveq #11,d0
-    6430:	b0af 00be      	cmp.l 190(sp),d0
-    6434:	6c98           	bge.s 63ce <TestZoom4Picture+0x24a4>
+    65b0:	52af 00be      	addq.l #1,190(sp)
+    65b4:	720b           	moveq #11,d1
+    65b6:	b2af 00be      	cmp.l 190(sp),d1
+    65ba:	6c98           	bge.s 6554 <TestZoom4Picture+0x2490>
   }
 
   tmp = source;
-    6436:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    65bc:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    643c:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    65c2:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    6442:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    65c8:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 14, 1);
-    6448:	4878 0001      	pea 1 <_start+0x1>
-    644c:	4878 000e      	pea e <GetVBR+0x6>
-    6450:	2f2f 0042      	move.l 66(sp),-(sp)
-    6454:	2f2f 006a      	move.l 106(sp),-(sp)
-    6458:	4eba b602      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    645c:	4fef 0010      	lea 16(sp),sp
+    65ce:	4878 0001      	pea 1 <_start+0x1>
+    65d2:	4878 000e      	pea e <_start+0xe>
+    65d6:	2f2f 0056      	move.l 86(sp),-(sp)
+    65da:	2f2f 006a      	move.l 106(sp),-(sp)
+    65de:	4eba b6f8      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    65e2:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    6460:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    6466:	2c40           	movea.l d0,a6
-    6468:	4eae ff1c      	jsr -228(a6)
+    65e6:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    65ec:	2c40           	movea.l d0,a6
+    65ee:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    646c:	222f 003a      	move.l 58(sp),d1
-    6470:	5881           	addq.l #4,d1
-    6472:	2f41 01c8      	move.l d1,456(sp)
+    65f2:	202f 004e      	move.l 78(sp),d0
+    65f6:	5880           	addq.l #4,d0
+    65f8:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom15;
-    6476:	2f7c 0001 b9cc 	move.l #113100,34(sp)
-    647c:	0022 
+    65fc:	2f7c 0001 bc4c 	move.l #113740,74(sp)
+    6602:	004a 
 
   mask = 0x0000;
-    647e:	426f 01c6      	clr.w 454(sp)
+    6604:	426f 01c6      	clr.w 454(sp)
 
   for(int i2=0;i2<8;i2++) {
-    6482:	42af 00ba      	clr.l 186(sp)
-    6486:	605a           	bra.s 64e2 <TestZoom4Picture+0x25b8>
+    6608:	42af 00ba      	clr.l 186(sp)
+    660c:	605a           	bra.s 6668 <TestZoom4Picture+0x25a4>
     TestRow( valsupposed, valactual, mask, 0+i2*2);   
-    6488:	202f 00ba      	move.l 186(sp),d0
-    648c:	d080           	add.l d0,d0
-    648e:	2200           	move.l d0,d1
-    6490:	7000           	moveq #0,d0
-    6492:	302f 01c6      	move.w 454(sp),d0
-    6496:	2f01           	move.l d1,-(sp)
-    6498:	2f00           	move.l d0,-(sp)
-    649a:	2f2f 01d0      	move.l 464(sp),-(sp)
-    649e:	2f2f 002e      	move.l 46(sp),-(sp)
-    64a2:	4eba 08fc      	jsr 6da0 <TestRow>(pc)
-    64a6:	4fef 0010      	lea 16(sp),sp
+    660e:	202f 00ba      	move.l 186(sp),d0
+    6612:	d080           	add.l d0,d0
+    6614:	2200           	move.l d0,d1
+    6616:	7000           	moveq #0,d0
+    6618:	302f 01c6      	move.w 454(sp),d0
+    661c:	2f01           	move.l d1,-(sp)
+    661e:	2f00           	move.l d0,-(sp)
+    6620:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6624:	2f2f 0056      	move.l 86(sp),-(sp)
+    6628:	4eba 08fc      	jsr 6f26 <TestRow>(pc)
+    662c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    64aa:	7430           	moveq #48,d2
-    64ac:	d5af 01c8      	add.l d2,456(sp)
+    6630:	7230           	moveq #48,d1
+    6632:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 1+i2*2);
-    64b0:	202f 00ba      	move.l 186(sp),d0
-    64b4:	d080           	add.l d0,d0
-    64b6:	2200           	move.l d0,d1
-    64b8:	5281           	addq.l #1,d1
-    64ba:	7000           	moveq #0,d0
-    64bc:	302f 01c6      	move.w 454(sp),d0
-    64c0:	2f01           	move.l d1,-(sp)
-    64c2:	2f00           	move.l d0,-(sp)
-    64c4:	2f2f 01d0      	move.l 464(sp),-(sp)
-    64c8:	2f2f 002e      	move.l 46(sp),-(sp)
-    64cc:	4eba 08d2      	jsr 6da0 <TestRow>(pc)
-    64d0:	4fef 0010      	lea 16(sp),sp
+    6636:	202f 00ba      	move.l 186(sp),d0
+    663a:	d080           	add.l d0,d0
+    663c:	2200           	move.l d0,d1
+    663e:	5281           	addq.l #1,d1
+    6640:	7000           	moveq #0,d0
+    6642:	302f 01c6      	move.w 454(sp),d0
+    6646:	2f01           	move.l d1,-(sp)
+    6648:	2f00           	move.l d0,-(sp)
+    664a:	2f2f 01d0      	move.l 464(sp),-(sp)
+    664e:	2f2f 0056      	move.l 86(sp),-(sp)
+    6652:	4eba 08d2      	jsr 6f26 <TestRow>(pc)
+    6656:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    64d4:	7030           	moveq #48,d0
-    64d6:	d1af 01c8      	add.l d0,456(sp)
+    665a:	7030           	moveq #48,d0
+    665c:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    64da:	466f 01c6      	not.w 454(sp)
+    6660:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<8;i2++) {
-    64de:	52af 00ba      	addq.l #1,186(sp)
-    64e2:	7207           	moveq #7,d1
-    64e4:	b2af 00ba      	cmp.l 186(sp),d1
-    64e8:	6c9e           	bge.s 6488 <TestZoom4Picture+0x255e>
+    6664:	52af 00ba      	addq.l #1,186(sp)
+    6668:	7207           	moveq #7,d1
+    666a:	b2af 00ba      	cmp.l 186(sp),d1
+    666e:	6c9e           	bge.s 660e <TestZoom4Picture+0x254a>
   }
 
   for(int i=0;i<7;i++) {
-    64ea:	42af 00b6      	clr.l 182(sp)
-    64ee:	6000 00de      	bra.w 65ce <TestZoom4Picture+0x26a4>
+    6670:	42af 00b6      	clr.l 182(sp)
+    6674:	6000 00de      	bra.w 6754 <TestZoom4Picture+0x2690>
     for(int i2=0;i2<3;i2++) {  
-    64f2:	42af 00b2      	clr.l 178(sp)
-    64f6:	603e           	bra.s 6536 <TestZoom4Picture+0x260c>
+    6678:	42af 00b2      	clr.l 178(sp)
+    667c:	603e           	bra.s 66bc <TestZoom4Picture+0x25f8>
       TestRow( valsupposed, valactual, mask, 16+i2+i*33);
-    64f8:	307c 0010      	movea.w #16,a0
-    64fc:	d1ef 00b2      	adda.l 178(sp),a0
-    6500:	222f 00b6      	move.l 182(sp),d1
-    6504:	2001           	move.l d1,d0
-    6506:	eb88           	lsl.l #5,d0
-    6508:	d081           	add.l d1,d0
-    650a:	2208           	move.l a0,d1
-    650c:	d280           	add.l d0,d1
-    650e:	7000           	moveq #0,d0
-    6510:	302f 01c6      	move.w 454(sp),d0
-    6514:	2f01           	move.l d1,-(sp)
-    6516:	2f00           	move.l d0,-(sp)
-    6518:	2f2f 01d0      	move.l 464(sp),-(sp)
-    651c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6520:	4eba 087e      	jsr 6da0 <TestRow>(pc)
-    6524:	4fef 0010      	lea 16(sp),sp
+    667e:	307c 0010      	movea.w #16,a0
+    6682:	d1ef 00b2      	adda.l 178(sp),a0
+    6686:	222f 00b6      	move.l 182(sp),d1
+    668a:	2001           	move.l d1,d0
+    668c:	eb88           	lsl.l #5,d0
+    668e:	d081           	add.l d1,d0
+    6690:	2208           	move.l a0,d1
+    6692:	d280           	add.l d0,d1
+    6694:	7000           	moveq #0,d0
+    6696:	302f 01c6      	move.w 454(sp),d0
+    669a:	2f01           	move.l d1,-(sp)
+    669c:	2f00           	move.l d0,-(sp)
+    669e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    66a2:	2f2f 0056      	move.l 86(sp),-(sp)
+    66a6:	4eba 087e      	jsr 6f26 <TestRow>(pc)
+    66aa:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6528:	7430           	moveq #48,d2
-    652a:	d5af 01c8      	add.l d2,456(sp)
+    66ae:	7030           	moveq #48,d0
+    66b0:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    652e:	466f 01c6      	not.w 454(sp)
+    66b4:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<3;i2++) {  
-    6532:	52af 00b2      	addq.l #1,178(sp)
-    6536:	7002           	moveq #2,d0
-    6538:	b0af 00b2      	cmp.l 178(sp),d0
-    653c:	6cba           	bge.s 64f8 <TestZoom4Picture+0x25ce>
+    66b8:	52af 00b2      	addq.l #1,178(sp)
+    66bc:	7202           	moveq #2,d1
+    66be:	b2af 00b2      	cmp.l 178(sp),d1
+    66c2:	6cba           	bge.s 667e <TestZoom4Picture+0x25ba>
     }
     
     for(int i2=0;i2<15;i2++) {
-    653e:	42af 00ae      	clr.l 174(sp)
-    6542:	607c           	bra.s 65c0 <TestZoom4Picture+0x2696>
+    66c4:	42af 00ae      	clr.l 174(sp)
+    66c8:	607c           	bra.s 6746 <TestZoom4Picture+0x2682>
       TestRow( valsupposed, valactual, mask, 19+i*33+i2*2);   
-    6544:	222f 00b6      	move.l 182(sp),d1
-    6548:	2001           	move.l d1,d0
-    654a:	eb88           	lsl.l #5,d0
-    654c:	2040           	movea.l d0,a0
-    654e:	d1c1           	adda.l d1,a0
-    6550:	41e8 0013      	lea 19(a0),a0
-    6554:	202f 00ae      	move.l 174(sp),d0
-    6558:	d080           	add.l d0,d0
-    655a:	2208           	move.l a0,d1
-    655c:	d280           	add.l d0,d1
-    655e:	7000           	moveq #0,d0
-    6560:	302f 01c6      	move.w 454(sp),d0
-    6564:	2f01           	move.l d1,-(sp)
-    6566:	2f00           	move.l d0,-(sp)
-    6568:	2f2f 01d0      	move.l 464(sp),-(sp)
-    656c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6570:	4eba 082e      	jsr 6da0 <TestRow>(pc)
-    6574:	4fef 0010      	lea 16(sp),sp
+    66ca:	222f 00b6      	move.l 182(sp),d1
+    66ce:	2001           	move.l d1,d0
+    66d0:	eb88           	lsl.l #5,d0
+    66d2:	2040           	movea.l d0,a0
+    66d4:	d1c1           	adda.l d1,a0
+    66d6:	41e8 0013      	lea 19(a0),a0
+    66da:	202f 00ae      	move.l 174(sp),d0
+    66de:	d080           	add.l d0,d0
+    66e0:	2208           	move.l a0,d1
+    66e2:	d280           	add.l d0,d1
+    66e4:	7000           	moveq #0,d0
+    66e6:	302f 01c6      	move.w 454(sp),d0
+    66ea:	2f01           	move.l d1,-(sp)
+    66ec:	2f00           	move.l d0,-(sp)
+    66ee:	2f2f 01d0      	move.l 464(sp),-(sp)
+    66f2:	2f2f 0056      	move.l 86(sp),-(sp)
+    66f6:	4eba 082e      	jsr 6f26 <TestRow>(pc)
+    66fa:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6578:	7230           	moveq #48,d1
-    657a:	d3af 01c8      	add.l d1,456(sp)
+    66fe:	7030           	moveq #48,d0
+    6700:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 19+i*33+i2*2);
-    657e:	222f 00b6      	move.l 182(sp),d1
-    6582:	2001           	move.l d1,d0
-    6584:	eb88           	lsl.l #5,d0
-    6586:	2040           	movea.l d0,a0
-    6588:	d1c1           	adda.l d1,a0
-    658a:	41e8 0013      	lea 19(a0),a0
-    658e:	202f 00ae      	move.l 174(sp),d0
-    6592:	d080           	add.l d0,d0
-    6594:	2208           	move.l a0,d1
-    6596:	d280           	add.l d0,d1
-    6598:	7000           	moveq #0,d0
-    659a:	302f 01c6      	move.w 454(sp),d0
-    659e:	2f01           	move.l d1,-(sp)
-    65a0:	2f00           	move.l d0,-(sp)
-    65a2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    65a6:	2f2f 002e      	move.l 46(sp),-(sp)
-    65aa:	4eba 07f4      	jsr 6da0 <TestRow>(pc)
-    65ae:	4fef 0010      	lea 16(sp),sp
+    6704:	222f 00b6      	move.l 182(sp),d1
+    6708:	2001           	move.l d1,d0
+    670a:	eb88           	lsl.l #5,d0
+    670c:	2040           	movea.l d0,a0
+    670e:	d1c1           	adda.l d1,a0
+    6710:	41e8 0013      	lea 19(a0),a0
+    6714:	202f 00ae      	move.l 174(sp),d0
+    6718:	d080           	add.l d0,d0
+    671a:	2208           	move.l a0,d1
+    671c:	d280           	add.l d0,d1
+    671e:	7000           	moveq #0,d0
+    6720:	302f 01c6      	move.w 454(sp),d0
+    6724:	2f01           	move.l d1,-(sp)
+    6726:	2f00           	move.l d0,-(sp)
+    6728:	2f2f 01d0      	move.l 464(sp),-(sp)
+    672c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6730:	4eba 07f4      	jsr 6f26 <TestRow>(pc)
+    6734:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    65b2:	7430           	moveq #48,d2
-    65b4:	d5af 01c8      	add.l d2,456(sp)
+    6738:	7230           	moveq #48,d1
+    673a:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    65b8:	466f 01c6      	not.w 454(sp)
+    673e:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<15;i2++) {
-    65bc:	52af 00ae      	addq.l #1,174(sp)
-    65c0:	700e           	moveq #14,d0
-    65c2:	b0af 00ae      	cmp.l 174(sp),d0
-    65c6:	6c00 ff7c      	bge.w 6544 <TestZoom4Picture+0x261a>
+    6742:	52af 00ae      	addq.l #1,174(sp)
+    6746:	700e           	moveq #14,d0
+    6748:	b0af 00ae      	cmp.l 174(sp),d0
+    674c:	6c00 ff7c      	bge.w 66ca <TestZoom4Picture+0x2606>
   for(int i=0;i<7;i++) {
-    65ca:	52af 00b6      	addq.l #1,182(sp)
-    65ce:	7206           	moveq #6,d1
-    65d0:	b2af 00b6      	cmp.l 182(sp),d1
-    65d4:	6c00 ff1c      	bge.w 64f2 <TestZoom4Picture+0x25c8>
+    6750:	52af 00b6      	addq.l #1,182(sp)
+    6754:	7206           	moveq #6,d1
+    6756:	b2af 00b6      	cmp.l 182(sp),d1
+    675a:	6c00 ff1c      	bge.w 6678 <TestZoom4Picture+0x25b4>
     }
   }
 
   for(int i2=0;i2<3;i2++) {  
-    65d8:	42af 00aa      	clr.l 170(sp)
-    65dc:	6032           	bra.s 6610 <TestZoom4Picture+0x26e6>
+    675e:	42af 00aa      	clr.l 170(sp)
+    6762:	6032           	bra.s 6796 <TestZoom4Picture+0x26d2>
     TestRow( valsupposed, valactual, mask, 247+i2);
-    65de:	222f 00aa      	move.l 170(sp),d1
-    65e2:	0681 0000 00f7 	addi.l #247,d1
-    65e8:	7000           	moveq #0,d0
-    65ea:	302f 01c6      	move.w 454(sp),d0
-    65ee:	2f01           	move.l d1,-(sp)
-    65f0:	2f00           	move.l d0,-(sp)
-    65f2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    65f6:	2f2f 002e      	move.l 46(sp),-(sp)
-    65fa:	4eba 07a4      	jsr 6da0 <TestRow>(pc)
-    65fe:	4fef 0010      	lea 16(sp),sp
+    6764:	222f 00aa      	move.l 170(sp),d1
+    6768:	0681 0000 00f7 	addi.l #247,d1
+    676e:	7000           	moveq #0,d0
+    6770:	302f 01c6      	move.w 454(sp),d0
+    6774:	2f01           	move.l d1,-(sp)
+    6776:	2f00           	move.l d0,-(sp)
+    6778:	2f2f 01d0      	move.l 464(sp),-(sp)
+    677c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6780:	4eba 07a4      	jsr 6f26 <TestRow>(pc)
+    6784:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6602:	7430           	moveq #48,d2
-    6604:	d5af 01c8      	add.l d2,456(sp)
+    6788:	7030           	moveq #48,d0
+    678a:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    6608:	466f 01c6      	not.w 454(sp)
+    678e:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<3;i2++) {  
-    660c:	52af 00aa      	addq.l #1,170(sp)
-    6610:	7002           	moveq #2,d0
-    6612:	b0af 00aa      	cmp.l 170(sp),d0
-    6616:	6cc6           	bge.s 65de <TestZoom4Picture+0x26b4>
+    6792:	52af 00aa      	addq.l #1,170(sp)
+    6796:	7202           	moveq #2,d1
+    6798:	b2af 00aa      	cmp.l 170(sp),d1
+    679c:	6cc6           	bge.s 6764 <TestZoom4Picture+0x26a0>
   }
 
   for(int i2=0;i2<10;i2++) {
-    6618:	42af 00a6      	clr.l 166(sp)
-    661c:	6060           	bra.s 667e <TestZoom4Picture+0x2754>
+    679e:	42af 00a6      	clr.l 166(sp)
+    67a2:	6060           	bra.s 6804 <TestZoom4Picture+0x2740>
     TestRow( valsupposed, valactual, mask, 250+i2*2);   
-    661e:	707d           	moveq #125,d0
-    6620:	d0af 00a6      	add.l 166(sp),d0
-    6624:	d080           	add.l d0,d0
-    6626:	2200           	move.l d0,d1
-    6628:	7000           	moveq #0,d0
-    662a:	302f 01c6      	move.w 454(sp),d0
-    662e:	2f01           	move.l d1,-(sp)
-    6630:	2f00           	move.l d0,-(sp)
-    6632:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6636:	2f2f 002e      	move.l 46(sp),-(sp)
-    663a:	4eba 0764      	jsr 6da0 <TestRow>(pc)
-    663e:	4fef 0010      	lea 16(sp),sp
+    67a4:	707d           	moveq #125,d0
+    67a6:	d0af 00a6      	add.l 166(sp),d0
+    67aa:	d080           	add.l d0,d0
+    67ac:	2200           	move.l d0,d1
+    67ae:	7000           	moveq #0,d0
+    67b0:	302f 01c6      	move.w 454(sp),d0
+    67b4:	2f01           	move.l d1,-(sp)
+    67b6:	2f00           	move.l d0,-(sp)
+    67b8:	2f2f 01d0      	move.l 464(sp),-(sp)
+    67bc:	2f2f 0056      	move.l 86(sp),-(sp)
+    67c0:	4eba 0764      	jsr 6f26 <TestRow>(pc)
+    67c4:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6642:	7230           	moveq #48,d1
-    6644:	d3af 01c8      	add.l d1,456(sp)
+    67c8:	7030           	moveq #48,d0
+    67ca:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, 251+i2*2);
-    6648:	202f 00a6      	move.l 166(sp),d0
-    664c:	d080           	add.l d0,d0
-    664e:	2200           	move.l d0,d1
-    6650:	0681 0000 00fb 	addi.l #251,d1
-    6656:	7000           	moveq #0,d0
-    6658:	302f 01c6      	move.w 454(sp),d0
-    665c:	2f01           	move.l d1,-(sp)
-    665e:	2f00           	move.l d0,-(sp)
-    6660:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6664:	2f2f 002e      	move.l 46(sp),-(sp)
-    6668:	4eba 0736      	jsr 6da0 <TestRow>(pc)
-    666c:	4fef 0010      	lea 16(sp),sp
+    67ce:	202f 00a6      	move.l 166(sp),d0
+    67d2:	d080           	add.l d0,d0
+    67d4:	2200           	move.l d0,d1
+    67d6:	0681 0000 00fb 	addi.l #251,d1
+    67dc:	7000           	moveq #0,d0
+    67de:	302f 01c6      	move.w 454(sp),d0
+    67e2:	2f01           	move.l d1,-(sp)
+    67e4:	2f00           	move.l d0,-(sp)
+    67e6:	2f2f 01d0      	move.l 464(sp),-(sp)
+    67ea:	2f2f 0056      	move.l 86(sp),-(sp)
+    67ee:	4eba 0736      	jsr 6f26 <TestRow>(pc)
+    67f2:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6670:	7430           	moveq #48,d2
-    6672:	d5af 01c8      	add.l d2,456(sp)
+    67f6:	7230           	moveq #48,d1
+    67f8:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    6676:	466f 01c6      	not.w 454(sp)
+    67fc:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<10;i2++) {
-    667a:	52af 00a6      	addq.l #1,166(sp)
-    667e:	7009           	moveq #9,d0
-    6680:	b0af 00a6      	cmp.l 166(sp),d0
-    6684:	6c98           	bge.s 661e <TestZoom4Picture+0x26f4>
+    6800:	52af 00a6      	addq.l #1,166(sp)
+    6804:	7009           	moveq #9,d0
+    6806:	b0af 00a6      	cmp.l 166(sp),d0
+    680a:	6c98           	bge.s 67a4 <TestZoom4Picture+0x26e0>
   }
 
   tmp = source;
-    6686:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    680c:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    668c:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    6812:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    6692:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    6818:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 15, 1);
-    6698:	4878 0001      	pea 1 <_start+0x1>
-    669c:	4878 000f      	pea f <GetVBR+0x7>
-    66a0:	2f2f 0042      	move.l 66(sp),-(sp)
-    66a4:	2f2f 006a      	move.l 106(sp),-(sp)
-    66a8:	4eba b3b2      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    66ac:	4fef 0010      	lea 16(sp),sp
+    681e:	4878 0001      	pea 1 <_start+0x1>
+    6822:	4878 000f      	pea f <_start+0xf>
+    6826:	2f2f 0056      	move.l 86(sp),-(sp)
+    682a:	2f2f 006a      	move.l 106(sp),-(sp)
+    682e:	4eba b4a8      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    6832:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    66b0:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    66b6:	2c40           	movea.l d0,a6
-    66b8:	4eae ff1c      	jsr -228(a6)
+    6836:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    683c:	2c40           	movea.l d0,a6
+    683e:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    66bc:	222f 003a      	move.l 58(sp),d1
-    66c0:	5881           	addq.l #4,d1
-    66c2:	2f41 01c8      	move.l d1,456(sp)
+    6842:	222f 004e      	move.l 78(sp),d1
+    6846:	5881           	addq.l #4,d1
+    6848:	2f41 01c8      	move.l d1,456(sp)
   valsupposed = destlinezoom16;
-    66c6:	2f7c 0001 b9f8 	move.l #113144,34(sp)
-    66cc:	0022 
+    684c:	2f7c 0001 bc78 	move.l #113784,74(sp)
+    6852:	004a 
 
   mask = 0x0000;
-    66ce:	426f 01c6      	clr.w 454(sp)
+    6854:	426f 01c6      	clr.w 454(sp)
 
   TestRow( valsupposed, valactual, mask, 0);   
-    66d2:	7000           	moveq #0,d0
-    66d4:	302f 01c6      	move.w 454(sp),d0
-    66d8:	42a7           	clr.l -(sp)
-    66da:	2f00           	move.l d0,-(sp)
-    66dc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    66e0:	2f2f 002e      	move.l 46(sp),-(sp)
-    66e4:	4eba 06ba      	jsr 6da0 <TestRow>(pc)
-    66e8:	4fef 0010      	lea 16(sp),sp
+    6858:	7000           	moveq #0,d0
+    685a:	302f 01c6      	move.w 454(sp),d0
+    685e:	42a7           	clr.l -(sp)
+    6860:	2f00           	move.l d0,-(sp)
+    6862:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6866:	2f2f 0056      	move.l 86(sp),-(sp)
+    686a:	4eba 06ba      	jsr 6f26 <TestRow>(pc)
+    686e:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    66ec:	7430           	moveq #48,d2
-    66ee:	d5af 01c8      	add.l d2,456(sp)
+    6872:	7030           	moveq #48,d0
+    6874:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    66f2:	466f 01c6      	not.w 454(sp)
+    6878:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<6;i2++) {
-    66f6:	42af 00a2      	clr.l 162(sp)
-    66fa:	605a           	bra.s 6756 <TestZoom4Picture+0x282c>
+    687c:	42af 00a2      	clr.l 162(sp)
+    6880:	605a           	bra.s 68dc <TestZoom4Picture+0x2818>
     TestRow( valsupposed, valactual, mask, 0+i2*2);   
-    66fc:	202f 00a2      	move.l 162(sp),d0
-    6700:	d080           	add.l d0,d0
-    6702:	2200           	move.l d0,d1
-    6704:	7000           	moveq #0,d0
-    6706:	302f 01c6      	move.w 454(sp),d0
-    670a:	2f01           	move.l d1,-(sp)
-    670c:	2f00           	move.l d0,-(sp)
-    670e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6712:	2f2f 002e      	move.l 46(sp),-(sp)
-    6716:	4eba 0688      	jsr 6da0 <TestRow>(pc)
-    671a:	4fef 0010      	lea 16(sp),sp
+    6882:	202f 00a2      	move.l 162(sp),d0
+    6886:	d080           	add.l d0,d0
+    6888:	2200           	move.l d0,d1
+    688a:	7000           	moveq #0,d0
+    688c:	302f 01c6      	move.w 454(sp),d0
+    6890:	2f01           	move.l d1,-(sp)
+    6892:	2f00           	move.l d0,-(sp)
+    6894:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6898:	2f2f 0056      	move.l 86(sp),-(sp)
+    689c:	4eba 0688      	jsr 6f26 <TestRow>(pc)
+    68a0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    671e:	7030           	moveq #48,d0
-    6720:	d1af 01c8      	add.l d0,456(sp)
+    68a4:	7230           	moveq #48,d1
+    68a6:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 1+i2*2);
-    6724:	202f 00a2      	move.l 162(sp),d0
-    6728:	d080           	add.l d0,d0
-    672a:	2200           	move.l d0,d1
-    672c:	5281           	addq.l #1,d1
-    672e:	7000           	moveq #0,d0
-    6730:	302f 01c6      	move.w 454(sp),d0
-    6734:	2f01           	move.l d1,-(sp)
-    6736:	2f00           	move.l d0,-(sp)
-    6738:	2f2f 01d0      	move.l 464(sp),-(sp)
-    673c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6740:	4eba 065e      	jsr 6da0 <TestRow>(pc)
-    6744:	4fef 0010      	lea 16(sp),sp
+    68aa:	202f 00a2      	move.l 162(sp),d0
+    68ae:	d080           	add.l d0,d0
+    68b0:	2200           	move.l d0,d1
+    68b2:	5281           	addq.l #1,d1
+    68b4:	7000           	moveq #0,d0
+    68b6:	302f 01c6      	move.w 454(sp),d0
+    68ba:	2f01           	move.l d1,-(sp)
+    68bc:	2f00           	move.l d0,-(sp)
+    68be:	2f2f 01d0      	move.l 464(sp),-(sp)
+    68c2:	2f2f 0056      	move.l 86(sp),-(sp)
+    68c6:	4eba 065e      	jsr 6f26 <TestRow>(pc)
+    68ca:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6748:	7230           	moveq #48,d1
-    674a:	d3af 01c8      	add.l d1,456(sp)
+    68ce:	7030           	moveq #48,d0
+    68d0:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    674e:	466f 01c6      	not.w 454(sp)
+    68d4:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<6;i2++) {
-    6752:	52af 00a2      	addq.l #1,162(sp)
-    6756:	7405           	moveq #5,d2
-    6758:	b4af 00a2      	cmp.l 162(sp),d2
-    675c:	6c9e           	bge.s 66fc <TestZoom4Picture+0x27d2>
+    68d8:	52af 00a2      	addq.l #1,162(sp)
+    68dc:	7205           	moveq #5,d1
+    68de:	b2af 00a2      	cmp.l 162(sp),d1
+    68e2:	6c9e           	bge.s 6882 <TestZoom4Picture+0x27be>
   }
 
   for(int i=0;i<7;i++) {
-    675e:	42af 009e      	clr.l 158(sp)
-    6762:	6000 00e6      	bra.w 684a <TestZoom4Picture+0x2920>
+    68e4:	42af 009e      	clr.l 158(sp)
+    68e8:	6000 00e6      	bra.w 69d0 <TestZoom4Picture+0x290c>
     for(int i2=0;i2<2;i2++) {  
-    6766:	42af 009a      	clr.l 154(sp)
-    676a:	6040           	bra.s 67ac <TestZoom4Picture+0x2882>
+    68ec:	42af 009a      	clr.l 154(sp)
+    68f0:	6040           	bra.s 6932 <TestZoom4Picture+0x286e>
       TestRow( valsupposed, valactual, mask, 13+i2+i*34);
-    676c:	307c 000d      	movea.w #13,a0
-    6770:	d1ef 009a      	adda.l 154(sp),a0
-    6774:	222f 009e      	move.l 158(sp),d1
-    6778:	2001           	move.l d1,d0
-    677a:	e988           	lsl.l #4,d0
-    677c:	d081           	add.l d1,d0
-    677e:	d080           	add.l d0,d0
-    6780:	2208           	move.l a0,d1
-    6782:	d280           	add.l d0,d1
-    6784:	7000           	moveq #0,d0
-    6786:	302f 01c6      	move.w 454(sp),d0
-    678a:	2f01           	move.l d1,-(sp)
-    678c:	2f00           	move.l d0,-(sp)
-    678e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6792:	2f2f 002e      	move.l 46(sp),-(sp)
-    6796:	4eba 0608      	jsr 6da0 <TestRow>(pc)
-    679a:	4fef 0010      	lea 16(sp),sp
+    68f2:	307c 000d      	movea.w #13,a0
+    68f6:	d1ef 009a      	adda.l 154(sp),a0
+    68fa:	222f 009e      	move.l 158(sp),d1
+    68fe:	2001           	move.l d1,d0
+    6900:	e988           	lsl.l #4,d0
+    6902:	d081           	add.l d1,d0
+    6904:	d080           	add.l d0,d0
+    6906:	2208           	move.l a0,d1
+    6908:	d280           	add.l d0,d1
+    690a:	7000           	moveq #0,d0
+    690c:	302f 01c6      	move.w 454(sp),d0
+    6910:	2f01           	move.l d1,-(sp)
+    6912:	2f00           	move.l d0,-(sp)
+    6914:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6918:	2f2f 0056      	move.l 86(sp),-(sp)
+    691c:	4eba 0608      	jsr 6f26 <TestRow>(pc)
+    6920:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    679e:	7030           	moveq #48,d0
-    67a0:	d1af 01c8      	add.l d0,456(sp)
+    6924:	7030           	moveq #48,d0
+    6926:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    67a4:	466f 01c6      	not.w 454(sp)
+    692a:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<2;i2++) {  
-    67a8:	52af 009a      	addq.l #1,154(sp)
-    67ac:	7201           	moveq #1,d1
-    67ae:	b2af 009a      	cmp.l 154(sp),d1
-    67b2:	6cb8           	bge.s 676c <TestZoom4Picture+0x2842>
+    692e:	52af 009a      	addq.l #1,154(sp)
+    6932:	7201           	moveq #1,d1
+    6934:	b2af 009a      	cmp.l 154(sp),d1
+    6938:	6cb8           	bge.s 68f2 <TestZoom4Picture+0x282e>
     }
     
     for(int i2=0;i2<16;i2++) {
-    67b4:	42af 0096      	clr.l 150(sp)
-    67b8:	6000 0082      	bra.w 683c <TestZoom4Picture+0x2912>
+    693a:	42af 0096      	clr.l 150(sp)
+    693e:	6000 0082      	bra.w 69c2 <TestZoom4Picture+0x28fe>
       TestRow( valsupposed, valactual, mask, 16+i*34+i2*2);   
-    67bc:	222f 009e      	move.l 158(sp),d1
-    67c0:	2001           	move.l d1,d0
-    67c2:	e988           	lsl.l #4,d0
-    67c4:	d081           	add.l d1,d0
-    67c6:	d080           	add.l d0,d0
-    67c8:	2040           	movea.l d0,a0
-    67ca:	41e8 0010      	lea 16(a0),a0
-    67ce:	202f 0096      	move.l 150(sp),d0
-    67d2:	d080           	add.l d0,d0
-    67d4:	2208           	move.l a0,d1
-    67d6:	d280           	add.l d0,d1
-    67d8:	7000           	moveq #0,d0
-    67da:	302f 01c6      	move.w 454(sp),d0
-    67de:	2f01           	move.l d1,-(sp)
-    67e0:	2f00           	move.l d0,-(sp)
-    67e2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    67e6:	2f2f 002e      	move.l 46(sp),-(sp)
-    67ea:	4eba 05b4      	jsr 6da0 <TestRow>(pc)
-    67ee:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    67f2:	7430           	moveq #48,d2
-    67f4:	d5af 01c8      	add.l d2,456(sp)
-      TestRow( valsupposed, valactual, mask, 17+i*34+i2*2);
-    67f8:	222f 009e      	move.l 158(sp),d1
-    67fc:	2001           	move.l d1,d0
-    67fe:	e988           	lsl.l #4,d0
-    6800:	d081           	add.l d1,d0
-    6802:	d080           	add.l d0,d0
-    6804:	2040           	movea.l d0,a0
-    6806:	41e8 0011      	lea 17(a0),a0
-    680a:	202f 0096      	move.l 150(sp),d0
-    680e:	d080           	add.l d0,d0
-    6810:	2208           	move.l a0,d1
-    6812:	d280           	add.l d0,d1
-    6814:	7000           	moveq #0,d0
-    6816:	302f 01c6      	move.w 454(sp),d0
-    681a:	2f01           	move.l d1,-(sp)
-    681c:	2f00           	move.l d0,-(sp)
-    681e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6822:	2f2f 002e      	move.l 46(sp),-(sp)
-    6826:	4eba 0578      	jsr 6da0 <TestRow>(pc)
-    682a:	4fef 0010      	lea 16(sp),sp
-      valactual += ZMLINESIZE/2;
-    682e:	7030           	moveq #48,d0
-    6830:	d1af 01c8      	add.l d0,456(sp)
-      mask = mask ^ 0xffff;
-    6834:	466f 01c6      	not.w 454(sp)
-    for(int i2=0;i2<16;i2++) {
-    6838:	52af 0096      	addq.l #1,150(sp)
-    683c:	720f           	moveq #15,d1
-    683e:	b2af 0096      	cmp.l 150(sp),d1
-    6842:	6c00 ff78      	bge.w 67bc <TestZoom4Picture+0x2892>
-  for(int i=0;i<7;i++) {
-    6846:	52af 009e      	addq.l #1,158(sp)
-    684a:	7406           	moveq #6,d2
-    684c:	b4af 009e      	cmp.l 158(sp),d2
-    6850:	6c00 ff14      	bge.w 6766 <TestZoom4Picture+0x283c>
-    }
-  }
-
-  for(int i2=0;i2<2;i2++) {
-    6854:	42af 0092      	clr.l 146(sp)
-    6858:	6032           	bra.s 688c <TestZoom4Picture+0x2962>
-    TestRow( valsupposed, valactual, mask, 251+i2);
-    685a:	222f 0092      	move.l 146(sp),d1
-    685e:	0681 0000 00fb 	addi.l #251,d1
-    6864:	7000           	moveq #0,d0
-    6866:	302f 01c6      	move.w 454(sp),d0
-    686a:	2f01           	move.l d1,-(sp)
-    686c:	2f00           	move.l d0,-(sp)
-    686e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6872:	2f2f 002e      	move.l 46(sp),-(sp)
-    6876:	4eba 0528      	jsr 6da0 <TestRow>(pc)
-    687a:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    687e:	7030           	moveq #48,d0
-    6880:	d1af 01c8      	add.l d0,456(sp)
-    mask = mask ^ 0xffff;
-    6884:	466f 01c6      	not.w 454(sp)
-  for(int i2=0;i2<2;i2++) {
-    6888:	52af 0092      	addq.l #1,146(sp)
-    688c:	7201           	moveq #1,d1
-    688e:	b2af 0092      	cmp.l 146(sp),d1
-    6892:	6cc6           	bge.s 685a <TestZoom4Picture+0x2930>
-  }
-
-  for(int i2=0;i2<8;i2++) {
-    6894:	42af 008e      	clr.l 142(sp)
-    6898:	6060           	bra.s 68fa <TestZoom4Picture+0x29d0>
-    TestRow( valsupposed, valactual, mask, 253+i2*2);   
-    689a:	202f 008e      	move.l 142(sp),d0
-    689e:	d080           	add.l d0,d0
-    68a0:	2200           	move.l d0,d1
-    68a2:	0681 0000 00fd 	addi.l #253,d1
-    68a8:	7000           	moveq #0,d0
-    68aa:	302f 01c6      	move.w 454(sp),d0
-    68ae:	2f01           	move.l d1,-(sp)
-    68b0:	2f00           	move.l d0,-(sp)
-    68b2:	2f2f 01d0      	move.l 464(sp),-(sp)
-    68b6:	2f2f 002e      	move.l 46(sp),-(sp)
-    68ba:	4eba 04e4      	jsr 6da0 <TestRow>(pc)
-    68be:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    68c2:	7430           	moveq #48,d2
-    68c4:	d5af 01c8      	add.l d2,456(sp)
-    TestRow( valsupposed, valactual, mask, 254+i2*2);
-    68c8:	707f           	moveq #127,d0
-    68ca:	d0af 008e      	add.l 142(sp),d0
-    68ce:	d080           	add.l d0,d0
-    68d0:	2200           	move.l d0,d1
-    68d2:	7000           	moveq #0,d0
-    68d4:	302f 01c6      	move.w 454(sp),d0
-    68d8:	2f01           	move.l d1,-(sp)
-    68da:	2f00           	move.l d0,-(sp)
-    68dc:	2f2f 01d0      	move.l 464(sp),-(sp)
-    68e0:	2f2f 002e      	move.l 46(sp),-(sp)
-    68e4:	4eba 04ba      	jsr 6da0 <TestRow>(pc)
-    68e8:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
-    68ec:	7030           	moveq #48,d0
-    68ee:	d1af 01c8      	add.l d0,456(sp)
-    mask = mask ^ 0xffff;
-    68f2:	466f 01c6      	not.w 454(sp)
-  for(int i2=0;i2<8;i2++) {
-    68f6:	52af 008e      	addq.l #1,142(sp)
-    68fa:	7207           	moveq #7,d1
-    68fc:	b2af 008e      	cmp.l 142(sp),d1
-    6900:	6c98           	bge.s 689a <TestZoom4Picture+0x2970>
-  }
-
-  tmp = source;
-    6902:	2f6f 005e 001e 	move.l 94(sp),30(sp)
-  source = destination;
-    6908:	2f6f 003a 005e 	move.l 58(sp),94(sp)
-  destination = tmp;
-    690e:	2f6f 001e 003a 	move.l 30(sp),58(sp)
-
-  Zoom_ZoomIntoPicture( source, destination, 16, 1);
-    6914:	4878 0001      	pea 1 <_start+0x1>
-    6918:	4878 0010      	pea 10 <GetVBR+0x8>
-    691c:	2f2f 0042      	move.l 66(sp),-(sp)
-    6920:	2f2f 006a      	move.l 106(sp),-(sp)
-    6924:	4eba b136      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    6928:	4fef 0010      	lea 16(sp),sp
-  WaitBlit();
-    692c:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    6932:	2c40           	movea.l d0,a6
-    6934:	4eae ff1c      	jsr -228(a6)
-  valactual = destination+2; 
-    6938:	242f 003a      	move.l 58(sp),d2
-    693c:	5882           	addq.l #4,d2
-    693e:	2f42 01c8      	move.l d2,456(sp)
-  valsupposed = destlinezoom17;
-    6942:	2f7c 0001 ba24 	move.l #113188,34(sp)
-    6948:	0022 
-
-  mask = 0xffff;
-    694a:	3f7c ffff 01c6 	move.w #-1,454(sp)
-
-  for(int i2=0;i2<5;i2++) {
-    6950:	42af 008a      	clr.l 138(sp)
-    6954:	605a           	bra.s 69b0 <TestZoom4Picture+0x2a86>
-    TestRow( valsupposed, valactual, mask, 0+i2*2);   
-    6956:	202f 008a      	move.l 138(sp),d0
-    695a:	d080           	add.l d0,d0
-    695c:	2200           	move.l d0,d1
+    6942:	222f 009e      	move.l 158(sp),d1
+    6946:	2001           	move.l d1,d0
+    6948:	e988           	lsl.l #4,d0
+    694a:	d081           	add.l d1,d0
+    694c:	d080           	add.l d0,d0
+    694e:	2040           	movea.l d0,a0
+    6950:	41e8 0010      	lea 16(a0),a0
+    6954:	202f 0096      	move.l 150(sp),d0
+    6958:	d080           	add.l d0,d0
+    695a:	2208           	move.l a0,d1
+    695c:	d280           	add.l d0,d1
     695e:	7000           	moveq #0,d0
     6960:	302f 01c6      	move.w 454(sp),d0
     6964:	2f01           	move.l d1,-(sp)
     6966:	2f00           	move.l d0,-(sp)
     6968:	2f2f 01d0      	move.l 464(sp),-(sp)
-    696c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6970:	4eba 042e      	jsr 6da0 <TestRow>(pc)
+    696c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6970:	4eba 05b4      	jsr 6f26 <TestRow>(pc)
     6974:	4fef 0010      	lea 16(sp),sp
-    valactual += ZMLINESIZE/2;
+      valactual += ZMLINESIZE/2;
     6978:	7030           	moveq #48,d0
     697a:	d1af 01c8      	add.l d0,456(sp)
-    TestRow( valsupposed, valactual, mask, 1+i2*2);
-    697e:	202f 008a      	move.l 138(sp),d0
-    6982:	d080           	add.l d0,d0
-    6984:	2200           	move.l d0,d1
-    6986:	5281           	addq.l #1,d1
-    6988:	7000           	moveq #0,d0
-    698a:	302f 01c6      	move.w 454(sp),d0
-    698e:	2f01           	move.l d1,-(sp)
-    6990:	2f00           	move.l d0,-(sp)
-    6992:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6996:	2f2f 002e      	move.l 46(sp),-(sp)
-    699a:	4eba 0404      	jsr 6da0 <TestRow>(pc)
-    699e:	4fef 0010      	lea 16(sp),sp
+      TestRow( valsupposed, valactual, mask, 17+i*34+i2*2);
+    697e:	222f 009e      	move.l 158(sp),d1
+    6982:	2001           	move.l d1,d0
+    6984:	e988           	lsl.l #4,d0
+    6986:	d081           	add.l d1,d0
+    6988:	d080           	add.l d0,d0
+    698a:	2040           	movea.l d0,a0
+    698c:	41e8 0011      	lea 17(a0),a0
+    6990:	202f 0096      	move.l 150(sp),d0
+    6994:	d080           	add.l d0,d0
+    6996:	2208           	move.l a0,d1
+    6998:	d280           	add.l d0,d1
+    699a:	7000           	moveq #0,d0
+    699c:	302f 01c6      	move.w 454(sp),d0
+    69a0:	2f01           	move.l d1,-(sp)
+    69a2:	2f00           	move.l d0,-(sp)
+    69a4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    69a8:	2f2f 0056      	move.l 86(sp),-(sp)
+    69ac:	4eba 0578      	jsr 6f26 <TestRow>(pc)
+    69b0:	4fef 0010      	lea 16(sp),sp
+      valactual += ZMLINESIZE/2;
+    69b4:	7230           	moveq #48,d1
+    69b6:	d3af 01c8      	add.l d1,456(sp)
+      mask = mask ^ 0xffff;
+    69ba:	466f 01c6      	not.w 454(sp)
+    for(int i2=0;i2<16;i2++) {
+    69be:	52af 0096      	addq.l #1,150(sp)
+    69c2:	700f           	moveq #15,d0
+    69c4:	b0af 0096      	cmp.l 150(sp),d0
+    69c8:	6c00 ff78      	bge.w 6942 <TestZoom4Picture+0x287e>
+  for(int i=0;i<7;i++) {
+    69cc:	52af 009e      	addq.l #1,158(sp)
+    69d0:	7206           	moveq #6,d1
+    69d2:	b2af 009e      	cmp.l 158(sp),d1
+    69d6:	6c00 ff14      	bge.w 68ec <TestZoom4Picture+0x2828>
+    }
+  }
+
+  for(int i2=0;i2<2;i2++) {
+    69da:	42af 0092      	clr.l 146(sp)
+    69de:	6032           	bra.s 6a12 <TestZoom4Picture+0x294e>
+    TestRow( valsupposed, valactual, mask, 251+i2);
+    69e0:	222f 0092      	move.l 146(sp),d1
+    69e4:	0681 0000 00fb 	addi.l #251,d1
+    69ea:	7000           	moveq #0,d0
+    69ec:	302f 01c6      	move.w 454(sp),d0
+    69f0:	2f01           	move.l d1,-(sp)
+    69f2:	2f00           	move.l d0,-(sp)
+    69f4:	2f2f 01d0      	move.l 464(sp),-(sp)
+    69f8:	2f2f 0056      	move.l 86(sp),-(sp)
+    69fc:	4eba 0528      	jsr 6f26 <TestRow>(pc)
+    6a00:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    69a2:	7230           	moveq #48,d1
-    69a4:	d3af 01c8      	add.l d1,456(sp)
+    6a04:	7030           	moveq #48,d0
+    6a06:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    69a8:	466f 01c6      	not.w 454(sp)
+    6a0a:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<2;i2++) {
+    6a0e:	52af 0092      	addq.l #1,146(sp)
+    6a12:	7201           	moveq #1,d1
+    6a14:	b2af 0092      	cmp.l 146(sp),d1
+    6a18:	6cc6           	bge.s 69e0 <TestZoom4Picture+0x291c>
+  }
+
+  for(int i2=0;i2<8;i2++) {
+    6a1a:	42af 008e      	clr.l 142(sp)
+    6a1e:	6060           	bra.s 6a80 <TestZoom4Picture+0x29bc>
+    TestRow( valsupposed, valactual, mask, 253+i2*2);   
+    6a20:	202f 008e      	move.l 142(sp),d0
+    6a24:	d080           	add.l d0,d0
+    6a26:	2200           	move.l d0,d1
+    6a28:	0681 0000 00fd 	addi.l #253,d1
+    6a2e:	7000           	moveq #0,d0
+    6a30:	302f 01c6      	move.w 454(sp),d0
+    6a34:	2f01           	move.l d1,-(sp)
+    6a36:	2f00           	move.l d0,-(sp)
+    6a38:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6a3c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6a40:	4eba 04e4      	jsr 6f26 <TestRow>(pc)
+    6a44:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    6a48:	7030           	moveq #48,d0
+    6a4a:	d1af 01c8      	add.l d0,456(sp)
+    TestRow( valsupposed, valactual, mask, 254+i2*2);
+    6a4e:	707f           	moveq #127,d0
+    6a50:	d0af 008e      	add.l 142(sp),d0
+    6a54:	d080           	add.l d0,d0
+    6a56:	2200           	move.l d0,d1
+    6a58:	7000           	moveq #0,d0
+    6a5a:	302f 01c6      	move.w 454(sp),d0
+    6a5e:	2f01           	move.l d1,-(sp)
+    6a60:	2f00           	move.l d0,-(sp)
+    6a62:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6a66:	2f2f 0056      	move.l 86(sp),-(sp)
+    6a6a:	4eba 04ba      	jsr 6f26 <TestRow>(pc)
+    6a6e:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    6a72:	7230           	moveq #48,d1
+    6a74:	d3af 01c8      	add.l d1,456(sp)
+    mask = mask ^ 0xffff;
+    6a78:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<8;i2++) {
+    6a7c:	52af 008e      	addq.l #1,142(sp)
+    6a80:	7007           	moveq #7,d0
+    6a82:	b0af 008e      	cmp.l 142(sp),d0
+    6a86:	6c98           	bge.s 6a20 <TestZoom4Picture+0x295c>
+  }
+
+  tmp = source;
+    6a88:	2f6f 005e 0046 	move.l 94(sp),70(sp)
+  source = destination;
+    6a8e:	2f6f 004e 005e 	move.l 78(sp),94(sp)
+  destination = tmp;
+    6a94:	2f6f 0046 004e 	move.l 70(sp),78(sp)
+
+  Zoom_ZoomIntoPicture( source, destination, 16, 1);
+    6a9a:	4878 0001      	pea 1 <_start+0x1>
+    6a9e:	4878 0010      	pea 10 <_start+0x10>
+    6aa2:	2f2f 0056      	move.l 86(sp),-(sp)
+    6aa6:	2f2f 006a      	move.l 106(sp),-(sp)
+    6aaa:	4eba b22c      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    6aae:	4fef 0010      	lea 16(sp),sp
+  WaitBlit();
+    6ab2:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    6ab8:	2c40           	movea.l d0,a6
+    6aba:	4eae ff1c      	jsr -228(a6)
+  valactual = destination+2; 
+    6abe:	222f 004e      	move.l 78(sp),d1
+    6ac2:	5881           	addq.l #4,d1
+    6ac4:	2f41 01c8      	move.l d1,456(sp)
+  valsupposed = destlinezoom17;
+    6ac8:	2f7c 0001 bca4 	move.l #113828,74(sp)
+    6ace:	004a 
+
+  mask = 0xffff;
+    6ad0:	3f7c ffff 01c6 	move.w #-1,454(sp)
+
   for(int i2=0;i2<5;i2++) {
-    69ac:	52af 008a      	addq.l #1,138(sp)
-    69b0:	7404           	moveq #4,d2
-    69b2:	b4af 008a      	cmp.l 138(sp),d2
-    69b6:	6c9e           	bge.s 6956 <TestZoom4Picture+0x2a2c>
+    6ad6:	42af 008a      	clr.l 138(sp)
+    6ada:	605a           	bra.s 6b36 <TestZoom4Picture+0x2a72>
+    TestRow( valsupposed, valactual, mask, 0+i2*2);   
+    6adc:	202f 008a      	move.l 138(sp),d0
+    6ae0:	d080           	add.l d0,d0
+    6ae2:	2200           	move.l d0,d1
+    6ae4:	7000           	moveq #0,d0
+    6ae6:	302f 01c6      	move.w 454(sp),d0
+    6aea:	2f01           	move.l d1,-(sp)
+    6aec:	2f00           	move.l d0,-(sp)
+    6aee:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6af2:	2f2f 0056      	move.l 86(sp),-(sp)
+    6af6:	4eba 042e      	jsr 6f26 <TestRow>(pc)
+    6afa:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    6afe:	7030           	moveq #48,d0
+    6b00:	d1af 01c8      	add.l d0,456(sp)
+    TestRow( valsupposed, valactual, mask, 1+i2*2);
+    6b04:	202f 008a      	move.l 138(sp),d0
+    6b08:	d080           	add.l d0,d0
+    6b0a:	2200           	move.l d0,d1
+    6b0c:	5281           	addq.l #1,d1
+    6b0e:	7000           	moveq #0,d0
+    6b10:	302f 01c6      	move.w 454(sp),d0
+    6b14:	2f01           	move.l d1,-(sp)
+    6b16:	2f00           	move.l d0,-(sp)
+    6b18:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6b1c:	2f2f 0056      	move.l 86(sp),-(sp)
+    6b20:	4eba 0404      	jsr 6f26 <TestRow>(pc)
+    6b24:	4fef 0010      	lea 16(sp),sp
+    valactual += ZMLINESIZE/2;
+    6b28:	7230           	moveq #48,d1
+    6b2a:	d3af 01c8      	add.l d1,456(sp)
+    mask = mask ^ 0xffff;
+    6b2e:	466f 01c6      	not.w 454(sp)
+  for(int i2=0;i2<5;i2++) {
+    6b32:	52af 008a      	addq.l #1,138(sp)
+    6b36:	7004           	moveq #4,d0
+    6b38:	b0af 008a      	cmp.l 138(sp),d0
+    6b3c:	6c9e           	bge.s 6adc <TestZoom4Picture+0x2a18>
   }
 
   for(int i=0;i<7;i++) {
-    69b8:	42af 0086      	clr.l 134(sp)
-    69bc:	6000 00d4      	bra.w 6a92 <TestZoom4Picture+0x2b68>
+    6b3e:	42af 0086      	clr.l 134(sp)
+    6b42:	6000 00d4      	bra.w 6c18 <TestZoom4Picture+0x2b54>
       TestRow( valsupposed, valactual, mask, 10+i*35);
-    69c0:	222f 0086      	move.l 134(sp),d1
-    69c4:	2001           	move.l d1,d0
-    69c6:	e988           	lsl.l #4,d0
-    69c8:	d081           	add.l d1,d0
-    69ca:	d080           	add.l d0,d0
-    69cc:	2040           	movea.l d0,a0
-    69ce:	d1c1           	adda.l d1,a0
-    69d0:	41e8 000a      	lea 10(a0),a0
-    69d4:	7000           	moveq #0,d0
-    69d6:	302f 01c6      	move.w 454(sp),d0
-    69da:	2f08           	move.l a0,-(sp)
-    69dc:	2f00           	move.l d0,-(sp)
-    69de:	2f2f 01d0      	move.l 464(sp),-(sp)
-    69e2:	2f2f 002e      	move.l 46(sp),-(sp)
-    69e6:	4eba 03b8      	jsr 6da0 <TestRow>(pc)
-    69ea:	4fef 0010      	lea 16(sp),sp
+    6b46:	222f 0086      	move.l 134(sp),d1
+    6b4a:	2001           	move.l d1,d0
+    6b4c:	e988           	lsl.l #4,d0
+    6b4e:	d081           	add.l d1,d0
+    6b50:	d080           	add.l d0,d0
+    6b52:	2040           	movea.l d0,a0
+    6b54:	d1c1           	adda.l d1,a0
+    6b56:	41e8 000a      	lea 10(a0),a0
+    6b5a:	7000           	moveq #0,d0
+    6b5c:	302f 01c6      	move.w 454(sp),d0
+    6b60:	2f08           	move.l a0,-(sp)
+    6b62:	2f00           	move.l d0,-(sp)
+    6b64:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6b68:	2f2f 0056      	move.l 86(sp),-(sp)
+    6b6c:	4eba 03b8      	jsr 6f26 <TestRow>(pc)
+    6b70:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    69ee:	7030           	moveq #48,d0
-    69f0:	d1af 01c8      	add.l d0,456(sp)
+    6b74:	7230           	moveq #48,d1
+    6b76:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    69f4:	466f 01c6      	not.w 454(sp)
+    6b7a:	466f 01c6      	not.w 454(sp)
     
     for(int i2=0;i2<17;i2++) {
-    69f8:	42af 0082      	clr.l 130(sp)
-    69fc:	6000 0086      	bra.w 6a84 <TestZoom4Picture+0x2b5a>
+    6b7e:	42af 0082      	clr.l 130(sp)
+    6b82:	6000 0086      	bra.w 6c0a <TestZoom4Picture+0x2b46>
       TestRow( valsupposed, valactual, mask, 11+i*35+i2*2);   
-    6a00:	222f 0086      	move.l 134(sp),d1
-    6a04:	2001           	move.l d1,d0
-    6a06:	e988           	lsl.l #4,d0
-    6a08:	d081           	add.l d1,d0
-    6a0a:	d080           	add.l d0,d0
-    6a0c:	2040           	movea.l d0,a0
-    6a0e:	d1c1           	adda.l d1,a0
-    6a10:	41e8 000b      	lea 11(a0),a0
-    6a14:	202f 0082      	move.l 130(sp),d0
-    6a18:	d080           	add.l d0,d0
-    6a1a:	2208           	move.l a0,d1
-    6a1c:	d280           	add.l d0,d1
-    6a1e:	7000           	moveq #0,d0
-    6a20:	302f 01c6      	move.w 454(sp),d0
-    6a24:	2f01           	move.l d1,-(sp)
-    6a26:	2f00           	move.l d0,-(sp)
-    6a28:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6a2c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6a30:	4eba 036e      	jsr 6da0 <TestRow>(pc)
-    6a34:	4fef 0010      	lea 16(sp),sp
+    6b86:	222f 0086      	move.l 134(sp),d1
+    6b8a:	2001           	move.l d1,d0
+    6b8c:	e988           	lsl.l #4,d0
+    6b8e:	d081           	add.l d1,d0
+    6b90:	d080           	add.l d0,d0
+    6b92:	2040           	movea.l d0,a0
+    6b94:	d1c1           	adda.l d1,a0
+    6b96:	41e8 000b      	lea 11(a0),a0
+    6b9a:	202f 0082      	move.l 130(sp),d0
+    6b9e:	d080           	add.l d0,d0
+    6ba0:	2208           	move.l a0,d1
+    6ba2:	d280           	add.l d0,d1
+    6ba4:	7000           	moveq #0,d0
+    6ba6:	302f 01c6      	move.w 454(sp),d0
+    6baa:	2f01           	move.l d1,-(sp)
+    6bac:	2f00           	move.l d0,-(sp)
+    6bae:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6bb2:	2f2f 0056      	move.l 86(sp),-(sp)
+    6bb6:	4eba 036e      	jsr 6f26 <TestRow>(pc)
+    6bba:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6a38:	7230           	moveq #48,d1
-    6a3a:	d3af 01c8      	add.l d1,456(sp)
+    6bbe:	7030           	moveq #48,d0
+    6bc0:	d1af 01c8      	add.l d0,456(sp)
       TestRow( valsupposed, valactual, mask, 12+i*35+i2*2);
-    6a3e:	222f 0086      	move.l 134(sp),d1
-    6a42:	2001           	move.l d1,d0
-    6a44:	e988           	lsl.l #4,d0
-    6a46:	d081           	add.l d1,d0
-    6a48:	d080           	add.l d0,d0
-    6a4a:	2040           	movea.l d0,a0
-    6a4c:	d1c1           	adda.l d1,a0
-    6a4e:	41e8 000c      	lea 12(a0),a0
-    6a52:	202f 0082      	move.l 130(sp),d0
-    6a56:	d080           	add.l d0,d0
-    6a58:	2208           	move.l a0,d1
-    6a5a:	d280           	add.l d0,d1
-    6a5c:	7000           	moveq #0,d0
-    6a5e:	302f 01c6      	move.w 454(sp),d0
-    6a62:	2f01           	move.l d1,-(sp)
-    6a64:	2f00           	move.l d0,-(sp)
-    6a66:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6a6a:	2f2f 002e      	move.l 46(sp),-(sp)
-    6a6e:	4eba 0330      	jsr 6da0 <TestRow>(pc)
-    6a72:	4fef 0010      	lea 16(sp),sp
+    6bc4:	222f 0086      	move.l 134(sp),d1
+    6bc8:	2001           	move.l d1,d0
+    6bca:	e988           	lsl.l #4,d0
+    6bcc:	d081           	add.l d1,d0
+    6bce:	d080           	add.l d0,d0
+    6bd0:	2040           	movea.l d0,a0
+    6bd2:	d1c1           	adda.l d1,a0
+    6bd4:	41e8 000c      	lea 12(a0),a0
+    6bd8:	202f 0082      	move.l 130(sp),d0
+    6bdc:	d080           	add.l d0,d0
+    6bde:	2208           	move.l a0,d1
+    6be0:	d280           	add.l d0,d1
+    6be2:	7000           	moveq #0,d0
+    6be4:	302f 01c6      	move.w 454(sp),d0
+    6be8:	2f01           	move.l d1,-(sp)
+    6bea:	2f00           	move.l d0,-(sp)
+    6bec:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6bf0:	2f2f 0056      	move.l 86(sp),-(sp)
+    6bf4:	4eba 0330      	jsr 6f26 <TestRow>(pc)
+    6bf8:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6a76:	7430           	moveq #48,d2
-    6a78:	d5af 01c8      	add.l d2,456(sp)
+    6bfc:	7230           	moveq #48,d1
+    6bfe:	d3af 01c8      	add.l d1,456(sp)
       mask = mask ^ 0xffff;
-    6a7c:	466f 01c6      	not.w 454(sp)
+    6c02:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<17;i2++) {
-    6a80:	52af 0082      	addq.l #1,130(sp)
-    6a84:	7010           	moveq #16,d0
-    6a86:	b0af 0082      	cmp.l 130(sp),d0
-    6a8a:	6c00 ff74      	bge.w 6a00 <TestZoom4Picture+0x2ad6>
+    6c06:	52af 0082      	addq.l #1,130(sp)
+    6c0a:	7010           	moveq #16,d0
+    6c0c:	b0af 0082      	cmp.l 130(sp),d0
+    6c10:	6c00 ff74      	bge.w 6b86 <TestZoom4Picture+0x2ac2>
   for(int i=0;i<7;i++) {
-    6a8e:	52af 0086      	addq.l #1,134(sp)
-    6a92:	7206           	moveq #6,d1
-    6a94:	b2af 0086      	cmp.l 134(sp),d1
-    6a98:	6c00 ff26      	bge.w 69c0 <TestZoom4Picture+0x2a96>
+    6c14:	52af 0086      	addq.l #1,134(sp)
+    6c18:	7206           	moveq #6,d1
+    6c1a:	b2af 0086      	cmp.l 134(sp),d1
+    6c1e:	6c00 ff26      	bge.w 6b46 <TestZoom4Picture+0x2a82>
     }
   } 
 
   TestRow( valsupposed, valactual, mask, 255);
-    6a9c:	7000           	moveq #0,d0
-    6a9e:	302f 01c6      	move.w 454(sp),d0
-    6aa2:	4878 00ff      	pea ff <WaitBlt+0x1f>
-    6aa6:	2f00           	move.l d0,-(sp)
-    6aa8:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6aac:	2f2f 002e      	move.l 46(sp),-(sp)
-    6ab0:	4eba 02ee      	jsr 6da0 <TestRow>(pc)
-    6ab4:	4fef 0010      	lea 16(sp),sp
+    6c22:	7000           	moveq #0,d0
+    6c24:	302f 01c6      	move.w 454(sp),d0
+    6c28:	4878 00ff      	pea ff <FreeDisplay+0x1f>
+    6c2c:	2f00           	move.l d0,-(sp)
+    6c2e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6c32:	2f2f 0056      	move.l 86(sp),-(sp)
+    6c36:	4eba 02ee      	jsr 6f26 <TestRow>(pc)
+    6c3a:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    6ab8:	7430           	moveq #48,d2
-    6aba:	d5af 01c8      	add.l d2,456(sp)
+    6c3e:	7030           	moveq #48,d0
+    6c40:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    6abe:	466f 01c6      	not.w 454(sp)
+    6c44:	466f 01c6      	not.w 454(sp)
 
   for(int i2=0;i2<7;i2++) {
-    6ac2:	42af 007e      	clr.l 126(sp)
-    6ac6:	6064           	bra.s 6b2c <TestZoom4Picture+0x2c02>
+    6c48:	42af 007e      	clr.l 126(sp)
+    6c4c:	6064           	bra.s 6cb2 <TestZoom4Picture+0x2bee>
     TestRow( valsupposed, valactual, mask, 256+i2*2);   
-    6ac8:	202f 007e      	move.l 126(sp),d0
-    6acc:	0680 0000 0080 	addi.l #128,d0
-    6ad2:	d080           	add.l d0,d0
-    6ad4:	2200           	move.l d0,d1
-    6ad6:	7000           	moveq #0,d0
-    6ad8:	302f 01c6      	move.w 454(sp),d0
-    6adc:	2f01           	move.l d1,-(sp)
-    6ade:	2f00           	move.l d0,-(sp)
-    6ae0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6ae4:	2f2f 002e      	move.l 46(sp),-(sp)
-    6ae8:	4eba 02b6      	jsr 6da0 <TestRow>(pc)
-    6aec:	4fef 0010      	lea 16(sp),sp
+    6c4e:	202f 007e      	move.l 126(sp),d0
+    6c52:	0680 0000 0080 	addi.l #128,d0
+    6c58:	d080           	add.l d0,d0
+    6c5a:	2200           	move.l d0,d1
+    6c5c:	7000           	moveq #0,d0
+    6c5e:	302f 01c6      	move.w 454(sp),d0
+    6c62:	2f01           	move.l d1,-(sp)
+    6c64:	2f00           	move.l d0,-(sp)
+    6c66:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6c6a:	2f2f 0056      	move.l 86(sp),-(sp)
+    6c6e:	4eba 02b6      	jsr 6f26 <TestRow>(pc)
+    6c72:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6af0:	7030           	moveq #48,d0
-    6af2:	d1af 01c8      	add.l d0,456(sp)
+    6c76:	7230           	moveq #48,d1
+    6c78:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 257+i2*2);
-    6af6:	202f 007e      	move.l 126(sp),d0
-    6afa:	d080           	add.l d0,d0
-    6afc:	2200           	move.l d0,d1
-    6afe:	0681 0000 0101 	addi.l #257,d1
-    6b04:	7000           	moveq #0,d0
-    6b06:	302f 01c6      	move.w 454(sp),d0
-    6b0a:	2f01           	move.l d1,-(sp)
-    6b0c:	2f00           	move.l d0,-(sp)
-    6b0e:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6b12:	2f2f 002e      	move.l 46(sp),-(sp)
-    6b16:	4eba 0288      	jsr 6da0 <TestRow>(pc)
-    6b1a:	4fef 0010      	lea 16(sp),sp
+    6c7c:	202f 007e      	move.l 126(sp),d0
+    6c80:	d080           	add.l d0,d0
+    6c82:	2200           	move.l d0,d1
+    6c84:	0681 0000 0101 	addi.l #257,d1
+    6c8a:	7000           	moveq #0,d0
+    6c8c:	302f 01c6      	move.w 454(sp),d0
+    6c90:	2f01           	move.l d1,-(sp)
+    6c92:	2f00           	move.l d0,-(sp)
+    6c94:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6c98:	2f2f 0056      	move.l 86(sp),-(sp)
+    6c9c:	4eba 0288      	jsr 6f26 <TestRow>(pc)
+    6ca0:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6b1e:	7230           	moveq #48,d1
-    6b20:	d3af 01c8      	add.l d1,456(sp)
+    6ca4:	7030           	moveq #48,d0
+    6ca6:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    6b24:	466f 01c6      	not.w 454(sp)
+    6caa:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<7;i2++) {
-    6b28:	52af 007e      	addq.l #1,126(sp)
-    6b2c:	7406           	moveq #6,d2
-    6b2e:	b4af 007e      	cmp.l 126(sp),d2
-    6b32:	6c94           	bge.s 6ac8 <TestZoom4Picture+0x2b9e>
+    6cae:	52af 007e      	addq.l #1,126(sp)
+    6cb2:	7206           	moveq #6,d1
+    6cb4:	b2af 007e      	cmp.l 126(sp),d1
+    6cb8:	6c94           	bge.s 6c4e <TestZoom4Picture+0x2b8a>
   }   
 
   tmp = source;
-    6b34:	2f6f 005e 001e 	move.l 94(sp),30(sp)
+    6cba:	2f6f 005e 0046 	move.l 94(sp),70(sp)
   source = destination;
-    6b3a:	2f6f 003a 005e 	move.l 58(sp),94(sp)
+    6cc0:	2f6f 004e 005e 	move.l 78(sp),94(sp)
   destination = tmp;
-    6b40:	2f6f 001e 003a 	move.l 30(sp),58(sp)
+    6cc6:	2f6f 0046 004e 	move.l 70(sp),78(sp)
 
   Zoom_ZoomIntoPicture( source, destination, 17, 1);
-    6b46:	4878 0001      	pea 1 <_start+0x1>
-    6b4a:	4878 0011      	pea 11 <GetVBR+0x9>
-    6b4e:	2f2f 0042      	move.l 66(sp),-(sp)
-    6b52:	2f2f 006a      	move.l 106(sp),-(sp)
-    6b56:	4eba af04      	jsr 1a5c <Zoom_ZoomIntoPicture>(pc)
-    6b5a:	4fef 0010      	lea 16(sp),sp
+    6ccc:	4878 0001      	pea 1 <_start+0x1>
+    6cd0:	4878 0011      	pea 11 <_start+0x11>
+    6cd4:	2f2f 0056      	move.l 86(sp),-(sp)
+    6cd8:	2f2f 006a      	move.l 106(sp),-(sp)
+    6cdc:	4eba affa      	jsr 1cd8 <Zoom_ZoomIntoPicture>(pc)
+    6ce0:	4fef 0010      	lea 16(sp),sp
   WaitBlit();
-    6b5e:	2039 0001 ba84 	move.l 1ba84 <GfxBase>,d0
-    6b64:	2c40           	movea.l d0,a6
-    6b66:	4eae ff1c      	jsr -228(a6)
+    6ce4:	2039 0002 8530 	move.l 28530 <GfxBase>,d0
+    6cea:	2c40           	movea.l d0,a6
+    6cec:	4eae ff1c      	jsr -228(a6)
   valactual = destination+2; 
-    6b6a:	202f 003a      	move.l 58(sp),d0
-    6b6e:	5880           	addq.l #4,d0
-    6b70:	2f40 01c8      	move.l d0,456(sp)
+    6cf0:	202f 004e      	move.l 78(sp),d0
+    6cf4:	5880           	addq.l #4,d0
+    6cf6:	2f40 01c8      	move.l d0,456(sp)
   valsupposed = destlinezoom18;
-    6b74:	2f7c 0001 ba50 	move.l #113232,34(sp)
-    6b7a:	0022 
+    6cfa:	2f7c 0001 bcd0 	move.l #113872,74(sp)
+    6d00:	004a 
 
   mask = 0xffff;
-    6b7c:	3f7c ffff 01c6 	move.w #-1,454(sp)
+    6d02:	3f7c ffff 01c6 	move.w #-1,454(sp)
 
   TestRow( valsupposed, valactual, mask, 0);
-    6b82:	7000           	moveq #0,d0
-    6b84:	302f 01c6      	move.w 454(sp),d0
-    6b88:	42a7           	clr.l -(sp)
-    6b8a:	2f00           	move.l d0,-(sp)
-    6b8c:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6b90:	2f2f 002e      	move.l 46(sp),-(sp)
-    6b94:	4eba 020a      	jsr 6da0 <TestRow>(pc)
-    6b98:	4fef 0010      	lea 16(sp),sp
+    6d08:	7000           	moveq #0,d0
+    6d0a:	302f 01c6      	move.w 454(sp),d0
+    6d0e:	42a7           	clr.l -(sp)
+    6d10:	2f00           	move.l d0,-(sp)
+    6d12:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6d16:	2f2f 0056      	move.l 86(sp),-(sp)
+    6d1a:	4eba 020a      	jsr 6f26 <TestRow>(pc)
+    6d1e:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    6b9c:	7230           	moveq #48,d1
-    6b9e:	d3af 01c8      	add.l d1,456(sp)
+    6d22:	7230           	moveq #48,d1
+    6d24:	d3af 01c8      	add.l d1,456(sp)
   mask = mask ^ 0xffff;
-    6ba2:	466f 01c6      	not.w 454(sp)
+    6d28:	466f 01c6      	not.w 454(sp)
 
   for(int i2=0;i2<4;i2++) {
-    6ba6:	42af 007a      	clr.l 122(sp)
-    6baa:	605c           	bra.s 6c08 <TestZoom4Picture+0x2cde>
+    6d2c:	42af 007a      	clr.l 122(sp)
+    6d30:	605c           	bra.s 6d8e <TestZoom4Picture+0x2cca>
     TestRow( valsupposed, valactual, mask, 1+i2*2);   
-    6bac:	202f 007a      	move.l 122(sp),d0
-    6bb0:	d080           	add.l d0,d0
-    6bb2:	2200           	move.l d0,d1
-    6bb4:	5281           	addq.l #1,d1
-    6bb6:	7000           	moveq #0,d0
-    6bb8:	302f 01c6      	move.w 454(sp),d0
-    6bbc:	2f01           	move.l d1,-(sp)
-    6bbe:	2f00           	move.l d0,-(sp)
-    6bc0:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6bc4:	2f2f 002e      	move.l 46(sp),-(sp)
-    6bc8:	4eba 01d6      	jsr 6da0 <TestRow>(pc)
-    6bcc:	4fef 0010      	lea 16(sp),sp
+    6d32:	202f 007a      	move.l 122(sp),d0
+    6d36:	d080           	add.l d0,d0
+    6d38:	2200           	move.l d0,d1
+    6d3a:	5281           	addq.l #1,d1
+    6d3c:	7000           	moveq #0,d0
+    6d3e:	302f 01c6      	move.w 454(sp),d0
+    6d42:	2f01           	move.l d1,-(sp)
+    6d44:	2f00           	move.l d0,-(sp)
+    6d46:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6d4a:	2f2f 0056      	move.l 86(sp),-(sp)
+    6d4e:	4eba 01d6      	jsr 6f26 <TestRow>(pc)
+    6d52:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6bd0:	7430           	moveq #48,d2
-    6bd2:	d5af 01c8      	add.l d2,456(sp)
+    6d56:	7030           	moveq #48,d0
+    6d58:	d1af 01c8      	add.l d0,456(sp)
     TestRow( valsupposed, valactual, mask, 2+i2*2);
-    6bd6:	202f 007a      	move.l 122(sp),d0
-    6bda:	5280           	addq.l #1,d0
-    6bdc:	d080           	add.l d0,d0
-    6bde:	2200           	move.l d0,d1
-    6be0:	7000           	moveq #0,d0
-    6be2:	302f 01c6      	move.w 454(sp),d0
-    6be6:	2f01           	move.l d1,-(sp)
-    6be8:	2f00           	move.l d0,-(sp)
-    6bea:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6bee:	2f2f 002e      	move.l 46(sp),-(sp)
-    6bf2:	4eba 01ac      	jsr 6da0 <TestRow>(pc)
-    6bf6:	4fef 0010      	lea 16(sp),sp
+    6d5c:	202f 007a      	move.l 122(sp),d0
+    6d60:	5280           	addq.l #1,d0
+    6d62:	d080           	add.l d0,d0
+    6d64:	2200           	move.l d0,d1
+    6d66:	7000           	moveq #0,d0
+    6d68:	302f 01c6      	move.w 454(sp),d0
+    6d6c:	2f01           	move.l d1,-(sp)
+    6d6e:	2f00           	move.l d0,-(sp)
+    6d70:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6d74:	2f2f 0056      	move.l 86(sp),-(sp)
+    6d78:	4eba 01ac      	jsr 6f26 <TestRow>(pc)
+    6d7c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6bfa:	7030           	moveq #48,d0
-    6bfc:	d1af 01c8      	add.l d0,456(sp)
+    6d80:	7230           	moveq #48,d1
+    6d82:	d3af 01c8      	add.l d1,456(sp)
     mask = mask ^ 0xffff;
-    6c00:	466f 01c6      	not.w 454(sp)
+    6d86:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<4;i2++) {
-    6c04:	52af 007a      	addq.l #1,122(sp)
-    6c08:	7203           	moveq #3,d1
-    6c0a:	b2af 007a      	cmp.l 122(sp),d1
-    6c0e:	6c9c           	bge.s 6bac <TestZoom4Picture+0x2c82>
+    6d8a:	52af 007a      	addq.l #1,122(sp)
+    6d8e:	7003           	moveq #3,d0
+    6d90:	b0af 007a      	cmp.l 122(sp),d0
+    6d94:	6c9c           	bge.s 6d32 <TestZoom4Picture+0x2c6e>
   }
 
   for(int i=0;i<7;i++) {  
-    6c10:	42af 0076      	clr.l 118(sp)
-    6c14:	6000 009c      	bra.w 6cb2 <TestZoom4Picture+0x2d88>
+    6d96:	42af 0076      	clr.l 118(sp)
+    6d9a:	6000 009c      	bra.w 6e38 <TestZoom4Picture+0x2d74>
     for(int i2=0;i2<18;i2++) {
-    6c18:	42af 0072      	clr.l 114(sp)
-    6c1c:	6000 0086      	bra.w 6ca4 <TestZoom4Picture+0x2d7a>
+    6d9e:	42af 0072      	clr.l 114(sp)
+    6da2:	6000 0086      	bra.w 6e2a <TestZoom4Picture+0x2d66>
       TestRow( valsupposed, valactual, mask, 11+i*35+i2*2);   
-    6c20:	222f 0076      	move.l 118(sp),d1
-    6c24:	2001           	move.l d1,d0
-    6c26:	e988           	lsl.l #4,d0
-    6c28:	d081           	add.l d1,d0
-    6c2a:	d080           	add.l d0,d0
-    6c2c:	2040           	movea.l d0,a0
-    6c2e:	d1c1           	adda.l d1,a0
-    6c30:	41e8 000b      	lea 11(a0),a0
-    6c34:	202f 0072      	move.l 114(sp),d0
-    6c38:	d080           	add.l d0,d0
-    6c3a:	2208           	move.l a0,d1
-    6c3c:	d280           	add.l d0,d1
-    6c3e:	7000           	moveq #0,d0
-    6c40:	302f 01c6      	move.w 454(sp),d0
-    6c44:	2f01           	move.l d1,-(sp)
-    6c46:	2f00           	move.l d0,-(sp)
-    6c48:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6c4c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6c50:	4eba 014e      	jsr 6da0 <TestRow>(pc)
-    6c54:	4fef 0010      	lea 16(sp),sp
+    6da6:	222f 0076      	move.l 118(sp),d1
+    6daa:	2001           	move.l d1,d0
+    6dac:	e988           	lsl.l #4,d0
+    6dae:	d081           	add.l d1,d0
+    6db0:	d080           	add.l d0,d0
+    6db2:	2040           	movea.l d0,a0
+    6db4:	d1c1           	adda.l d1,a0
+    6db6:	41e8 000b      	lea 11(a0),a0
+    6dba:	202f 0072      	move.l 114(sp),d0
+    6dbe:	d080           	add.l d0,d0
+    6dc0:	2208           	move.l a0,d1
+    6dc2:	d280           	add.l d0,d1
+    6dc4:	7000           	moveq #0,d0
+    6dc6:	302f 01c6      	move.w 454(sp),d0
+    6dca:	2f01           	move.l d1,-(sp)
+    6dcc:	2f00           	move.l d0,-(sp)
+    6dce:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6dd2:	2f2f 0056      	move.l 86(sp),-(sp)
+    6dd6:	4eba 014e      	jsr 6f26 <TestRow>(pc)
+    6dda:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6c58:	7430           	moveq #48,d2
-    6c5a:	d5af 01c8      	add.l d2,456(sp)
+    6dde:	7230           	moveq #48,d1
+    6de0:	d3af 01c8      	add.l d1,456(sp)
       TestRow( valsupposed, valactual, mask, 12+i*35+i2*2);
-    6c5e:	222f 0076      	move.l 118(sp),d1
-    6c62:	2001           	move.l d1,d0
-    6c64:	e988           	lsl.l #4,d0
-    6c66:	d081           	add.l d1,d0
-    6c68:	d080           	add.l d0,d0
-    6c6a:	2040           	movea.l d0,a0
-    6c6c:	d1c1           	adda.l d1,a0
-    6c6e:	41e8 000c      	lea 12(a0),a0
-    6c72:	202f 0072      	move.l 114(sp),d0
-    6c76:	d080           	add.l d0,d0
-    6c78:	2208           	move.l a0,d1
-    6c7a:	d280           	add.l d0,d1
-    6c7c:	7000           	moveq #0,d0
-    6c7e:	302f 01c6      	move.w 454(sp),d0
-    6c82:	2f01           	move.l d1,-(sp)
-    6c84:	2f00           	move.l d0,-(sp)
-    6c86:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6c8a:	2f2f 002e      	move.l 46(sp),-(sp)
-    6c8e:	4eba 0110      	jsr 6da0 <TestRow>(pc)
-    6c92:	4fef 0010      	lea 16(sp),sp
+    6de4:	222f 0076      	move.l 118(sp),d1
+    6de8:	2001           	move.l d1,d0
+    6dea:	e988           	lsl.l #4,d0
+    6dec:	d081           	add.l d1,d0
+    6dee:	d080           	add.l d0,d0
+    6df0:	2040           	movea.l d0,a0
+    6df2:	d1c1           	adda.l d1,a0
+    6df4:	41e8 000c      	lea 12(a0),a0
+    6df8:	202f 0072      	move.l 114(sp),d0
+    6dfc:	d080           	add.l d0,d0
+    6dfe:	2208           	move.l a0,d1
+    6e00:	d280           	add.l d0,d1
+    6e02:	7000           	moveq #0,d0
+    6e04:	302f 01c6      	move.w 454(sp),d0
+    6e08:	2f01           	move.l d1,-(sp)
+    6e0a:	2f00           	move.l d0,-(sp)
+    6e0c:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6e10:	2f2f 0056      	move.l 86(sp),-(sp)
+    6e14:	4eba 0110      	jsr 6f26 <TestRow>(pc)
+    6e18:	4fef 0010      	lea 16(sp),sp
       valactual += ZMLINESIZE/2;
-    6c96:	7030           	moveq #48,d0
-    6c98:	d1af 01c8      	add.l d0,456(sp)
+    6e1c:	7030           	moveq #48,d0
+    6e1e:	d1af 01c8      	add.l d0,456(sp)
       mask = mask ^ 0xffff;
-    6c9c:	466f 01c6      	not.w 454(sp)
+    6e22:	466f 01c6      	not.w 454(sp)
     for(int i2=0;i2<18;i2++) {
-    6ca0:	52af 0072      	addq.l #1,114(sp)
-    6ca4:	7211           	moveq #17,d1
-    6ca6:	b2af 0072      	cmp.l 114(sp),d1
-    6caa:	6c00 ff74      	bge.w 6c20 <TestZoom4Picture+0x2cf6>
+    6e26:	52af 0072      	addq.l #1,114(sp)
+    6e2a:	7211           	moveq #17,d1
+    6e2c:	b2af 0072      	cmp.l 114(sp),d1
+    6e30:	6c00 ff74      	bge.w 6da6 <TestZoom4Picture+0x2ce2>
   for(int i=0;i<7;i++) {  
-    6cae:	52af 0076      	addq.l #1,118(sp)
-    6cb2:	7406           	moveq #6,d2
-    6cb4:	b4af 0076      	cmp.l 118(sp),d2
-    6cb8:	6c00 ff5e      	bge.w 6c18 <TestZoom4Picture+0x2cee>
+    6e34:	52af 0076      	addq.l #1,118(sp)
+    6e38:	7006           	moveq #6,d0
+    6e3a:	b0af 0076      	cmp.l 118(sp),d0
+    6e3e:	6c00 ff5e      	bge.w 6d9e <TestZoom4Picture+0x2cda>
     }
   } 
 
   for(int i2=0;i2<4;i2++) {
-    6cbc:	42af 006e      	clr.l 110(sp)
-    6cc0:	6064           	bra.s 6d26 <TestZoom4Picture+0x2dfc>
+    6e42:	42af 006e      	clr.l 110(sp)
+    6e46:	6064           	bra.s 6eac <TestZoom4Picture+0x2de8>
     TestRow( valsupposed, valactual, mask, 256+i2*2);   
-    6cc2:	202f 006e      	move.l 110(sp),d0
-    6cc6:	0680 0000 0080 	addi.l #128,d0
-    6ccc:	d080           	add.l d0,d0
-    6cce:	2200           	move.l d0,d1
-    6cd0:	7000           	moveq #0,d0
-    6cd2:	302f 01c6      	move.w 454(sp),d0
-    6cd6:	2f01           	move.l d1,-(sp)
-    6cd8:	2f00           	move.l d0,-(sp)
-    6cda:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6cde:	2f2f 002e      	move.l 46(sp),-(sp)
-    6ce2:	4eba 00bc      	jsr 6da0 <TestRow>(pc)
-    6ce6:	4fef 0010      	lea 16(sp),sp
+    6e48:	202f 006e      	move.l 110(sp),d0
+    6e4c:	0680 0000 0080 	addi.l #128,d0
+    6e52:	d080           	add.l d0,d0
+    6e54:	2200           	move.l d0,d1
+    6e56:	7000           	moveq #0,d0
+    6e58:	302f 01c6      	move.w 454(sp),d0
+    6e5c:	2f01           	move.l d1,-(sp)
+    6e5e:	2f00           	move.l d0,-(sp)
+    6e60:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6e64:	2f2f 0056      	move.l 86(sp),-(sp)
+    6e68:	4eba 00bc      	jsr 6f26 <TestRow>(pc)
+    6e6c:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6cea:	7030           	moveq #48,d0
-    6cec:	d1af 01c8      	add.l d0,456(sp)
+    6e70:	7230           	moveq #48,d1
+    6e72:	d3af 01c8      	add.l d1,456(sp)
     TestRow( valsupposed, valactual, mask, 257+i2*2);
-    6cf0:	202f 006e      	move.l 110(sp),d0
-    6cf4:	d080           	add.l d0,d0
-    6cf6:	2200           	move.l d0,d1
-    6cf8:	0681 0000 0101 	addi.l #257,d1
-    6cfe:	7000           	moveq #0,d0
-    6d00:	302f 01c6      	move.w 454(sp),d0
-    6d04:	2f01           	move.l d1,-(sp)
-    6d06:	2f00           	move.l d0,-(sp)
-    6d08:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6d0c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6d10:	4eba 008e      	jsr 6da0 <TestRow>(pc)
-    6d14:	4fef 0010      	lea 16(sp),sp
+    6e76:	202f 006e      	move.l 110(sp),d0
+    6e7a:	d080           	add.l d0,d0
+    6e7c:	2200           	move.l d0,d1
+    6e7e:	0681 0000 0101 	addi.l #257,d1
+    6e84:	7000           	moveq #0,d0
+    6e86:	302f 01c6      	move.w 454(sp),d0
+    6e8a:	2f01           	move.l d1,-(sp)
+    6e8c:	2f00           	move.l d0,-(sp)
+    6e8e:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6e92:	2f2f 0056      	move.l 86(sp),-(sp)
+    6e96:	4eba 008e      	jsr 6f26 <TestRow>(pc)
+    6e9a:	4fef 0010      	lea 16(sp),sp
     valactual += ZMLINESIZE/2;
-    6d18:	7230           	moveq #48,d1
-    6d1a:	d3af 01c8      	add.l d1,456(sp)
+    6e9e:	7030           	moveq #48,d0
+    6ea0:	d1af 01c8      	add.l d0,456(sp)
     mask = mask ^ 0xffff;
-    6d1e:	466f 01c6      	not.w 454(sp)
+    6ea4:	466f 01c6      	not.w 454(sp)
   for(int i2=0;i2<4;i2++) {
-    6d22:	52af 006e      	addq.l #1,110(sp)
-    6d26:	7403           	moveq #3,d2
-    6d28:	b4af 006e      	cmp.l 110(sp),d2
-    6d2c:	6c94           	bge.s 6cc2 <TestZoom4Picture+0x2d98>
+    6ea8:	52af 006e      	addq.l #1,110(sp)
+    6eac:	7203           	moveq #3,d1
+    6eae:	b2af 006e      	cmp.l 110(sp),d1
+    6eb2:	6c94           	bge.s 6e48 <TestZoom4Picture+0x2d84>
   }
   TestRow( valsupposed, valactual, mask, 0);
-    6d2e:	7000           	moveq #0,d0
-    6d30:	302f 01c6      	move.w 454(sp),d0
-    6d34:	42a7           	clr.l -(sp)
-    6d36:	2f00           	move.l d0,-(sp)
-    6d38:	2f2f 01d0      	move.l 464(sp),-(sp)
-    6d3c:	2f2f 002e      	move.l 46(sp),-(sp)
-    6d40:	4eba 005e      	jsr 6da0 <TestRow>(pc)
-    6d44:	4fef 0010      	lea 16(sp),sp
+    6eb4:	7000           	moveq #0,d0
+    6eb6:	302f 01c6      	move.w 454(sp),d0
+    6eba:	42a7           	clr.l -(sp)
+    6ebc:	2f00           	move.l d0,-(sp)
+    6ebe:	2f2f 01d0      	move.l 464(sp),-(sp)
+    6ec2:	2f2f 0056      	move.l 86(sp),-(sp)
+    6ec6:	4eba 005e      	jsr 6f26 <TestRow>(pc)
+    6eca:	4fef 0010      	lea 16(sp),sp
   valactual += ZMLINESIZE/2;
-    6d48:	7030           	moveq #48,d0
-    6d4a:	d1af 01c8      	add.l d0,456(sp)
+    6ece:	7030           	moveq #48,d0
+    6ed0:	d1af 01c8      	add.l d0,456(sp)
   mask = mask ^ 0xffff;
-    6d4e:	466f 01c6      	not.w 454(sp)
+    6ed4:	466f 01c6      	not.w 454(sp)
   FreeMem( source, (ZMLINESIZE+4)*272);
-    6d52:	2f6f 005e 001a 	move.l 94(sp),26(sp)
-    6d58:	2f7c 0000 3740 	move.l #14144,22(sp)
-    6d5e:	0016 
-    6d60:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    6d66:	2c40           	movea.l d0,a6
-    6d68:	226f 001a      	movea.l 26(sp),a1
-    6d6c:	202f 0016      	move.l 22(sp),d0
-    6d70:	4eae ff2e      	jsr -210(a6)
+    6ed8:	2f6f 005e 0042 	move.l 94(sp),66(sp)
+    6ede:	2f7c 0000 3740 	move.l #14144,62(sp)
+    6ee4:	003e 
+    6ee6:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    6eec:	2c40           	movea.l d0,a6
+    6eee:	226f 0042      	movea.l 66(sp),a1
+    6ef2:	202f 003e      	move.l 62(sp),d0
+    6ef6:	4eae ff2e      	jsr -210(a6)
   FreeMem( destination, (ZMLINESIZE+4)*272);
-    6d74:	2f6f 003a 0012 	move.l 58(sp),18(sp)
-    6d7a:	2f7c 0000 3740 	move.l #14144,14(sp)
-    6d80:	000e 
-    6d82:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    6d88:	2c40           	movea.l d0,a6
-    6d8a:	226f 0012      	movea.l 18(sp),a1
-    6d8e:	202f 000e      	move.l 14(sp),d0
-    6d92:	4eae ff2e      	jsr -210(a6)
+    6efa:	2f6f 004e 003a 	move.l 78(sp),58(sp)
+    6f00:	2f7c 0000 3740 	move.l #14144,54(sp)
+    6f06:	0036 
+    6f08:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    6f0e:	2c40           	movea.l d0,a6
+    6f10:	226f 003a      	movea.l 58(sp),a1
+    6f14:	202f 0036      	move.l 54(sp),d0
+    6f18:	4eae ff2e      	jsr -210(a6)
 }
-    6d96:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
-    6d9a:	4fef 01d0      	lea 464(sp),sp
-    6d9e:	4e75           	rts
+    6f1c:	4cdf 400c      	movem.l (sp)+,d2-d3/a6
+    6f20:	4fef 01d0      	lea 464(sp),sp
+    6f24:	4e75           	rts
 
-00006da0 <TestRow>:
+00006f26 <TestRow>:
 
 void TestRow( UWORD *testpattern, UWORD *destination, UWORD xormask, 
                                                              int numberofline) {    
-    6da0:	4fef ff40      	lea -192(sp),sp
-    6da4:	48e7 3032      	movem.l d2-d3/a2-a3/a6,-(sp)
-    6da8:	202f 00e0      	move.l 224(sp),d0
-    6dac:	3000           	move.w d0,d0
-    6dae:	3f40 0016      	move.w d0,22(sp)
+    6f26:	4fef ff40      	lea -192(sp),sp
+    6f2a:	48e7 3032      	movem.l d2-d3/a2-a3/a6,-(sp)
+    6f2e:	202f 00e0      	move.l 224(sp),d0
+    6f32:	3000           	move.w d0,d0
+    6f34:	3f40 0016      	move.w d0,22(sp)
   
   char str[ 100] = { 0 };
-    6db2:	701c           	moveq #28,d0
-    6db4:	d08f           	add.l sp,d0
-    6db6:	7264           	moveq #100,d1
-    6db8:	2f01           	move.l d1,-(sp)
-    6dba:	42a7           	clr.l -(sp)
-    6dbc:	2f00           	move.l d0,-(sp)
-    6dbe:	4eba 02f0      	jsr 70b0 <memset>(pc)
-    6dc2:	4fef 000c      	lea 12(sp),sp
+    6f38:	42af 001c      	clr.l 28(sp)
+    6f3c:	7020           	moveq #32,d0
+    6f3e:	d08f           	add.l sp,d0
+    6f40:	7260           	moveq #96,d1
+    6f42:	2f01           	move.l d1,-(sp)
+    6f44:	42a7           	clr.l -(sp)
+    6f46:	2f00           	move.l d0,-(sp)
+    6f48:	4eba 020c      	jsr 7156 <memset>(pc)
+    6f4c:	4fef 000c      	lea 12(sp),sp
   UWORD data[2];
   data[1] = numberofline;
-    6dc6:	202f 00e4      	move.l 228(sp),d0
-    6dca:	3f40 001a      	move.w d0,26(sp)
+    6f50:	202f 00e4      	move.l 228(sp),d0
+    6f54:	3f40 001a      	move.w d0,26(sp)
 
   testpattern += 0;
   destination += 0;
 
   for(int i=0;i<21;i++) {
-    6dce:	42af 00d0      	clr.l 208(sp)
-    6dd2:	6000 00d4      	bra.w 6ea8 <TestRow+0x108>
+    6f58:	42af 00d0      	clr.l 208(sp)
+    6f5c:	6000 00d4      	bra.w 7032 <TestRow+0x10c>
     if( (*testpattern++ ^ xormask) != *destination++) {
-    6dd6:	202f 00d8      	move.l 216(sp),d0
-    6dda:	2200           	move.l d0,d1
-    6ddc:	5481           	addq.l #2,d1
-    6dde:	2f41 00d8      	move.l d1,216(sp)
-    6de2:	2040           	movea.l d0,a0
-    6de4:	3010           	move.w (a0),d0
-    6de6:	322f 0016      	move.w 22(sp),d1
-    6dea:	b141           	eor.w d0,d1
-    6dec:	202f 00dc      	move.l 220(sp),d0
-    6df0:	2400           	move.l d0,d2
-    6df2:	5482           	addq.l #2,d2
-    6df4:	2f42 00dc      	move.l d2,220(sp)
-    6df8:	2040           	movea.l d0,a0
-    6dfa:	3010           	move.w (a0),d0
-    6dfc:	b041           	cmp.w d1,d0
-    6dfe:	6700 00a4      	beq.w 6ea4 <TestRow+0x104>
+    6f60:	202f 00d8      	move.l 216(sp),d0
+    6f64:	2200           	move.l d0,d1
+    6f66:	5481           	addq.l #2,d1
+    6f68:	2f41 00d8      	move.l d1,216(sp)
+    6f6c:	2040           	movea.l d0,a0
+    6f6e:	3010           	move.w (a0),d0
+    6f70:	322f 0016      	move.w 22(sp),d1
+    6f74:	b141           	eor.w d0,d1
+    6f76:	202f 00dc      	move.l 220(sp),d0
+    6f7a:	2400           	move.l d0,d2
+    6f7c:	5482           	addq.l #2,d2
+    6f7e:	2f42 00dc      	move.l d2,220(sp)
+    6f82:	2040           	movea.l d0,a0
+    6f84:	3010           	move.w (a0),d0
+    6f86:	b041           	cmp.w d1,d0
+    6f88:	6700 00a4      	beq.w 702e <TestRow+0x108>
       data[0] = i;
-    6e02:	202f 00d0      	move.l 208(sp),d0
-    6e06:	3f40 0018      	move.w d0,24(sp)
+    6f8c:	202f 00d0      	move.l 208(sp),d0
+    6f90:	3f40 0018      	move.w d0,24(sp)
       /*KPrintF("Testpattern:0x%08x Destination:0x%08x",
                                                  --*testpattern,--*destination);*/
       RawDoFmt( "TestZoom4Picture Zoom 1: Word %d Row %d wrong.\n", data,
-    6e0a:	2f7c 0001 824f 	move.l #98895,204(sp)
-    6e10:	00cc 
-    6e12:	702b           	moveq #43,d0
-    6e14:	4600           	not.b d0
-    6e16:	d08f           	add.l sp,d0
-    6e18:	0680 ffff ff44 	addi.l #-188,d0
-    6e1e:	2f40 00c8      	move.l d0,200(sp)
-    6e22:	2f7c 0000 729c 	move.l #29340,196(sp)
-    6e28:	00c4 
-    6e2a:	722b           	moveq #43,d1
-    6e2c:	4601           	not.b d1
-    6e2e:	d28f           	add.l sp,d1
-    6e30:	0681 ffff ff48 	addi.l #-184,d1
-    6e36:	2f41 00c0      	move.l d1,192(sp)
-    6e3a:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    6e40:	2c40           	movea.l d0,a6
-    6e42:	206f 00cc      	movea.l 204(sp),a0
-    6e46:	226f 00c8      	movea.l 200(sp),a1
-    6e4a:	246f 00c4      	movea.l 196(sp),a2
-    6e4e:	266f 00c0      	movea.l 192(sp),a3
-    6e52:	4eae fdf6      	jsr -522(a6)
-    6e56:	2f40 00bc      	move.l d0,188(sp)
+    6f94:	2f7c 0001 8404 	move.l #99332,164(sp)
+    6f9a:	00a4 
+    6f9c:	702b           	moveq #43,d0
+    6f9e:	4600           	not.b d0
+    6fa0:	d08f           	add.l sp,d0
+    6fa2:	0680 ffff ff44 	addi.l #-188,d0
+    6fa8:	2f40 00a0      	move.l d0,160(sp)
+    6fac:	2f7c 0000 75f4 	move.l #30196,156(sp)
+    6fb2:	009c 
+    6fb4:	722b           	moveq #43,d1
+    6fb6:	4601           	not.b d1
+    6fb8:	d28f           	add.l sp,d1
+    6fba:	0681 ffff ff48 	addi.l #-184,d1
+    6fc0:	2f41 0098      	move.l d1,152(sp)
+    6fc4:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    6fca:	2c40           	movea.l d0,a6
+    6fcc:	206f 00a4      	movea.l 164(sp),a0
+    6fd0:	226f 00a0      	movea.l 160(sp),a1
+    6fd4:	246f 009c      	movea.l 156(sp),a2
+    6fd8:	266f 0098      	movea.l 152(sp),a3
+    6fdc:	4eae fdf6      	jsr -522(a6)
+    6fe0:	2f40 0094      	move.l d0,148(sp)
                                                                   PutChar, str);
       Write(  Output(), str, 100);
-    6e5a:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    6e60:	2c40           	movea.l d0,a6
-    6e62:	4eae ffc4      	jsr -60(a6)
-    6e66:	2f40 00b8      	move.l d0,184(sp)
-    6e6a:	202f 00b8      	move.l 184(sp),d0
-    6e6e:	2f40 00b4      	move.l d0,180(sp)
-    6e72:	742b           	moveq #43,d2
-    6e74:	4602           	not.b d2
-    6e76:	d48f           	add.l sp,d2
-    6e78:	0682 ffff ff48 	addi.l #-184,d2
-    6e7e:	2f42 00b0      	move.l d2,176(sp)
-    6e82:	7064           	moveq #100,d0
-    6e84:	2f40 00ac      	move.l d0,172(sp)
-    6e88:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    6e8e:	2c40           	movea.l d0,a6
-    6e90:	222f 00b4      	move.l 180(sp),d1
-    6e94:	242f 00b0      	move.l 176(sp),d2
-    6e98:	262f 00ac      	move.l 172(sp),d3
-    6e9c:	4eae ffd0      	jsr -48(a6)
-    6ea0:	2f40 00a8      	move.l d0,168(sp)
+    6fe4:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    6fea:	2c40           	movea.l d0,a6
+    6fec:	4eae ffc4      	jsr -60(a6)
+    6ff0:	2f40 0090      	move.l d0,144(sp)
+    6ff4:	202f 0090      	move.l 144(sp),d0
+    6ff8:	2f40 008c      	move.l d0,140(sp)
+    6ffc:	742b           	moveq #43,d2
+    6ffe:	4602           	not.b d2
+    7000:	d48f           	add.l sp,d2
+    7002:	0682 ffff ff48 	addi.l #-184,d2
+    7008:	2f42 0088      	move.l d2,136(sp)
+    700c:	7064           	moveq #100,d0
+    700e:	2f40 0084      	move.l d0,132(sp)
+    7012:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    7018:	2c40           	movea.l d0,a6
+    701a:	222f 008c      	move.l 140(sp),d1
+    701e:	242f 0088      	move.l 136(sp),d2
+    7022:	262f 0084      	move.l 132(sp),d3
+    7026:	4eae ffd0      	jsr -48(a6)
+    702a:	2f40 0080      	move.l d0,128(sp)
   for(int i=0;i<21;i++) {
-    6ea4:	52af 00d0      	addq.l #1,208(sp)
-    6ea8:	7214           	moveq #20,d1
-    6eaa:	b2af 00d0      	cmp.l 208(sp),d1
-    6eae:	6c00 ff26      	bge.w 6dd6 <TestRow+0x36>
+    702e:	52af 00d0      	addq.l #1,208(sp)
+    7032:	7214           	moveq #20,d1
+    7034:	b2af 00d0      	cmp.l 208(sp),d1
+    7038:	6c00 ff26      	bge.w 6f60 <TestRow+0x3a>
     }
   }
   if( ( (*testpattern ^ xormask) & 0xff00) != ( *destination & 0xff00)) {
-    6eb2:	206f 00d8      	movea.l 216(sp),a0
-    6eb6:	3010           	move.w (a0),d0
-    6eb8:	322f 0016      	move.w 22(sp),d1
-    6ebc:	b141           	eor.w d0,d1
-    6ebe:	206f 00dc      	movea.l 220(sp),a0
-    6ec2:	3010           	move.w (a0),d0
-    6ec4:	b340           	eor.w d1,d0
-    6ec6:	3000           	move.w d0,d0
-    6ec8:	0280 0000 ffff 	andi.l #65535,d0
-    6ece:	0280 0000 ff00 	andi.l #65280,d0
-    6ed4:	4a80           	tst.l d0
-    6ed6:	6700 00cc      	beq.w 6fa4 <TestRow+0x204>
+    703c:	206f 00d8      	movea.l 216(sp),a0
+    7040:	3010           	move.w (a0),d0
+    7042:	322f 0016      	move.w 22(sp),d1
+    7046:	b141           	eor.w d0,d1
+    7048:	206f 00dc      	movea.l 220(sp),a0
+    704c:	3010           	move.w (a0),d0
+    704e:	b340           	eor.w d1,d0
+    7050:	3000           	move.w d0,d0
+    7052:	0280 0000 ffff 	andi.l #65535,d0
+    7058:	0280 0000 ff00 	andi.l #65280,d0
+    705e:	6700 00cc      	beq.w 712c <TestRow+0x206>
     data[0] = 21;
-    6eda:	3f7c 0015 0018 	move.w #21,24(sp)
+    7062:	3f7c 0015 0018 	move.w #21,24(sp)
     RawDoFmt( "TestZoom4Picture Zoom 1: Word %d Row %d wrong.\n", data, PutChar, 
-    6ee0:	2f7c 0001 824f 	move.l #98895,164(sp)
-    6ee6:	00a4 
-    6ee8:	742b           	moveq #43,d2
-    6eea:	4602           	not.b d2
-    6eec:	d48f           	add.l sp,d2
-    6eee:	0682 ffff ff44 	addi.l #-188,d2
-    6ef4:	2f42 00a0      	move.l d2,160(sp)
-    6ef8:	2f7c 0000 729c 	move.l #29340,156(sp)
-    6efe:	009c 
-    6f00:	702b           	moveq #43,d0
-    6f02:	4600           	not.b d0
-    6f04:	d08f           	add.l sp,d0
-    6f06:	0680 ffff ff48 	addi.l #-184,d0
-    6f0c:	2f40 0098      	move.l d0,152(sp)
-    6f10:	2039 0001 ba7c 	move.l 1ba7c <_edata>,d0
-    6f16:	2c40           	movea.l d0,a6
-    6f18:	206f 00a4      	movea.l 164(sp),a0
-    6f1c:	226f 00a0      	movea.l 160(sp),a1
-    6f20:	246f 009c      	movea.l 156(sp),a2
-    6f24:	266f 0098      	movea.l 152(sp),a3
-    6f28:	4eae fdf6      	jsr -522(a6)
-    6f2c:	2f40 0094      	move.l d0,148(sp)
+    7068:	2f7c 0001 8404 	move.l #99332,204(sp)
+    706e:	00cc 
+    7070:	742b           	moveq #43,d2
+    7072:	4602           	not.b d2
+    7074:	d48f           	add.l sp,d2
+    7076:	0682 ffff ff44 	addi.l #-188,d2
+    707c:	2f42 00c8      	move.l d2,200(sp)
+    7080:	2f7c 0000 75f4 	move.l #30196,196(sp)
+    7086:	00c4 
+    7088:	702b           	moveq #43,d0
+    708a:	4600           	not.b d0
+    708c:	d08f           	add.l sp,d0
+    708e:	0680 ffff ff48 	addi.l #-184,d0
+    7094:	2f40 00c0      	move.l d0,192(sp)
+    7098:	2039 0002 8524 	move.l 28524 <SysBase>,d0
+    709e:	2c40           	movea.l d0,a6
+    70a0:	206f 00cc      	movea.l 204(sp),a0
+    70a4:	226f 00c8      	movea.l 200(sp),a1
+    70a8:	246f 00c4      	movea.l 196(sp),a2
+    70ac:	266f 00c0      	movea.l 192(sp),a3
+    70b0:	4eae fdf6      	jsr -522(a6)
+    70b4:	2f40 00bc      	move.l d0,188(sp)
                                                                            str);
     Write(  Output(), str, 100);
-    6f30:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    6f36:	2c40           	movea.l d0,a6
-    6f38:	4eae ffc4      	jsr -60(a6)
-    6f3c:	2f40 0090      	move.l d0,144(sp)
-    6f40:	202f 0090      	move.l 144(sp),d0
-    6f44:	2f40 008c      	move.l d0,140(sp)
-    6f48:	722b           	moveq #43,d1
-    6f4a:	4601           	not.b d1
-    6f4c:	d28f           	add.l sp,d1
-    6f4e:	0681 ffff ff48 	addi.l #-184,d1
-    6f54:	2f41 0088      	move.l d1,136(sp)
-    6f58:	7464           	moveq #100,d2
-    6f5a:	2f42 0084      	move.l d2,132(sp)
-    6f5e:	2039 0001 ba80 	move.l 1ba80 <DOSBase>,d0
-    6f64:	2c40           	movea.l d0,a6
-    6f66:	222f 008c      	move.l 140(sp),d1
-    6f6a:	242f 0088      	move.l 136(sp),d2
-    6f6e:	262f 0084      	move.l 132(sp),d3
-    6f72:	4eae ffd0      	jsr -48(a6)
-    6f76:	2f40 0080      	move.l d0,128(sp)
+    70b8:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    70be:	2c40           	movea.l d0,a6
+    70c0:	4eae ffc4      	jsr -60(a6)
+    70c4:	2f40 00b8      	move.l d0,184(sp)
+    70c8:	202f 00b8      	move.l 184(sp),d0
+    70cc:	2f40 00b4      	move.l d0,180(sp)
+    70d0:	722b           	moveq #43,d1
+    70d2:	4601           	not.b d1
+    70d4:	d28f           	add.l sp,d1
+    70d6:	0681 ffff ff48 	addi.l #-184,d1
+    70dc:	2f41 00b0      	move.l d1,176(sp)
+    70e0:	7464           	moveq #100,d2
+    70e2:	2f42 00ac      	move.l d2,172(sp)
+    70e6:	2039 0002 852c 	move.l 2852c <DOSBase>,d0
+    70ec:	2c40           	movea.l d0,a6
+    70ee:	222f 00b4      	move.l 180(sp),d1
+    70f2:	242f 00b0      	move.l 176(sp),d2
+    70f6:	262f 00ac      	move.l 172(sp),d3
+    70fa:	4eae ffd0      	jsr -48(a6)
+    70fe:	2f40 00a8      	move.l d0,168(sp)
          KPrintF("Testpattern:0x%08x Destination:0x%08x",
                                                    *testpattern,*destination);
-    6f7a:	206f 00dc      	movea.l 220(sp),a0
-    6f7e:	3010           	move.w (a0),d0
+    7102:	206f 00dc      	movea.l 220(sp),a0
+    7106:	3010           	move.w (a0),d0
          KPrintF("Testpattern:0x%08x Destination:0x%08x",
-    6f80:	7200           	moveq #0,d1
-    6f82:	3200           	move.w d0,d1
+    7108:	7200           	moveq #0,d1
+    710a:	3200           	move.w d0,d1
                                                    *testpattern,*destination);
-    6f84:	206f 00d8      	movea.l 216(sp),a0
-    6f88:	3010           	move.w (a0),d0
+    710c:	206f 00d8      	movea.l 216(sp),a0
+    7110:	3010           	move.w (a0),d0
          KPrintF("Testpattern:0x%08x Destination:0x%08x",
-    6f8a:	3000           	move.w d0,d0
-    6f8c:	0280 0000 ffff 	andi.l #65535,d0
-    6f92:	2f01           	move.l d1,-(sp)
-    6f94:	2f00           	move.l d0,-(sp)
-    6f96:	4879 0001 827f 	pea 1827f <incbin_swfont_end+0x699>
-    6f9c:	4eba 0010      	jsr 6fae <KPrintF>(pc)
-    6fa0:	4fef 000c      	lea 12(sp),sp
+    7112:	3000           	move.w d0,d0
+    7114:	0280 0000 ffff 	andi.l #65535,d0
+    711a:	2f01           	move.l d1,-(sp)
+    711c:	2f00           	move.l d0,-(sp)
+    711e:	4879 0001 8434 	pea 18434 <incbin_startimage_end+0x796>
+    7124:	4eba 0162      	jsr 7288 <KPrintF>(pc)
+    7128:	4fef 000c      	lea 12(sp),sp
      
   }
 }
-    6fa4:	4cdf 4c0c      	movem.l (sp)+,d2-d3/a2-a3/a6
-    6fa8:	4fef 00c0      	lea 192(sp),sp
-    6fac:	4e75           	rts
+    712c:	4cdf 4c0c      	movem.l (sp)+,d2-d3/a2-a3/a6
+    7130:	4fef 00c0      	lea 192(sp),sp
+    7134:	4e75           	rts
 
-00006fae <KPrintF>:
+00007136 <strlen>:
 {
-    6fae:	4fef ff80      	lea -128(sp),sp
-    6fb2:	48e7 0032      	movem.l a2-a3/a6,-(sp)
-    if(*((ULONG *)UaeDbgLog)) {
-    6fb6:	4ab9 00f0 ff60 	tst.l f0ff60 <gcc8_c_support.c.e9862530+0xee3d8f>
-    6fbc:	6734           	beq.s 6ff2 <KPrintF+0x44>
-		RawDoFmt(fmt, vl, PutChar, temp);
-    6fbe:	2c79 0001 ba7c 	movea.l 1ba7c <_edata>,a6
-    6fc4:	206f 0090      	movea.l 144(sp),a0
-    6fc8:	43ef 0094      	lea 148(sp),a1
-    6fcc:	45f9 0000 729c 	lea 729c <PutChar>,a2
-    6fd2:	47ef 000c      	lea 12(sp),a3
-    6fd6:	4eae fdf6      	jsr -522(a6)
-		UaeDbgLog(86, temp);
-    6fda:	2f0b           	move.l a3,-(sp)
-    6fdc:	4878 0056      	pea 56 <GetVBR+0x4e>
-    6fe0:	4eb9 00f0 ff60 	jsr f0ff60 <gcc8_c_support.c.e9862530+0xee3d8f>
-    6fe6:	508f           	addq.l #8,sp
-}
-    6fe8:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
-    6fec:	4fef 0080      	lea 128(sp),sp
-    6ff0:	4e75           	rts
-		RawDoFmt(fmt, vl, KPutCharX, 0);
-    6ff2:	2c79 0001 ba7c 	movea.l 1ba7c <_edata>,a6
-    6ff8:	206f 0090      	movea.l 144(sp),a0
-    6ffc:	43ef 0094      	lea 148(sp),a1
-    7000:	45f9 0000 728e 	lea 728e <KPutCharX>,a2
-    7006:	97cb           	suba.l a3,a3
-    7008:	4eae fdf6      	jsr -522(a6)
-}
-    700c:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
-    7010:	4fef 0080      	lea 128(sp),sp
-    7014:	4e75           	rts
-
-00007016 <RunTests>:
-#include "runtests.h"
-#include "coppertests.h"
-#include "swscrollertest.h"
-
-void RunTests() {
-    TestCopperList();
-    7016:	4eba ba86      	jsr 2a9e <TestCopperList>(pc)
-    ZoomTest();
-    701a:	6000 c112      	bra.w 312e <ZoomTest>
-
-0000701e <memcpy>:
-{
-    701e:	48e7 3820      	movem.l d2-d4/a2,-(sp)
-    7022:	202f 0014      	move.l 20(sp),d0
-    7026:	226f 0018      	movea.l 24(sp),a1
-    702a:	222f 001c      	move.l 28(sp),d1
-	while(len--)
-    702e:	2601           	move.l d1,d3
-    7030:	5383           	subq.l #1,d3
-    7032:	4a81           	tst.l d1
-    7034:	6762           	beq.s 7098 <memcpy+0x7a>
-    7036:	2040           	movea.l d0,a0
-    7038:	5888           	addq.l #4,a0
-    703a:	b1c9           	cmpa.l a1,a0
-    703c:	53c2           	sl.s d2
-    703e:	4402           	neg.b d2
-    7040:	41e9 0004      	lea 4(a1),a0
-    7044:	b1c0           	cmpa.l d0,a0
-    7046:	53c4           	sl.s d4
-    7048:	4404           	neg.b d4
-    704a:	8404           	or.b d4,d2
-    704c:	7808           	moveq #8,d4
-    704e:	b883           	cmp.l d3,d4
-    7050:	55c4           	sc.s d4
-    7052:	4404           	neg.b d4
-    7054:	c404           	and.b d4,d2
-    7056:	6746           	beq.s 709e <memcpy+0x80>
-    7058:	2409           	move.l a1,d2
-    705a:	8480           	or.l d0,d2
-    705c:	7803           	moveq #3,d4
-    705e:	c484           	and.l d4,d2
-    7060:	663c           	bne.s 709e <memcpy+0x80>
-    7062:	2049           	movea.l a1,a0
-    7064:	2440           	movea.l d0,a2
-    7066:	74fc           	moveq #-4,d2
-    7068:	c481           	and.l d1,d2
-    706a:	d489           	add.l a1,d2
-		*d++ = *s++;
-    706c:	24d8           	move.l (a0)+,(a2)+
-    706e:	b488           	cmp.l a0,d2
-    7070:	66fa           	bne.s 706c <memcpy+0x4e>
-    7072:	74fc           	moveq #-4,d2
-    7074:	c481           	and.l d1,d2
-    7076:	2040           	movea.l d0,a0
-    7078:	d1c2           	adda.l d2,a0
-    707a:	d3c2           	adda.l d2,a1
-    707c:	9682           	sub.l d2,d3
-    707e:	b481           	cmp.l d1,d2
-    7080:	6716           	beq.s 7098 <memcpy+0x7a>
-    7082:	1091           	move.b (a1),(a0)
-	while(len--)
-    7084:	4a83           	tst.l d3
-    7086:	6710           	beq.s 7098 <memcpy+0x7a>
-		*d++ = *s++;
-    7088:	1169 0001 0001 	move.b 1(a1),1(a0)
-	while(len--)
-    708e:	5383           	subq.l #1,d3
-    7090:	6706           	beq.s 7098 <memcpy+0x7a>
-		*d++ = *s++;
-    7092:	1169 0002 0002 	move.b 2(a1),2(a0)
-}
-    7098:	4cdf 041c      	movem.l (sp)+,d2-d4/a2
-    709c:	4e75           	rts
-    709e:	2040           	movea.l d0,a0
-    70a0:	d289           	add.l a1,d1
-		*d++ = *s++;
-    70a2:	10d9           	move.b (a1)+,(a0)+
-	while(len--)
-    70a4:	b289           	cmp.l a1,d1
-    70a6:	67f0           	beq.s 7098 <memcpy+0x7a>
-		*d++ = *s++;
-    70a8:	10d9           	move.b (a1)+,(a0)+
-	while(len--)
-    70aa:	b289           	cmp.l a1,d1
-    70ac:	66f4           	bne.s 70a2 <memcpy+0x84>
-    70ae:	60e8           	bra.s 7098 <memcpy+0x7a>
-
-000070b0 <memset>:
-{
-    70b0:	48e7 3f30      	movem.l d2-d7/a2-a3,-(sp)
-    70b4:	202f 0024      	move.l 36(sp),d0
-    70b8:	2a2f 0028      	move.l 40(sp),d5
-    70bc:	226f 002c      	movea.l 44(sp),a1
-	while(len-- > 0)
-    70c0:	2809           	move.l a1,d4
-    70c2:	5384           	subq.l #1,d4
-    70c4:	b2fc 0000      	cmpa.w #0,a1
-    70c8:	6f00 00b0      	ble.w 717a <memset+0xca>
-    70cc:	1e05           	move.b d5,d7
-    70ce:	2200           	move.l d0,d1
-    70d0:	4481           	neg.l d1
-    70d2:	7403           	moveq #3,d2
-    70d4:	c282           	and.l d2,d1
-    70d6:	7c05           	moveq #5,d6
-		*ptr++ = val;
-    70d8:	2440           	movea.l d0,a2
-    70da:	bc84           	cmp.l d4,d6
-    70dc:	646a           	bcc.s 7148 <memset+0x98>
-    70de:	4a81           	tst.l d1
-    70e0:	6724           	beq.s 7106 <memset+0x56>
-    70e2:	14c5           	move.b d5,(a2)+
-	while(len-- > 0)
-    70e4:	5384           	subq.l #1,d4
-    70e6:	7401           	moveq #1,d2
-    70e8:	b481           	cmp.l d1,d2
-    70ea:	671a           	beq.s 7106 <memset+0x56>
-		*ptr++ = val;
-    70ec:	2440           	movea.l d0,a2
-    70ee:	548a           	addq.l #2,a2
-    70f0:	2040           	movea.l d0,a0
-    70f2:	1145 0001      	move.b d5,1(a0)
-	while(len-- > 0)
-    70f6:	5384           	subq.l #1,d4
-    70f8:	7403           	moveq #3,d2
-    70fa:	b481           	cmp.l d1,d2
-    70fc:	6608           	bne.s 7106 <memset+0x56>
-		*ptr++ = val;
-    70fe:	528a           	addq.l #1,a2
-    7100:	1145 0002      	move.b d5,2(a0)
-	while(len-- > 0)
-    7104:	5384           	subq.l #1,d4
-    7106:	2609           	move.l a1,d3
-    7108:	9681           	sub.l d1,d3
-    710a:	7c00           	moveq #0,d6
-    710c:	1c05           	move.b d5,d6
-    710e:	2406           	move.l d6,d2
-    7110:	4842           	swap d2
-    7112:	4242           	clr.w d2
-    7114:	2042           	movea.l d2,a0
-    7116:	2406           	move.l d6,d2
-    7118:	e14a           	lsl.w #8,d2
-    711a:	4842           	swap d2
-    711c:	4242           	clr.w d2
-    711e:	e18e           	lsl.l #8,d6
-    7120:	2646           	movea.l d6,a3
-    7122:	2c08           	move.l a0,d6
-    7124:	8486           	or.l d6,d2
-    7126:	2c0b           	move.l a3,d6
-    7128:	8486           	or.l d6,d2
-    712a:	1407           	move.b d7,d2
-    712c:	2040           	movea.l d0,a0
-    712e:	d1c1           	adda.l d1,a0
-    7130:	72fc           	moveq #-4,d1
-    7132:	c283           	and.l d3,d1
-    7134:	d288           	add.l a0,d1
-		*ptr++ = val;
-    7136:	20c2           	move.l d2,(a0)+
-    7138:	b1c1           	cmpa.l d1,a0
-    713a:	66fa           	bne.s 7136 <memset+0x86>
-    713c:	72fc           	moveq #-4,d1
-    713e:	c283           	and.l d3,d1
-    7140:	d5c1           	adda.l d1,a2
-    7142:	9881           	sub.l d1,d4
-    7144:	b283           	cmp.l d3,d1
-    7146:	6732           	beq.s 717a <memset+0xca>
-    7148:	1485           	move.b d5,(a2)
-	while(len-- > 0)
-    714a:	4a84           	tst.l d4
-    714c:	6f2c           	ble.s 717a <memset+0xca>
-		*ptr++ = val;
-    714e:	1545 0001      	move.b d5,1(a2)
-	while(len-- > 0)
-    7152:	7201           	moveq #1,d1
-    7154:	b284           	cmp.l d4,d1
-    7156:	6c22           	bge.s 717a <memset+0xca>
-		*ptr++ = val;
-    7158:	1545 0002      	move.b d5,2(a2)
-	while(len-- > 0)
-    715c:	7402           	moveq #2,d2
-    715e:	b484           	cmp.l d4,d2
-    7160:	6c18           	bge.s 717a <memset+0xca>
-		*ptr++ = val;
-    7162:	1545 0003      	move.b d5,3(a2)
-	while(len-- > 0)
-    7166:	7c03           	moveq #3,d6
-    7168:	bc84           	cmp.l d4,d6
-    716a:	6c0e           	bge.s 717a <memset+0xca>
-		*ptr++ = val;
-    716c:	1545 0004      	move.b d5,4(a2)
-	while(len-- > 0)
-    7170:	7204           	moveq #4,d1
-    7172:	b284           	cmp.l d4,d1
-    7174:	6c04           	bge.s 717a <memset+0xca>
-		*ptr++ = val;
-    7176:	1545 0005      	move.b d5,5(a2)
-}
-    717a:	4cdf 0cfc      	movem.l (sp)+,d2-d7/a2-a3
-    717e:	4e75           	rts
-
-00007180 <strlen>:
-{
-    7180:	206f 0004      	movea.l 4(sp),a0
+    7136:	598f           	subq.l #4,sp
 	unsigned long t=0;
-    7184:	7000           	moveq #0,d0
-	while(*s++)
-    7186:	4a10           	tst.b (a0)
-    7188:	6708           	beq.s 7192 <strlen+0x12>
+    7138:	4297           	clr.l (sp)
+    713a:	6002           	bra.s 713e <strlen+0x8>
 		t++;
-    718a:	5280           	addq.l #1,d0
+    713c:	5297           	addq.l #1,(sp)
 	while(*s++)
-    718c:	4a30 0800      	tst.b (0,a0,d0.l)
-    7190:	66f8           	bne.s 718a <strlen+0xa>
+    713e:	202f 0008      	move.l 8(sp),d0
+    7142:	2200           	move.l d0,d1
+    7144:	5281           	addq.l #1,d1
+    7146:	2f41 0008      	move.l d1,8(sp)
+    714a:	2040           	movea.l d0,a0
+    714c:	1010           	move.b (a0),d0
+    714e:	66ec           	bne.s 713c <strlen+0x6>
+	return t;
+    7150:	2017           	move.l (sp),d0
 }
-    7192:	4e75           	rts
+    7152:	588f           	addq.l #4,sp
+    7154:	4e75           	rts
 
-00007194 <__mulsi3>:
- 
+00007156 <memset>:
+{
+    7156:	4e55 fffc      	link.w a5,#-4
+	unsigned char *ptr = (unsigned char *)dest;
+    715a:	2b6d 0008 fffc 	move.l 8(a5),-4(a5)
+    7160:	6014           	bra.s 7176 <memset+0x20>
+		*ptr++ = val;
+    7162:	202d fffc      	move.l -4(a5),d0
+    7166:	2200           	move.l d0,d1
+    7168:	5281           	addq.l #1,d1
+    716a:	2b41 fffc      	move.l d1,-4(a5)
+    716e:	222d 000c      	move.l 12(a5),d1
+    7172:	2040           	movea.l d0,a0
+    7174:	1081           	move.b d1,(a0)
+	while(len-- > 0)
+    7176:	202d 0010      	move.l 16(a5),d0
+    717a:	2200           	move.l d0,d1
+    717c:	5381           	subq.l #1,d1
+    717e:	2b41 0010      	move.l d1,16(a5)
+    7182:	4a80           	tst.l d0
+    7184:	66dc           	bne.s 7162 <memset+0xc>
+	return dest;
+    7186:	202d 0008      	move.l 8(a5),d0
+}
+    718a:	4e5d           	unlk a5
+    718c:	4e75           	rts
+
+0000718e <memcpy>:
+{
+    718e:	4e55 fff8      	link.w a5,#-8
+    7192:	2f02           	move.l d2,-(sp)
+	char *d = (char *)dest;
+    7194:	2b6d 0008 fffc 	move.l 8(a5),-4(a5)
+	const char *s = (const char *)src;
+    719a:	2b6d 000c fff8 	move.l 12(a5),-8(a5)
+    71a0:	6020           	bra.s 71c2 <memcpy+0x34>
+		*d++ = *s++;
+    71a2:	222d fff8      	move.l -8(a5),d1
+    71a6:	2001           	move.l d1,d0
+    71a8:	5280           	addq.l #1,d0
+    71aa:	2b40 fff8      	move.l d0,-8(a5)
+    71ae:	202d fffc      	move.l -4(a5),d0
+    71b2:	2400           	move.l d0,d2
+    71b4:	5282           	addq.l #1,d2
+    71b6:	2b42 fffc      	move.l d2,-4(a5)
+    71ba:	2041           	movea.l d1,a0
+    71bc:	1210           	move.b (a0),d1
+    71be:	2040           	movea.l d0,a0
+    71c0:	1081           	move.b d1,(a0)
+	while(len--)
+    71c2:	202d 0010      	move.l 16(a5),d0
+    71c6:	2200           	move.l d0,d1
+    71c8:	5381           	subq.l #1,d1
+    71ca:	2b41 0010      	move.l d1,16(a5)
+    71ce:	4a80           	tst.l d0
+    71d0:	66d0           	bne.s 71a2 <memcpy+0x14>
+	return dest;
+    71d2:	202d 0008      	move.l 8(a5),d0
+}
+    71d6:	241f           	move.l (sp)+,d2
+    71d8:	4e5d           	unlk a5
+    71da:	4e75           	rts
+
+000071dc <memmove>:
+{
+    71dc:	4e55 fff0      	link.w a5,#-16
+    71e0:	2f02           	move.l d2,-(sp)
+	char *d = dest;
+    71e2:	2b6d 0008 fffc 	move.l 8(a5),-4(a5)
+	const char *s = src;
+    71e8:	2b6d 000c fff8 	move.l 12(a5),-8(a5)
+	if (d < s) {
+    71ee:	202d fffc      	move.l -4(a5),d0
+    71f2:	b0ad fff8      	cmp.l -8(a5),d0
+    71f6:	6522           	bcs.s 721a <memmove+0x3e>
+    71f8:	6032           	bra.s 722c <memmove+0x50>
+			*d++ = *s++;
+    71fa:	222d fff8      	move.l -8(a5),d1
+    71fe:	2401           	move.l d1,d2
+    7200:	5282           	addq.l #1,d2
+    7202:	2b42 fff8      	move.l d2,-8(a5)
+    7206:	202d fffc      	move.l -4(a5),d0
+    720a:	2400           	move.l d0,d2
+    720c:	5282           	addq.l #1,d2
+    720e:	2b42 fffc      	move.l d2,-4(a5)
+    7212:	2041           	movea.l d1,a0
+    7214:	1210           	move.b (a0),d1
+    7216:	2040           	movea.l d0,a0
+    7218:	1081           	move.b d1,(a0)
+		while (len--)
+    721a:	202d 0010      	move.l 16(a5),d0
+    721e:	2200           	move.l d0,d1
+    7220:	5381           	subq.l #1,d1
+    7222:	2b41 0010      	move.l d1,16(a5)
+    7226:	4a80           	tst.l d0
+    7228:	66d0           	bne.s 71fa <memmove+0x1e>
+    722a:	6052           	bra.s 727e <memmove+0xa2>
+		const char *lasts = s + (len - 1);
+    722c:	202d 0010      	move.l 16(a5),d0
+    7230:	5380           	subq.l #1,d0
+    7232:	242d fff8      	move.l -8(a5),d2
+    7236:	d480           	add.l d0,d2
+    7238:	2b42 fff4      	move.l d2,-12(a5)
+		char *lastd = d + (len - 1);
+    723c:	202d 0010      	move.l 16(a5),d0
+    7240:	5380           	subq.l #1,d0
+    7242:	222d fffc      	move.l -4(a5),d1
+    7246:	d280           	add.l d0,d1
+    7248:	2b41 fff0      	move.l d1,-16(a5)
+    724c:	6020           	bra.s 726e <memmove+0x92>
+			*lastd-- = *lasts--;
+    724e:	222d fff4      	move.l -12(a5),d1
+    7252:	2401           	move.l d1,d2
+    7254:	5382           	subq.l #1,d2
+    7256:	2b42 fff4      	move.l d2,-12(a5)
+    725a:	202d fff0      	move.l -16(a5),d0
+    725e:	2400           	move.l d0,d2
+    7260:	5382           	subq.l #1,d2
+    7262:	2b42 fff0      	move.l d2,-16(a5)
+    7266:	2041           	movea.l d1,a0
+    7268:	1210           	move.b (a0),d1
+    726a:	2040           	movea.l d0,a0
+    726c:	1081           	move.b d1,(a0)
+		while (len--)
+    726e:	202d 0010      	move.l 16(a5),d0
+    7272:	2200           	move.l d0,d1
+    7274:	5381           	subq.l #1,d1
+    7276:	2b41 0010      	move.l d1,16(a5)
+    727a:	4a80           	tst.l d0
+    727c:	66d0           	bne.s 724e <memmove+0x72>
+	return dest;
+    727e:	202d 0008      	move.l 8(a5),d0
+}
+    7282:	241f           	move.l (sp)+,d2
+    7284:	4e5d           	unlk a5
+    7286:	4e75           	rts
+
+00007288 <KPrintF>:
+{
+    7288:	4fef ff80      	lea -128(sp),sp
+    728c:	48e7 0032      	movem.l a2-a3/a6,-(sp)
+    if(*((UWORD *)UaeDbgLog) == 0x4eb9 || *((UWORD *)UaeDbgLog) == 0xa00e) {
+    7290:	3039 00f0 ff60 	move.w f0ff60 <_end+0xee79e8>,d0
+    7296:	0c40 4eb9      	cmpi.w #20153,d0
+    729a:	6722           	beq.s 72be <KPrintF+0x36>
+    729c:	0c40 a00e      	cmpi.w #-24562,d0
+    72a0:	671c           	beq.s 72be <KPrintF+0x36>
+		RawDoFmt((CONST_STRPTR)fmt, vl, KPutCharX, 0);
+    72a2:	2c79 0002 8524 	movea.l 28524 <SysBase>,a6
+    72a8:	206f 0090      	movea.l 144(sp),a0
+    72ac:	43ef 0094      	lea 148(sp),a1
+    72b0:	45f9 0000 75e6 	lea 75e6 <KPutCharX>,a2
+    72b6:	97cb           	suba.l a3,a3
+    72b8:	4eae fdf6      	jsr -522(a6)
+    72bc:	602a           	bra.s 72e8 <KPrintF+0x60>
+		RawDoFmt((CONST_STRPTR)fmt, vl, PutChar, temp);
+    72be:	2c79 0002 8524 	movea.l 28524 <SysBase>,a6
+    72c4:	206f 0090      	movea.l 144(sp),a0
+    72c8:	43ef 0094      	lea 148(sp),a1
+    72cc:	45f9 0000 75f4 	lea 75f4 <PutChar>,a2
+    72d2:	47ef 000c      	lea 12(sp),a3
+    72d6:	4eae fdf6      	jsr -522(a6)
+		UaeDbgLog(86, temp);
+    72da:	2f0b           	move.l a3,-(sp)
+    72dc:	4878 0056      	pea 56 <_start+0x56>
+    72e0:	4eb9 00f0 ff60 	jsr f0ff60 <_end+0xee79e8>
+    72e6:	508f           	addq.l #8,sp
+}
+    72e8:	4cdf 4c00      	movem.l (sp)+,a2-a3/a6
+    72ec:	4fef 0080      	lea 128(sp),sp
+    72f0:	4e75           	rts
+
+000072f2 <warpmode>:
+
+void warpmode(int on) // bool
+{
+    72f2:	518f           	subq.l #8,sp
+	long(*UaeConf)(long mode, int index, const char* param, int param_len, char* outbuf, int outbuf_len);
+	UaeConf = (long(*)(long, int, const char*, int, char*, int))0xf0ff60;
+    72f4:	2f7c 00f0 ff60 	move.l #15794016,4(sp)
+    72fa:	0004 
+    if(*((UWORD *)UaeConf) == 0x4eb9 || *((UWORD *)UaeConf) == 0xa00e) {
+    72fc:	206f 0004      	movea.l 4(sp),a0
+    7300:	3010           	move.w (a0),d0
+    7302:	0c40 4eb9      	cmpi.w #20153,d0
+    7306:	670c           	beq.s 7314 <warpmode+0x22>
+    7308:	206f 0004      	movea.l 4(sp),a0
+    730c:	3010           	move.w (a0),d0
+    730e:	0c40 a00e      	cmpi.w #-24562,d0
+    7312:	6668           	bne.s 737c <warpmode+0x8a>
+		char outbuf;
+		UaeConf(82, -1, on ? "warp true" : "warp false", 0, &outbuf, 1);
+    7314:	4aaf 000c      	tst.l 12(sp)
+    7318:	6708           	beq.s 7322 <warpmode+0x30>
+    731a:	203c 0001 845a 	move.l #99418,d0
+    7320:	6006           	bra.s 7328 <warpmode+0x36>
+    7322:	203c 0001 8464 	move.l #99428,d0
+    7328:	4878 0001      	pea 1 <_start+0x1>
+    732c:	220f           	move.l sp,d1
+    732e:	5e81           	addq.l #7,d1
+    7330:	2f01           	move.l d1,-(sp)
+    7332:	42a7           	clr.l -(sp)
+    7334:	2f00           	move.l d0,-(sp)
+    7336:	4878 ffff      	pea ffffffff <_end+0xfffd7a87>
+    733a:	4878 0052      	pea 52 <_start+0x52>
+    733e:	206f 001c      	movea.l 28(sp),a0
+    7342:	4e90           	jsr (a0)
+    7344:	4fef 0018      	lea 24(sp),sp
+		UaeConf(82, -1, on ? "blitter_cycle_exact false" : "blitter_cycle_exact true", 0, &outbuf, 1);
+    7348:	4aaf 000c      	tst.l 12(sp)
+    734c:	6708           	beq.s 7356 <warpmode+0x64>
+    734e:	203c 0001 846f 	move.l #99439,d0
+    7354:	6006           	bra.s 735c <warpmode+0x6a>
+    7356:	203c 0001 8489 	move.l #99465,d0
+    735c:	4878 0001      	pea 1 <_start+0x1>
+    7360:	220f           	move.l sp,d1
+    7362:	5e81           	addq.l #7,d1
+    7364:	2f01           	move.l d1,-(sp)
+    7366:	42a7           	clr.l -(sp)
+    7368:	2f00           	move.l d0,-(sp)
+    736a:	4878 ffff      	pea ffffffff <_end+0xfffd7a87>
+    736e:	4878 0052      	pea 52 <_start+0x52>
+    7372:	206f 001c      	movea.l 28(sp),a0
+    7376:	4e90           	jsr (a0)
+    7378:	4fef 0018      	lea 24(sp),sp
+	}
+}
+    737c:	508f           	addq.l #8,sp
+    737e:	4e75           	rts
+
+00007380 <debug_cmd>:
+
+static void debug_cmd(unsigned int arg1, unsigned int arg2, unsigned int arg3, unsigned int arg4)
+{
+    7380:	598f           	subq.l #4,sp
+	long(*UaeLib)(unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3, unsigned int arg4);
+	UaeLib = (long(*)(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int))0xf0ff60;
+    7382:	2ebc 00f0 ff60 	move.l #15794016,(sp)
+    if(*((UWORD *)UaeLib) == 0x4eb9 || *((UWORD *)UaeLib) == 0xa00e) {
+    7388:	2057           	movea.l (sp),a0
+    738a:	3010           	move.w (a0),d0
+    738c:	0c40 4eb9      	cmpi.w #20153,d0
+    7390:	670a           	beq.s 739c <debug_cmd+0x1c>
+    7392:	2057           	movea.l (sp),a0
+    7394:	3010           	move.w (a0),d0
+    7396:	0c40 a00e      	cmpi.w #-24562,d0
+    739a:	661e           	bne.s 73ba <debug_cmd+0x3a>
+		UaeLib(88, arg1, arg2, arg3, arg4);
+    739c:	2f2f 0014      	move.l 20(sp),-(sp)
+    73a0:	2f2f 0014      	move.l 20(sp),-(sp)
+    73a4:	2f2f 0014      	move.l 20(sp),-(sp)
+    73a8:	2f2f 0014      	move.l 20(sp),-(sp)
+    73ac:	4878 0058      	pea 58 <_start+0x58>
+    73b0:	206f 0014      	movea.l 20(sp),a0
+    73b4:	4e90           	jsr (a0)
+    73b6:	4fef 0014      	lea 20(sp),sp
+	}
+}
+    73ba:	588f           	addq.l #4,sp
+    73bc:	4e75           	rts
+
+000073be <debug_clear>:
+	barto_cmd_text,
+};
+
+void debug_clear()
+{
+	debug_cmd(barto_cmd_clear, 0, 0, 0);
+    73be:	42a7           	clr.l -(sp)
+    73c0:	42a7           	clr.l -(sp)
+    73c2:	42a7           	clr.l -(sp)
+    73c4:	42a7           	clr.l -(sp)
+    73c6:	4eba ffb8      	jsr 7380 <debug_cmd>(pc)
+    73ca:	4fef 0010      	lea 16(sp),sp
+}
+    73ce:	4e75           	rts
+
+000073d0 <debug_rect>:
+
+void debug_rect(short left, short top, short right, short bottom, unsigned int color)
+{
+    73d0:	518f           	subq.l #8,sp
+    73d2:	2f02           	move.l d2,-(sp)
+    73d4:	226f 0010      	movea.l 16(sp),a1
+    73d8:	206f 0014      	movea.l 20(sp),a0
+    73dc:	222f 0018      	move.l 24(sp),d1
+    73e0:	202f 001c      	move.l 28(sp),d0
+    73e4:	3249           	movea.w a1,a1
+    73e6:	3f49 000a      	move.w a1,10(sp)
+    73ea:	3048           	movea.w a0,a0
+    73ec:	3f48 0008      	move.w a0,8(sp)
+    73f0:	3201           	move.w d1,d1
+    73f2:	3f41 0006      	move.w d1,6(sp)
+    73f6:	3000           	move.w d0,d0
+    73f8:	3f40 0004      	move.w d0,4(sp)
+	debug_cmd(barto_cmd_rect, (((unsigned int)left) << 16) | ((unsigned int)top), (((unsigned int)right) << 16) | ((unsigned int)bottom), color);
+    73fc:	302f 0006      	move.w 6(sp),d0
+    7400:	48c0           	ext.l d0
+    7402:	4840           	swap d0
+    7404:	4240           	clr.w d0
+    7406:	322f 0004      	move.w 4(sp),d1
+    740a:	48c1           	ext.l d1
+    740c:	8280           	or.l d0,d1
+    740e:	302f 000a      	move.w 10(sp),d0
+    7412:	48c0           	ext.l d0
+    7414:	4840           	swap d0
+    7416:	4240           	clr.w d0
+    7418:	306f 0008      	movea.w 8(sp),a0
+    741c:	2408           	move.l a0,d2
+    741e:	8082           	or.l d2,d0
+    7420:	2f2f 0020      	move.l 32(sp),-(sp)
+    7424:	2f01           	move.l d1,-(sp)
+    7426:	2f00           	move.l d0,-(sp)
+    7428:	4878 0001      	pea 1 <_start+0x1>
+    742c:	4eba ff52      	jsr 7380 <debug_cmd>(pc)
+    7430:	4fef 0010      	lea 16(sp),sp
+}
+    7434:	241f           	move.l (sp)+,d2
+    7436:	508f           	addq.l #8,sp
+    7438:	4e75           	rts
+
+0000743a <debug_filled_rect>:
+
+void debug_filled_rect(short left, short top, short right, short bottom, unsigned int color)
+{
+    743a:	518f           	subq.l #8,sp
+    743c:	2f02           	move.l d2,-(sp)
+    743e:	226f 0010      	movea.l 16(sp),a1
+    7442:	206f 0014      	movea.l 20(sp),a0
+    7446:	222f 0018      	move.l 24(sp),d1
+    744a:	202f 001c      	move.l 28(sp),d0
+    744e:	3249           	movea.w a1,a1
+    7450:	3f49 000a      	move.w a1,10(sp)
+    7454:	3048           	movea.w a0,a0
+    7456:	3f48 0008      	move.w a0,8(sp)
+    745a:	3201           	move.w d1,d1
+    745c:	3f41 0006      	move.w d1,6(sp)
+    7460:	3000           	move.w d0,d0
+    7462:	3f40 0004      	move.w d0,4(sp)
+	debug_cmd(barto_cmd_filled_rect, (((unsigned int)left) << 16) | ((unsigned int)top), (((unsigned int)right) << 16) | ((unsigned int)bottom), color);
+    7466:	302f 0006      	move.w 6(sp),d0
+    746a:	48c0           	ext.l d0
+    746c:	4840           	swap d0
+    746e:	4240           	clr.w d0
+    7470:	322f 0004      	move.w 4(sp),d1
+    7474:	48c1           	ext.l d1
+    7476:	8280           	or.l d0,d1
+    7478:	302f 000a      	move.w 10(sp),d0
+    747c:	48c0           	ext.l d0
+    747e:	4840           	swap d0
+    7480:	4240           	clr.w d0
+    7482:	306f 0008      	movea.w 8(sp),a0
+    7486:	2408           	move.l a0,d2
+    7488:	8082           	or.l d2,d0
+    748a:	2f2f 0020      	move.l 32(sp),-(sp)
+    748e:	2f01           	move.l d1,-(sp)
+    7490:	2f00           	move.l d0,-(sp)
+    7492:	4878 0002      	pea 2 <_start+0x2>
+    7496:	4eba fee8      	jsr 7380 <debug_cmd>(pc)
+    749a:	4fef 0010      	lea 16(sp),sp
+}
+    749e:	241f           	move.l (sp)+,d2
+    74a0:	508f           	addq.l #8,sp
+    74a2:	4e75           	rts
+
+000074a4 <debug_text>:
+
+void debug_text(short left, short top, const char* text, unsigned int color)
+{
+    74a4:	598f           	subq.l #4,sp
+    74a6:	2f02           	move.l d2,-(sp)
+    74a8:	222f 000c      	move.l 12(sp),d1
+    74ac:	202f 0010      	move.l 16(sp),d0
+    74b0:	3201           	move.w d1,d1
+    74b2:	3f41 0006      	move.w d1,6(sp)
+    74b6:	3000           	move.w d0,d0
+    74b8:	3f40 0004      	move.w d0,4(sp)
+	debug_cmd(barto_cmd_text, (((unsigned int)left) << 16) | ((unsigned int)top), (unsigned int)text, color);
+    74bc:	202f 0014      	move.l 20(sp),d0
+    74c0:	322f 0006      	move.w 6(sp),d1
+    74c4:	48c1           	ext.l d1
+    74c6:	4841           	swap d1
+    74c8:	4241           	clr.w d1
+    74ca:	306f 0004      	movea.w 4(sp),a0
+    74ce:	2408           	move.l a0,d2
+    74d0:	8282           	or.l d2,d1
+    74d2:	2f2f 0018      	move.l 24(sp),-(sp)
+    74d6:	2f00           	move.l d0,-(sp)
+    74d8:	2f01           	move.l d1,-(sp)
+    74da:	4878 0003      	pea 3 <_start+0x3>
+    74de:	4eba fea0      	jsr 7380 <debug_cmd>(pc)
+    74e2:	4fef 0010      	lea 16(sp),sp
+}
+    74e6:	241f           	move.l (sp)+,d2
+    74e8:	588f           	addq.l #4,sp
+    74ea:	4e75           	rts
+
+000074ec <__mulsi3>:
 	.text
 	FUNC(__mulsi3)
 	.globl	SYM (__mulsi3)
 SYM (__mulsi3):
+	.cfi_startproc
 	movew	sp@(4), d0	/* x0 -> d0 */
-    7194:	302f 0004      	move.w 4(sp),d0
+    74ec:	302f 0004      	move.w 4(sp),d0
 	muluw	sp@(10), d0	/* x0*y1 */
-    7198:	c0ef 000a      	mulu.w 10(sp),d0
+    74f0:	c0ef 000a      	mulu.w 10(sp),d0
 	movew	sp@(6), d1	/* x1 -> d1 */
-    719c:	322f 0006      	move.w 6(sp),d1
+    74f4:	322f 0006      	move.w 6(sp),d1
 	muluw	sp@(8), d1	/* x1*y0 */
-    71a0:	c2ef 0008      	mulu.w 8(sp),d1
+    74f8:	c2ef 0008      	mulu.w 8(sp),d1
 	addw	d1, d0
-    71a4:	d041           	add.w d1,d0
+    74fc:	d041           	add.w d1,d0
 	swap	d0
-    71a6:	4840           	swap d0
+    74fe:	4840           	swap d0
 	clrw	d0
-    71a8:	4240           	clr.w d0
+    7500:	4240           	clr.w d0
 	movew	sp@(6), d1	/* x1 -> d1 */
-    71aa:	322f 0006      	move.w 6(sp),d1
+    7502:	322f 0006      	move.w 6(sp),d1
 	muluw	sp@(10), d1	/* x1*y1 */
-    71ae:	c2ef 000a      	mulu.w 10(sp),d1
+    7506:	c2ef 000a      	mulu.w 10(sp),d1
 	addl	d1, d0
-    71b2:	d081           	add.l d1,d0
-
+    750a:	d081           	add.l d1,d0
 	rts
-    71b4:	4e75           	rts
+    750c:	4e75           	rts
 
-000071b6 <__udivsi3>:
-
+0000750e <__udivsi3>:
 	.text
 	FUNC(__udivsi3)
 	.globl	SYM (__udivsi3)
 SYM (__udivsi3):
+	.cfi_startproc
 	movel	d2, sp@-
-    71b6:	2f02           	move.l d2,-(sp)
+    750e:	2f02           	move.l d2,-(sp)
+	.cfi_adjust_cfa_offset 4
 	movel	sp@(12), d1	/* d1 = divisor */
-    71b8:	222f 000c      	move.l 12(sp),d1
+    7510:	222f 000c      	move.l 12(sp),d1
 	movel	sp@(8), d0	/* d0 = dividend */
-    71bc:	202f 0008      	move.l 8(sp),d0
+    7514:	202f 0008      	move.l 8(sp),d0
 
 	cmpl	IMM (0x10000), d1 /* divisor >= 2 ^ 16 ?   */
-    71c0:	0c81 0001 0000 	cmpi.l #65536,d1
+    7518:	0c81 0001 0000 	cmpi.l #65536,d1
 	jcc	3f		/* then try next algorithm */
-    71c6:	6416           	bcc.s 71de <__udivsi3+0x28>
+    751e:	6416           	bcc.s 7536 <__udivsi3+0x28>
 	movel	d0, d2
-    71c8:	2400           	move.l d0,d2
+    7520:	2400           	move.l d0,d2
 	clrw	d2
-    71ca:	4242           	clr.w d2
+    7522:	4242           	clr.w d2
 	swap	d2
-    71cc:	4842           	swap d2
+    7524:	4842           	swap d2
 	divu	d1, d2          /* high quotient in lower word */
-    71ce:	84c1           	divu.w d1,d2
+    7526:	84c1           	divu.w d1,d2
 	movew	d2, d0		/* save high quotient */
-    71d0:	3002           	move.w d2,d0
+    7528:	3002           	move.w d2,d0
 	swap	d0
-    71d2:	4840           	swap d0
+    752a:	4840           	swap d0
 	movew	sp@(10), d2	/* get low dividend + high rest */
-    71d4:	342f 000a      	move.w 10(sp),d2
+    752c:	342f 000a      	move.w 10(sp),d2
 	divu	d1, d2		/* low quotient */
-    71d8:	84c1           	divu.w d1,d2
+    7530:	84c1           	divu.w d1,d2
 	movew	d2, d0
-    71da:	3002           	move.w d2,d0
+    7532:	3002           	move.w d2,d0
 	jra	6f
-    71dc:	6030           	bra.s 720e <__udivsi3+0x58>
+    7534:	6030           	bra.s 7566 <__udivsi3+0x58>
 
 3:	movel	d1, d2		/* use d2 as divisor backup */
-    71de:	2401           	move.l d1,d2
+    7536:	2401           	move.l d1,d2
 4:	lsrl	IMM (1), d1	/* shift divisor */
-    71e0:	e289           	lsr.l #1,d1
+    7538:	e289           	lsr.l #1,d1
 	lsrl	IMM (1), d0	/* shift dividend */
-    71e2:	e288           	lsr.l #1,d0
+    753a:	e288           	lsr.l #1,d0
 	cmpl	IMM (0x10000), d1 /* still divisor >= 2 ^ 16 ?  */
-    71e4:	0c81 0001 0000 	cmpi.l #65536,d1
+    753c:	0c81 0001 0000 	cmpi.l #65536,d1
 	jcc	4b
-    71ea:	64f4           	bcc.s 71e0 <__udivsi3+0x2a>
+    7542:	64f4           	bcc.s 7538 <__udivsi3+0x2a>
 	divu	d1, d0		/* now we have 16-bit divisor */
-    71ec:	80c1           	divu.w d1,d0
+    7544:	80c1           	divu.w d1,d0
 	andl	IMM (0xffff), d0 /* mask out divisor, ignore remainder */
-    71ee:	0280 0000 ffff 	andi.l #65535,d0
+    7546:	0280 0000 ffff 	andi.l #65535,d0
 
 /* Multiply the 16-bit tentative quotient with the 32-bit divisor.  Because of
    the operand ranges, this might give a 33-bit product.  If this product is
    greater than the dividend, the tentative quotient was too large. */
 	movel	d2, d1
-    71f4:	2202           	move.l d2,d1
+    754c:	2202           	move.l d2,d1
 	mulu	d0, d1		/* low part, 32 bits */
-    71f6:	c2c0           	mulu.w d0,d1
+    754e:	c2c0           	mulu.w d0,d1
 	swap	d2
-    71f8:	4842           	swap d2
+    7550:	4842           	swap d2
 	mulu	d0, d2		/* high part, at most 17 bits */
-    71fa:	c4c0           	mulu.w d0,d2
+    7552:	c4c0           	mulu.w d0,d2
 	swap	d2		/* align high part with low part */
-    71fc:	4842           	swap d2
+    7554:	4842           	swap d2
 	tstw	d2		/* high part 17 bits? */
-    71fe:	4a42           	tst.w d2
+    7556:	4a42           	tst.w d2
 	jne	5f		/* if 17 bits, quotient was too large */
-    7200:	660a           	bne.s 720c <__udivsi3+0x56>
+    7558:	660a           	bne.s 7564 <__udivsi3+0x56>
 	addl	d2, d1		/* add parts */
-    7202:	d282           	add.l d2,d1
+    755a:	d282           	add.l d2,d1
 	jcs	5f		/* if sum is 33 bits, quotient was too large */
-    7204:	6506           	bcs.s 720c <__udivsi3+0x56>
+    755c:	6506           	bcs.s 7564 <__udivsi3+0x56>
 	cmpl	sp@(8), d1	/* compare the sum with the dividend */
-    7206:	b2af 0008      	cmp.l 8(sp),d1
+    755e:	b2af 0008      	cmp.l 8(sp),d1
 	jls	6f		/* if sum > dividend, quotient was too large */
-    720a:	6302           	bls.s 720e <__udivsi3+0x58>
+    7562:	6302           	bls.s 7566 <__udivsi3+0x58>
 5:	subql	IMM (1), d0	/* adjust quotient */
-    720c:	5380           	subq.l #1,d0
+    7564:	5380           	subq.l #1,d0
 
 6:	movel	sp@+, d2
-    720e:	241f           	move.l (sp)+,d2
+    7566:	241f           	move.l (sp)+,d2
+	.cfi_adjust_cfa_offset -4
 	rts
-    7210:	4e75           	rts
+    7568:	4e75           	rts
 
-00007212 <__divsi3>:
-
+0000756a <__divsi3>:
 	.text
 	FUNC(__divsi3)
 	.globl	SYM (__divsi3)
 SYM (__divsi3):
+	.cfi_startproc
 	movel	d2, sp@-
-    7212:	2f02           	move.l d2,-(sp)
+    756a:	2f02           	move.l d2,-(sp)
+	.cfi_adjust_cfa_offset 4
 
 	moveq	IMM (1), d2	/* sign of result stored in d2 (=1 or =-1) */
-    7214:	7401           	moveq #1,d2
+    756c:	7401           	moveq #1,d2
 	movel	sp@(12), d1	/* d1 = divisor */
-    7216:	222f 000c      	move.l 12(sp),d1
+    756e:	222f 000c      	move.l 12(sp),d1
 	jpl	1f
-    721a:	6a04           	bpl.s 7220 <__divsi3+0xe>
+    7572:	6a04           	bpl.s 7578 <__divsi3+0xe>
 	negl	d1
-    721c:	4481           	neg.l d1
+    7574:	4481           	neg.l d1
 	negb	d2		/* change sign because divisor <0  */
-    721e:	4402           	neg.b d2
+    7576:	4402           	neg.b d2
 1:	movel	sp@(8), d0	/* d0 = dividend */
-    7220:	202f 0008      	move.l 8(sp),d0
+    7578:	202f 0008      	move.l 8(sp),d0
 	jpl	2f
-    7224:	6a04           	bpl.s 722a <__divsi3+0x18>
+    757c:	6a04           	bpl.s 7582 <__divsi3+0x18>
 	negl	d0
-    7226:	4480           	neg.l d0
+    757e:	4480           	neg.l d0
 	negb	d2
-    7228:	4402           	neg.b d2
+    7580:	4402           	neg.b d2
 
 2:	movel	d1, sp@-
-    722a:	2f01           	move.l d1,-(sp)
+    7582:	2f01           	move.l d1,-(sp)
 	movel	d0, sp@-
-    722c:	2f00           	move.l d0,-(sp)
+    7584:	2f00           	move.l d0,-(sp)
 	PICCALL	SYM (__udivsi3)	/* divide abs(dividend) by abs(divisor) */
-    722e:	6186           	bsr.s 71b6 <__udivsi3>
+    7586:	6186           	bsr.s 750e <__udivsi3>
 	addql	IMM (8), sp
-    7230:	508f           	addq.l #8,sp
+    7588:	508f           	addq.l #8,sp
 
 	tstb	d2
-    7232:	4a02           	tst.b d2
+    758a:	4a02           	tst.b d2
 	jpl	3f
-    7234:	6a02           	bpl.s 7238 <__divsi3+0x26>
+    758c:	6a02           	bpl.s 7590 <__divsi3+0x26>
 	negl	d0
-    7236:	4480           	neg.l d0
+    758e:	4480           	neg.l d0
 
 3:	movel	sp@+, d2
-    7238:	241f           	move.l (sp)+,d2
+    7590:	241f           	move.l (sp)+,d2
+	.cfi_adjust_cfa_offset -4
 	rts
-    723a:	4e75           	rts
+    7592:	4e75           	rts
 
-0000723c <__modsi3>:
-
+00007594 <__modsi3>:
 	.text
 	FUNC(__modsi3)
 	.globl	SYM (__modsi3)
 SYM (__modsi3):
+	.cfi_startproc
 	movel	sp@(8), d1	/* d1 = divisor */
-    723c:	222f 0008      	move.l 8(sp),d1
+    7594:	222f 0008      	move.l 8(sp),d1
 	movel	sp@(4), d0	/* d0 = dividend */
-    7240:	202f 0004      	move.l 4(sp),d0
+    7598:	202f 0004      	move.l 4(sp),d0
 	movel	d1, sp@-
-    7244:	2f01           	move.l d1,-(sp)
+    759c:	2f01           	move.l d1,-(sp)
+	.cfi_adjust_cfa_offset 4
 	movel	d0, sp@-
-    7246:	2f00           	move.l d0,-(sp)
+    759e:	2f00           	move.l d0,-(sp)
+	.cfi_adjust_cfa_offset 4
 	PICCALL	SYM (__divsi3)
-    7248:	61c8           	bsr.s 7212 <__divsi3>
+    75a0:	61c8           	bsr.s 756a <__divsi3>
 	addql	IMM (8), sp
-    724a:	508f           	addq.l #8,sp
+    75a2:	508f           	addq.l #8,sp
+	.cfi_adjust_cfa_offset -8
 	movel	sp@(8), d1	/* d1 = divisor */
-    724c:	222f 0008      	move.l 8(sp),d1
+    75a4:	222f 0008      	move.l 8(sp),d1
 	movel	d1, sp@-
-    7250:	2f01           	move.l d1,-(sp)
+    75a8:	2f01           	move.l d1,-(sp)
+	.cfi_adjust_cfa_offset 4
 	movel	d0, sp@-
-    7252:	2f00           	move.l d0,-(sp)
+    75aa:	2f00           	move.l d0,-(sp)
+	.cfi_adjust_cfa_offset 4
 	PICCALL	SYM (__mulsi3)	/* d0 = (a/b)*b */
-    7254:	6100 ff3e      	bsr.w 7194 <__mulsi3>
+    75ac:	6100 ff3e      	bsr.w 74ec <__mulsi3>
 	addql	IMM (8), sp
-    7258:	508f           	addq.l #8,sp
+    75b0:	508f           	addq.l #8,sp
+	.cfi_adjust_cfa_offset -8
 	movel	sp@(4), d1	/* d1 = dividend */
-    725a:	222f 0004      	move.l 4(sp),d1
+    75b2:	222f 0004      	move.l 4(sp),d1
 	subl	d0, d1		/* d1 = a - (a/b)*b */
-    725e:	9280           	sub.l d0,d1
+    75b6:	9280           	sub.l d0,d1
 	movel	d1, d0
-    7260:	2001           	move.l d1,d0
+    75b8:	2001           	move.l d1,d0
 	rts
-    7262:	4e75           	rts
+    75ba:	4e75           	rts
 
-00007264 <__umodsi3>:
-
+000075bc <__umodsi3>:
 	.text
 	FUNC(__umodsi3)
 	.globl	SYM (__umodsi3)
 SYM (__umodsi3):
+	.cfi_startproc
 	movel	sp@(8), d1	/* d1 = divisor */
-    7264:	222f 0008      	move.l 8(sp),d1
+    75bc:	222f 0008      	move.l 8(sp),d1
 	movel	sp@(4), d0	/* d0 = dividend */
-    7268:	202f 0004      	move.l 4(sp),d0
+    75c0:	202f 0004      	move.l 4(sp),d0
 	movel	d1, sp@-
-    726c:	2f01           	move.l d1,-(sp)
+    75c4:	2f01           	move.l d1,-(sp)
+	.cfi_adjust_cfa_offset 4
 	movel	d0, sp@-
-    726e:	2f00           	move.l d0,-(sp)
+    75c6:	2f00           	move.l d0,-(sp)
+	.cfi_adjust_cfa_offset 4
 	PICCALL	SYM (__udivsi3)
-    7270:	6100 ff44      	bsr.w 71b6 <__udivsi3>
+    75c8:	6100 ff44      	bsr.w 750e <__udivsi3>
 	addql	IMM (8), sp
-    7274:	508f           	addq.l #8,sp
+    75cc:	508f           	addq.l #8,sp
+	.cfi_adjust_cfa_offset -8
 	movel	sp@(8), d1	/* d1 = divisor */
-    7276:	222f 0008      	move.l 8(sp),d1
+    75ce:	222f 0008      	move.l 8(sp),d1
 	movel	d1, sp@-
-    727a:	2f01           	move.l d1,-(sp)
+    75d2:	2f01           	move.l d1,-(sp)
+	.cfi_adjust_cfa_offset 4
 	movel	d0, sp@-
-    727c:	2f00           	move.l d0,-(sp)
+    75d4:	2f00           	move.l d0,-(sp)
+	.cfi_adjust_cfa_offset 4
 	PICCALL	SYM (__mulsi3)	/* d0 = (a/b)*b */
-    727e:	6100 ff14      	bsr.w 7194 <__mulsi3>
+    75d6:	6100 ff14      	bsr.w 74ec <__mulsi3>
 	addql	IMM (8), sp
-    7282:	508f           	addq.l #8,sp
+    75da:	508f           	addq.l #8,sp
+	.cfi_adjust_cfa_offset -8
 	movel	sp@(4), d1	/* d1 = dividend */
-    7284:	222f 0004      	move.l 4(sp),d1
+    75dc:	222f 0004      	move.l 4(sp),d1
 	subl	d0, d1		/* d1 = a - (a/b)*b */
-    7288:	9280           	sub.l d0,d1
+    75e0:	9280           	sub.l d0,d1
 	movel	d1, d0
-    728a:	2001           	move.l d1,d0
+    75e2:	2001           	move.l d1,d0
 	rts
-    728c:	4e75           	rts
+    75e4:	4e75           	rts
 
-0000728e <KPutCharX>:
-	.text
+000075e6 <KPutCharX>:
 	FUNC(KPutCharX)
 	.globl	SYM (KPutCharX)
 
 SYM(KPutCharX):
+	.cfi_startproc
     move.l  a6, -(sp)
-    728e:	2f0e           	move.l a6,-(sp)
+    75e6:	2f0e           	move.l a6,-(sp)
+	.cfi_adjust_cfa_offset 4
     move.l  4.w, a6
-    7290:	2c78 0004      	movea.l 4 <_start+0x4>,a6
+    75e8:	2c78 0004      	movea.l 4 <_start+0x4>,a6
     jsr     -0x204(a6)
-    7294:	4eae fdfc      	jsr -516(a6)
+    75ec:	4eae fdfc      	jsr -516(a6)
     movea.l (sp)+, a6
-    7298:	2c5f           	movea.l (sp)+,a6
+    75f0:	2c5f           	movea.l (sp)+,a6
+	.cfi_adjust_cfa_offset -4
     rts
-    729a:	4e75           	rts
+    75f2:	4e75           	rts
 
-0000729c <PutChar>:
-	.text
+000075f4 <PutChar>:
 	FUNC(PutChar)
 	.globl	SYM (PutChar)
 
 SYM(PutChar):
+	.cfi_startproc
 	move.b d0, (a3)+
-    729c:	16c0           	move.b d0,(a3)+
+    75f4:	16c0           	move.b d0,(a3)+
 	rts
-    729e:	4e75           	rts
-
-000072a0 <saveregs>:
-	...
-
-000072dc <font2distance>:
-    72dc:	0505           	btst d2,d5
-    72de:	0505           	btst d2,d5
-    72e0:	0505           	btst d2,d5
-    72e2:	0505           	btst d2,d5
-    72e4:	0505           	btst d2,d5
-#define pc REG (pc)
-
-saveregs: .dcb.b 60
-
-font2distance:
-  dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 //Ascii  32 -  41
-    72e6:	0505           	btst d2,d5
-    72e8:	0505           	btst d2,d5
-    72ea:	0005 0505      	ori.b #5,d5
-    72ee:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 0, 5, 5, 5, 5, 5 //Ascii  42 -  51
-    72f0:	0505           	btst d2,d5
-    72f2:	0505           	btst d2,d5
-    72f4:	0505           	btst d2,d5
-    72f6:	0505           	btst d2,d5
-    72f8:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  52 -  61
-    72fa:	0505           	btst d2,d5
-    72fc:	0505           	btst d2,d5
-    72fe:	0505           	btst d2,d5
-    7300:	0505           	btst d2,d5
-    7302:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  62 -  71
-    7304:	0500           	btst d2,d0
-    7306:	0505           	btst d2,d5
-    7308:	0505           	btst d2,d5
-    730a:	0505           	btst d2,d5
-    730c:	0505           	btst d2,d5
-	dc.b 5, 0, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  72 -  81
-    730e:	0505           	btst d2,d5
-    7310:	0505           	btst d2,d5
-    7312:	0505           	btst d2,d5
-    7314:	0505           	btst d2,d5
-    7316:	0305           	btst d1,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 3, 5	//Ascii  82 -  91
-    7318:	0505           	btst d2,d5
-    731a:	0505           	btst d2,d5
-    731c:	0503           	btst d2,d3
-    731e:	0505           	btst d2,d5
-    7320:	0502           	btst d2,d2
-	dc.b 5, 5, 5, 5, 5, 3, 5, 5, 5, 2	//Ascii  92 - 101
-    7322:	0505           	btst d2,d5
-    7324:	0500           	btst d2,d0
-    7326:	0505           	btst d2,d5
-    7328:	0005 0502      	ori.b #2,d5
-	dc.b 5, 5, 5, 0, 5, 5, 0, 5, 5, 2	//Ascii 102 - 111
-    732c:	0505           	btst d2,d5
-    732e:	0503           	btst d2,d3
-    7330:	0205 0507      	andi.b #7,d5
-    7334:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 3, 2, 5, 5, 7, 5, 5	//Ascii 112 - 121
-    7336:	0505           	btst d2,d5
-    7338:	0505           	btst d2,d5
-    733a:	0505           	btst d2,d5
-    733c:	0505           	btst d2,d5
-    733e:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7340:	0505           	btst d2,d5
-    7342:	0505           	btst d2,d5
-    7344:	0505           	btst d2,d5
-    7346:	0505           	btst d2,d5
-    7348:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    734a:	0505           	btst d2,d5
-    734c:	0505           	btst d2,d5
-    734e:	0505           	btst d2,d5
-    7350:	0505           	btst d2,d5
-    7352:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7354:	0505           	btst d2,d5
-    7356:	0505           	btst d2,d5
-    7358:	0505           	btst d2,d5
-    735a:	0505           	btst d2,d5
-    735c:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    735e:	0505           	btst d2,d5
-    7360:	0505           	btst d2,d5
-    7362:	0505           	btst d2,d5
-    7364:	0505           	btst d2,d5
-    7366:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7368:	0505           	btst d2,d5
-    736a:	0505           	btst d2,d5
-    736c:	0505           	btst d2,d5
-    736e:	0505           	btst d2,d5
-    7370:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7372:	0505           	btst d2,d5
-    7374:	0505           	btst d2,d5
-    7376:	0505           	btst d2,d5
-    7378:	0505           	btst d2,d5
-    737a:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    737c:	0505           	btst d2,d5
-    737e:	0505           	btst d2,d5
-    7380:	0505           	btst d2,d5
-    7382:	0505           	btst d2,d5
-    7384:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7386:	0505           	btst d2,d5
-    7388:	0505           	btst d2,d5
-    738a:	0505           	btst d2,d5
-    738c:	0505           	btst d2,d5
-    738e:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    7390:	0505           	btst d2,d5
-    7392:	0505           	btst d2,d5
-    7394:	0505           	btst d2,d5
-    7396:	0505           	btst d2,d5
-    7398:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    739a:	0505           	btst d2,d5
-    739c:	0505           	btst d2,d5
-    739e:	0505           	btst d2,d5
-    73a0:	0505           	btst d2,d5
-    73a2:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    73a4:	0505           	btst d2,d5
-    73a6:	0505           	btst d2,d5
-    73a8:	0505           	btst d2,d5
-    73aa:	0505           	btst d2,d5
-    73ac:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    73ae:	0505           	btst d2,d5
-    73b0:	0505           	btst d2,d5
-    73b2:	0505           	btst d2,d5
-    73b4:	0505           	btst d2,d5
-    73b6:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    73b8:	0505           	btst d2,d5
-    73ba:	0505           	btst d2,d5
-    73bc:	0505           	btst d2,d5
-    73be:	0505           	btst d2,d5
-    73c0:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    73c2:	0505           	btst d2,d5
-    73c4:	0505           	btst d2,d5
-    73c6:	0505           	btst d2,d5
-    73c8:	0505           	btst d2,d5
-    73ca:	0505           	btst d2,d5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-    73cc:	0505           	btst d2,d5
-    73ce:	0505           	btst d2,d5
-    73d0:	0505           	btst d2,d5
-    73d2:	0505           	btst d2,d5
-    73d4:	0505           	btst d2,d5
-
-000073d6 <__PutChar>:
-
-	.text
-	FUNC(__PutChar2)
-	.globl	SYM (__PutChar2)
-SYM (__PutChar):
-  move.b d0,(a3)+
-    73d6:	16c0           	move.b d0,(a3)+
-  RTS
-    73d8:	4e75           	rts
-
-000073da <__WriteText>:
-
-	.text
-	FUNC(__WriteText)
-	.globl	SYM (__WriteText)
-SYM (__WriteText):
-  movem.l d0-d7/a0-a6, saveregs
-    73da:	48f9 7fff 0000 	movem.l d0-a6,72a0 <saveregs>
-    73e0:	72a0 
-  lea 0xdff000,a5
-    73e2:	4bf9 00df f000 	lea dff000 <gcc8_c_support.c.e9862530+0xdd2e2f>,a5
-  move.l sp@(4),a0  //Fontlocation
-    73e8:	206f 0004      	movea.l 4(sp),a0
-  move.l sp@(8),a3  //Destination
-    73ec:	266f 0008      	movea.l 8(sp),a3
-  move.l sp@(12),a2 //Textlocation
-    73f0:	246f 000c      	movea.l 12(sp),a2
-  sub.l  d3,d3      //Number of rows = 1
-    73f4:	9683           	sub.l d3,d3
-  btst #6,2(a5)     //Wait for blitter to finish
-    73f6:	082d 0006 0002 	btst #6,2(a5)
-
-000073fc <st2wblit>:
-st2wblit:
-	btst	#6,2(a5)
-    73fc:	082d 0006 0002 	btst #6,2(a5)
-	bne.s	st2wblit
-    7402:	66f8           	bne.s 73fc <st2wblit>
-
-00007404 <PRINTRIGA2>:
-
-PRINTRIGA2:
-	MOVEQ	#25,d0      // Number of characters per row: 26
-    7404:	7019           	moveq #25,d0
-	sub.l d5,d5      
-    7406:	9a85           	sub.l d5,d5
-
-00007408 <PRINTCHAR3>:
-PRINTCHAR3:
-
-	sub.l	d2,d2		    //reset d2
-    7408:	9482           	sub.l d2,d2
-	MOVE.B	(a2)+,d2	//Prossimo carattere in d2
-    740a:	141a           	move.b (a2)+,d2
-	SUB.B	#0x20,d2		//Add 32 to get Ascii char
-    740c:	0402 0020      	subi.b #32,d2
-
-	sub.l  a6, a6		  //Fetch width of next character
-    7410:	9dce           	suba.l a6,a6
-	move.l d2, a6
-    7412:	2c42           	movea.l d2,a6
-	add.l	 #font2distance, a6	
-    7414:	ddfc 0000 72dc 	adda.l #29404,a6
-
-	LSL  	#4,d2 	    //Fetch next char
-    741a:	e94a           	lsl.w #4,d2
-	MOVE.L	d2,a4
-    741c:	2842           	movea.l d2,a4
-
-
-	move.l  #0,d4
-    741e:	7800           	moveq #0,d4
-	ADD.L	  a0,a4	  //Get character in font
-    7420:	d9c8           	adda.l a0,a4
-
-	move.w  (a4), d4
-    7422:	3814           	move.w (a4),d4
-	swap	d4
-    7424:	4844           	swap d4
-	lsr.l	d5, d4
-    7426:	eaac           	lsr.l d5,d4
-	or.l	d4, (a3)
-    7428:	8993           	or.l d4,(a3)
-	clr.l	d4
-    742a:	4284           	clr.l d4
-	move.w  2(a4), d4
-    742c:	382c 0002      	move.w 2(a4),d4
-	swap.w  d4
-    7430:	4844           	swap d4
-	lsr.l	d5, d4
-    7432:	eaac           	lsr.l d5,d4
-	or.l	d4, 80(a3)
-    7434:	89ab 0050      	or.l d4,80(a3)
-	clr.l	d4
-    7438:	4284           	clr.l d4
-	move.w  4(a4), d4
-    743a:	382c 0004      	move.w 4(a4),d4
-	swap	d4
-    743e:	4844           	swap d4
-	lsr.l	d5, d4
-    7440:	eaac           	lsr.l d5,d4
-	or.l  	d4, 80*2(a3)
-    7442:	89ab 00a0      	or.l d4,160(a3)
-	clr.l	d4
-    7446:	4284           	clr.l d4
-	move.w  6(a4), d4
-    7448:	382c 0006      	move.w 6(a4),d4
-	swap	d4
-    744c:	4844           	swap d4
-	lsr.l	d5, d4
-    744e:	eaac           	lsr.l d5,d4
-	or.l	d4, 80*3(a3)
-    7450:	89ab 00f0      	or.l d4,240(a3)
-	clr.l	d4
-    7454:	4284           	clr.l d4
-	move.w  8(a4), d4
-    7456:	382c 0008      	move.w 8(a4),d4
-	swap	d4
-    745a:	4844           	swap d4
-	lsr.l	d5, d4
-    745c:	eaac           	lsr.l d5,d4
-	or.l  	d4, 80*4(a3)
-    745e:	89ab 0140      	or.l d4,320(a3)
-	clr.l	d4	
-    7462:	4284           	clr.l d4
-	move.w  10(a4), d4
-    7464:	382c 000a      	move.w 10(a4),d4
-	swap	d4
-    7468:	4844           	swap d4
-	lsr.l	d5, d4
-    746a:	eaac           	lsr.l d5,d4
-	or.l  	d4, 80*5(a3)
-    746c:	89ab 0190      	or.l d4,400(a3)
-	clr.l	d4
-    7470:	4284           	clr.l d4
-	move.w  12(a4), d4
-    7472:	382c 000c      	move.w 12(a4),d4
-	swap	d4
-    7476:	4844           	swap d4
-	lsr.l	d5, d4
-    7478:	eaac           	lsr.l d5,d4
-	or.l  	d4, 80*6(a3)
-    747a:	89ab 01e0      	or.l d4,480(a3)
-	clr.l	d4
-    747e:	4284           	clr.l d4
-	move.w  14(a4), d4
-    7480:	382c 000e      	move.w 14(a4),d4
-	swap	d4
-    7484:	4844           	swap d4
-	lsr.l	d5, d4
-    7486:	eaac           	lsr.l d5,d4
-	or.l  	d4, 80*7(a3)    
-    7488:	89ab 0230      	or.l d4,560(a3)
-	clr.l	d4
-    748c:	4284           	clr.l d4
-
-	add.b   (a6), d5
-    748e:	da16           	add.b (a6),d5
-	cmp.w   #8,d5
-    7490:	0c45 0008      	cmpi.w #8,d5
-	bcs	noadditionalchar
-    7494:	6500 0006      	bcs.w 749c <noadditionalchar>
-	addq.w  #1, a3
-    7498:	524b           	addq.w #1,a3
-	sub.w   #8,d5
-    749a:	5145           	subq.w #8,d5
-
-0000749c <noadditionalchar>:
-
-noadditionalchar:
-	ADDQ.w	#1,a3         //A3+2,avanziamo di 16 bit (PROSSIMO CARATTERE)
-    749c:	524b           	addq.w #1,a3
-	DBRA	d0 ,PRINTCHAR3	  //STAMPIAMO D0 (20) CARATTERI PER RIGA
-    749e:	51c8 ff68      	dbf d0,7408 <PRINTCHAR3>
-
-  ADD.W	#80*19,a3	      //ANDIAMO A CAPO
-    74a2:	d6fc 05f0      	adda.w #1520,a3
-	//ci spostiamo in basso di 19 righe.
-
-	DBRA	d3,PRINTRIGA2	  //FACCIAMO D3 RIGHE
-    74a6:	51cb ff5c      	dbf d3,7404 <PRINTRIGA2>
-  movem.l saveregs,d0-d7/a0-a6
-    74aa:	4cfa 7fff fdf2 	movem.l 72a0 <saveregs>(pc),d0-a6
-
-	RTS
-    74b0:	4e75           	rts
+    75f6:	4e75           	rts

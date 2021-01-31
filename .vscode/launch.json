@@ -1,15 +1,24 @@
 {
     "version": "0.2.0",
     "configurations": [
-      
-
         {
             "type": "amiga",
             "request": "launch",
             "preLaunchTask": "compile",
-            "name": "Blabla",
+            "name": "Amiga 500",
+            "config": "A500",
             "program": "${workspaceFolder}/a.mingw",
-            "kickstart": "c://KickRoms/Kick13a500.rom",
+            "kickstart": "c:/KickRoms/kick13a500.rom",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "amiga",
+            "request": "launch",
+            "preLaunchTask": "compile",
+            "name": "Amiga 1200",
+            "config": "A1200",
+            "program": "${workspaceFolder}/a.mingw",
+            "kickstart": "c:/amiga-dev/winuae/Kickstarts/KICK31.rom",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]

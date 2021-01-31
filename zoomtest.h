@@ -7,6 +7,7 @@
 #include <exec/execbase.h>
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
+#include <hardware/dmabits.h>
 
 
 void TestZoom4Picture();
@@ -23,7 +24,7 @@ void TestZoom4PictureOn5Planes();
 int TestCopperListZoom102( ULONG *cl2test, UWORD position, 
                                                            ULONG *template4cl);
 int TestZoom102Batch( ULONG *cl2test, UWORD position);
-ULONG Cl102ZoomTest[137];
+extern ULONG Cl102ZoomTest[137];
 extern void PutChar();
 
 /*UWORD destlinezoom2[22];

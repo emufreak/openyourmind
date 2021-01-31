@@ -1,12 +1,30 @@
+#include "support/gcc8_c_support.h"
 #include "zoom.h"
+
+UWORD *Zoom_Zl4Words;
+
+ULONG *Zoom_ZoomBlitMask;
+UWORD *Zoom_Source;
+UWORD ZoomBlit_Increment4SrcA;
+struct Interrupt *Zoom_vbint;
+
+UWORD *font2;
+UWORD Zoom_Counter = 0;
+ULONG ClScreenZoom[12];
+UWORD *Zoom_StartImage;
+UWORD Zoom_MouseReleased;
+UWORD Zoom_Mousepressed;
+UWORD Zoom_Blit4ZoomFinished;
+UWORD volatile Zoom_LevelOfZoom;
+UWORD volatile Zoom_LevelOf102Zoom;
+WORD Zoom_Direction;
+WORD ZoomHorizontal;
+
 #include "zoom102.h"
 #include "utils.h"
 #include "zoomtest.h"
 
 INCBIN(startimage, "raw/zoom.raw")
-
-UWORD *Zoom_Zl4Words;
-
 
 void Zoom_VblankHandler() {
   
@@ -61,8 +79,6 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
 
   UWORD *blta = source + ZoomBlit_Increment4SrcA;
-  /*UWORD *bp = 0x200;
-  *bp = 0;*/
   WaitBlt();
   /*Mintterm
   ABCD
@@ -94,8 +110,6 @@ void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
   *bp = 0;
   UWORD bltsize = (height << 6) + 2;
   
-  /*UWORD *bp = 0x200;
-  *bp = 0;*/
   WaitBlt();
   /*Mintterm
   ABCD
@@ -260,11 +274,7 @@ ULONG * ClbuildZoom() {
     Exit(1);
   }
   ViewBuffer = Bitplane2;
-  ViewCopper = Copperlist2;
-  /*SwapCl();
-  Zoom_SetBplPointers();
-  SwapCl();
-  Zoom_SetBplPointers();*/
+  ViewCopper = Copperlist2; 
   return 0;
 }
 

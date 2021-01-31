@@ -48,8 +48,6 @@ void Test_Zoom2() {
   for( int i=1;i<=1;i++) {
     Zoom_ZoomIntoPicture2( (UWORD *)pic1, (UWORD *) pic2,(UWORD *) target, i, 
                                                                              5);
-    UWORD *bp = 0x200;
-    *bp = 0;
     UWORD *pos = (UWORD *) target + 1;
     //ULONG pattern = 0xffff << (16 - i*2);
     UWORD pattern[3] = { 0x00ff, 0xff0f, 0xffff };

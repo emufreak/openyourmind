@@ -7,6 +7,8 @@
 #include <string.h>
 #include "zoomtest2.h"
 
+ULONG Cl102ZoomTest[137];
+
 void ZoomTest() {
   TestZoomSpeed();
   ZoomTestDisplay();
@@ -23,8 +25,16 @@ void TestZoomSpeed() {
 
  	TakeSystem();
 	WaitVbl();
-  //               fedcba9876543210
-  hw->dmacon = 0b1000011111100000;
+  //             fedcba9876543210
+  //hw->dmacon = 0x8def;
+
+  hw->dmacon = DMAF_SETCLR | DMAF_AUDIO | DMAF_BLITTER | DMAF_RASTER 
+                                    | DMAF_COPPER | DMAF_MASTER | DMAF_BLITHOG;
+   //0b1000011111100000;
+  
+  //hw->dmacon = 0b1000011111111111;
+	hw->intena = (1 << INTB_SETCLR) | (1 << INTB_INTEN) | (1 << INTB_VERTB);
+  
   Zoom_InitRun(); 
 
   int success = 1;

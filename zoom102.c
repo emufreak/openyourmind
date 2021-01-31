@@ -1,11 +1,12 @@
-/* 15 14 13 12 11 10 9 
-   FF01, 0048
-
-*/
-
 #include "utils.h"
 #include "zoom.h"
 #include "zoom102.h"
+
+ULONG Cl102ZoomInit[3];
+ULONG Cl102ZoomRepeat[135];
+UWORD Values4Shift[30*4*16];
+UWORD MaxZoom102[18];
+
 
 /*ULONG Cl102Zoom[] = { 0x003d80fe, 0x1800f00, 0x1800000, 0x01800f00, 0x01800000,
              0x1800f00, 0x1800000, 0x01800f00, 0x01800000, 0x1800f00, 0x1800000, 
