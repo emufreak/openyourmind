@@ -102,13 +102,17 @@ void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
 }
 
 void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
-                                                 UWORD bltamod, UWORD bltbmod) {
+                                                 UWORD bltamod, UWORD bltbmod
+                                                        , UWORD numofwords) {
 
                               //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
               //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
-  UWORD *bp = 0x200;
-  *bp = 0;
-  UWORD bltsize = (height << 6) + 2;
+  hw->bltamod = bltamod;
+  hw->bltbmod = bltbmod;  
+  hw->bltapt = src4a;
+  hw->bltbpt = src4b;
+  hw->bltdpt = dst;
+  hw->bltsize = (height<<6)+numofwords;
   
   WaitBlt();
   /*Mintterm
@@ -123,13 +127,7 @@ void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
   1111*/
   //0000 0000 1010 1010 1010 1010
   //0000 0001 0101 0101 0101 0101
-  //                     4    a
-  hw->bltamod = bltamod;
-  hw->bltbmod = bltbmod;  
-  hw->bltapt = src4a;
-  hw->bltbpt = src4b;
-  hw->bltdpt = dst;
-  hw->bltsize = (height<<6)+2;
+  //                     4    a  
 
 }
 
@@ -434,7 +432,7 @@ void Zoom_SwapBuffers() {
   ViewBuffer = (ULONG *) tmp;
 }
 
-void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
+/*void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
   UWORD levelofzoom, UWORD nrofplanes) {
 
   
@@ -485,7 +483,7 @@ void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target,
       }
     }
   }
-}
+}*/
 
 
 //123456789ABCDEFG

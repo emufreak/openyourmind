@@ -44,7 +44,7 @@ void Zoom_ZoomBlit(UWORD *source, UWORD *destination, UWORD size);
 void Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height);
 
 void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
-                                                  UWORD bltamod, UWORD bltbmod);
+                               UWORD bltamod, UWORD bltbmod, UWORD numofwords);
 
 void Zoom_Init();
 void Zoom_InitRun();

@@ -4,75 +4,123 @@
 #include <string.h>
 
 void Test_Zoom2() {
-  UWORD size4buffer = 40*544*ZMBPLDEPTH;
-  UWORD size4target = 44*272*ZMBPLDEPTH;
-  ULONG *pic1 = AllocMem( size4buffer, MEMF_CHIP);
-  if( pic1 == 0) {
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic1\n", 38);
+  
+  //Test Zoomlevel 1
+  volatile ULONG *srcsmall = AllocMem( 80, MEMF_CHIP);
+  if( srcsmall == 0) {
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for srcsmall\n", 42);
     return;
   }
-  ULONG *pic2 = AllocMem( size4buffer*2,MEMF_CHIP);
-  if( pic2 == 0) {
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for pic2\n", 38);
+  Utils_FillLong(srcsmall, 0xaaaaaaaa, 2, 10, 0);
+
+  volatile ULONG *srcbig = AllocMem( 160, MEMF_CHIP);
+    if( srcbig == 0) {
+    Write( Output(), "Test_Zoom2: Cannot alloc mem for srcbig\n", 40);
     return;
   }
-  ULONG *target = AllocMem( size4target, MEMF_CHIP);
-  UWORD *bp = 0x200;
-  *bp = 0;
+  Utils_FillLong( srcbig, 0x55555555, 2, 20, 0);
+
+  volatile ULONG *target = AllocMem( 168, MEMF_CHIP);
   if( target == 0) {
     Write( Output(), "Test_Zoom2: Cannot alloc mem for target\n", 40);
     return;
   }
-  Zoom_Zl4Words = AllocMem( 21*8, MEMF_ANY);
-  if( Zoom_Zl4Words == 0) {
-    Write( Output(), "Test_Zoom2: Cannot alloc mem for Zoom_Zl4Words\n", 40);
-    return;
-  }
+  WaitBlt();
+  hw->bltafwm = 0xffff;
+  hw->bltalwm = 0xffff;
+  hw->bltdmod = 38;
+  hw->bltcon1 = 1 << 12; //Shift src big
+  hw->bltcon0 = 0xde4; //Chanell settings and Shift src small
+  hw->bltcdat = 0x8000; //Show channel small if 1 else channel big
   
-  UWORD *pos2write = Zoom_Zl4Words;
-  for( int i=0;i<14;i++) {
-    *pos2write++ = 4;
-    *pos2write++ = 4;
-    *pos2write++ = 8;
-  }
-  //16   16 ffff
-  //8+16 40 ff00
-  //8+16 64 0000
-  Utils_FillLong( pic1, 0xfff00f00, 272, 10, 0 );
-  Utils_FillLong( pic1+10*272, 0xfff00f00, 272, 10, 0 );
-  Utils_FillLong( pic2, 0x0000ffff, 272, 20, 0);
-  Utils_FillLong( pic2+20*272, 0x0000ffff, 272, 20, 0);
-  //Utils_FillLong( pic2, 0x0000ffff, size4buffer*2);
+  //srcbig:        0101 0101 0101 0101
+  //srcbig-shift   0010 1010 1010 1010
+  //srcsmall:      1010 1010 1010 1010  
+  //pattern:       sbbb bbbb bbbb bbbb
+  //result:        1010 1010 1010 1010
 
-  
-  for( int i=1;i<=1;i++) {
-    Zoom_ZoomIntoPicture2( (UWORD *)pic1, (UWORD *) pic2,(UWORD *) target, i, 
-                                                                             5);
-    UWORD *pos = (UWORD *) target + 1;
-    //ULONG pattern = 0xffff << (16 - i*2);
-    UWORD pattern[3] = { 0x00ff, 0xff0f, 0xffff };
-    for( int i2=0;i2<2;i2++) {
-      for( int i3=0;i3<7;i3++) {
-        for( int i4=0; i4<3;i4++) {
-          if(*pos++ != pattern[i4])  {
-            pos--;
-            UWORD data[3];
-            char str[100];
-            data[0] = i;
-            data[1] = i3*3+i4;
-            data[2] = *pos;
-            pos++;
-            
-            RawDoFmt( "Test_Zoom2: Pattern for zoomlevel %d, byte %d messed up."
-                                        "Result was %x.\n", data, PutChar, str);
-            Write( Output(), str, 66);
-          }
-        }
-      } 
-      pos+=2;
-    }
-  }
-  FreeMem( pic1, size4buffer);
-  FreeMem( pic2, size4buffer*2);
-  FreeMem( target, size4target);
+  Zoom_ZoomBlit2( srcsmall, srcbig, target, 2, 38,78, 1);
+  UWORD *tmp = (UWORD *)target;
+  WaitBlit();
+  for(int i=0;i<2;i++)
+    if( *tmp != 0xaaaa ) {
+      Write( Output(), "Test_Zoom2: Test for Zoomlevel 1 failed\n", 40);
+      return;
+    } else tmp += 20;
+
+  //srcbig:        0101 0101 0101 0101
+  //srcbig-shift   0001 0101 0101 0101
+  //srcsmall:      1010 1010 1010 1010  
+  //pattern:       ssbb bbbb bbbb bbbb
+  //result:        1001 0101 0101 0101
+
+  hw->bltcon1 = 2 << 12; //Shift src big
+  hw->bltcdat = 0xc000; //Show channel small if 1 else channel big
+  Zoom_ZoomBlit2( srcsmall, srcbig, target, 2, 38,78, 1);
+  tmp = (UWORD *)target;
+  WaitBlit();
+  for(int i=0;i<2;i++)
+    if( *tmp != 0x9555 ) {
+      Write( Output(), "Test_Zoom2: Test for Zoomlevel 2 failed\n", 40);
+      return;
+    } else tmp += 20;
+
+  //srcbig:        0101 0101 0101 0101
+  //srcbig-shift   0000 1010 1010 1010
+  //srcsmall:      1010 1010 1010 1010  
+  //pattern:       sssb bbbb bbbb bbbb
+  //result:        1010 1010 1010 1010
+
+  hw->bltcon1 = 3 << 12; //Shift src big
+  hw->bltcdat = 0xe000; //Show channel small if 1 else channel big
+  Zoom_ZoomBlit2( srcsmall, srcbig, target, 2, 38,78, 1);
+  tmp = (UWORD *)target;
+  WaitBlit();
+  for(int i=0;i<2;i++)
+    if( *tmp != 0xaaaa ) {
+      Write( Output(), "Test_Zoom2: Test for Zoomlevel 3 failed\n", 40);
+      return;
+    } else tmp += 20;  
+
+  //srcbig:        0101 0101 0101 0101
+  //srcbig-shift   0000 1010 1010 1010
+  //srcsmall:      1010 1010 1010 1010  
+  //pattern:       sssb bbbb bbbb bbbb
+  //result:        1010 1010 1010 1010
+
+  hw->bltcon1 = 3 << 12; //Shift src big
+  hw->bltcdat = 0xe000; //Show channel small if 1 else channel big
+
+  Zoom_ZoomBlit2( srcsmall, srcbig, target, 2, 38,78, 1);
+  tmp = (UWORD *)target;
+  WaitBlit();
+  for(int i=0;i<2;i++)
+    if( *tmp != 0xaaaa ) {
+      Write( Output(), "Test_Zoom2: Test for Zoomlevel 3 failed\n", 40);
+      return;
+    } else tmp += 20;  
+
+  //srcbig:              0101 0101 0101 0101
+  //srcbig-shift         0000 1010 1010 1010
+  //srcsmall:            1010 1010 1010 1010
+  //srcsmall-shift:      0101 0101 0101 0101
+  //pattern:             sssb bbbb bbbb bbbb
+  //result:              0100 1010 1010 1010
+
+  hw->bltcon1 = 3 << 12; //Shift src big
+  hw->bltcdat = 0xe000; //Show channel small if 1 else channel big
+  hw->bltcon0 = 0xde4 + (1 << 12); //Chanell settings and Shift src small
+ 
+  Zoom_ZoomBlit2( srcsmall, srcbig, target, 2, 38,78, 1);
+  tmp = (UWORD *)target;
+  WaitBlit();
+  for(int i=0;i<2;i++)
+    if( *tmp != 0x4aaa ) {
+      Write( Output(), "Test_Zoom2: Test for shifting a failed\n", 39);
+      return;
+    } else tmp += 20;  
+
+  FreeMem( srcsmall, 80);
+  FreeMem( srcbig, 160);
+  FreeMem( target, 168);
 }
