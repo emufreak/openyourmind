@@ -27,133 +27,211 @@
 #define sp REG (sp)
 #define pc REG (pc)
 
-saveregs: .dcb.b 60
+#define	BPLX 320
+#define BPLY 256
+#define BPLSIZE BPLX*BPLY/8
+#define CHUNKYXMAX BPLX
+#define CHUNKYYMAX BPLY
 
-font2distance:
-  dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 //Ascii  32 -  41
-	dc.b 5, 5, 5, 5, 0, 5, 5, 5, 5, 5 //Ascii  42 -  51
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  52 -  61
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  62 -  71
-	dc.b 5, 0, 5, 5, 5, 5, 5, 5, 5, 5	//Ascii  72 -  81
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 3, 5	//Ascii  82 -  91
-	dc.b 5, 5, 5, 5, 5, 3, 5, 5, 5, 2	//Ascii  92 - 101
-	dc.b 5, 5, 5, 0, 5, 5, 0, 5, 5, 2	//Ascii 102 - 111
-	dc.b 5, 5, 5, 3, 2, 5, 5, 7, 5, 5	//Ascii 112 - 121
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	dc.b 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+/* d0.w	chunkyx [chunky-pixels]
+; d1.w	chunkyy [chunky-pixels]
+; d2.w	(scroffsx) [screen-pixels]
+; d3.w	scroffsy [screen-pixels]
+; d4.w	(rowlen) [bytes] -- offset between one row and the next in a bpl
+; d5.l	(bplsize) [bytes] -- offset between one row in one bpl and the next bpl*/
+
+	
+	.text
+	FUNC(c2p1x1_4_c5_gen_init)
+	.globl	SYM (c2p1x1_4_c5_gen_init)
+
+SYM(c2p1x1_4_c5_gen_init):
+	movem.l	d2-d3,-(sp)
+	andi.l	#$ffff,d0
+	mulu.w	d0,d3
+	lsr.l	#3,d3
+	move.l	d3,c2p1x1_4_c5_gen_scroffs
+	mulu.w	d0,d1
+	move.l	d1,c2p1x1_4_c5_gen_pixels
+	movem.l	(sp)+,d2-d3
+	rts
+
+// a0	c2pscreen
+// a1	bitplanes
+
 
 	.text
-	FUNC(__PutChar2)
-	.globl	SYM (__PutChar2)
-SYM (__PutChar):
-  move.b d0,(a3)+
-  RTS
+	FUNC(c2p1x1_4_c5_gen)
+	.globl	SYM (c2p1x1_4_c5_gen)
 
-	.text
-	FUNC(__WriteText)
-	.globl	SYM (__WriteText)
-SYM (__WriteText):
-  movem.l d0-d7/a0-a6, saveregs
-  lea 0xdff000,a5
-  move.l sp@(4),a0  //Fontlocation
-  move.l sp@(8),a3  //Destination
-  move.l sp@(12),a2 //Textlocation
-  sub.l  d3,d3      //Number of rows = 1
-  btst #6,2(a5)     //Wait for blitter to finish
-st2wblit:
-	btst	#6,2(a5)
-	bne.s	st2wblit
+SYM(c2p1x1_4_c5_gen):
+	movem.l	d2-d7/a2-a6,-(sp)
 
-PRINTRIGA2:
-	MOVEQ	#25,d0      // Number of characters per row: 26
-	sub.l d5,d5      
-PRINTCHAR3:
+	move.l	#$33333333,d5
+	move.l	#$55555555,a5
+	move.l	#$00ff00ff,a6
 
-	sub.l	d2,d2		    //reset d2
-	MOVE.B	(a2)+,d2	//Prossimo carattere in d2
-	SUB.B	#0x20,d2		//Add 32 to get Ascii char
+	add.w	#BPLSIZE,a1
+	add.l	c2p1x1_4_c5_gen_scroffs,a1
 
-	sub.l  a6, a6		  //Fetch width of next character
-	move.l d2, a6
-	add.l	 #font2distance, a6	
+	move.l	c2p1x1_4_c5_gen_pixels,a2
+	add.l	a0,a2
+	cmp.l	a0,a2
+	beq	.quit
 
-	LSL  	#4,d2 	    //Fetch next char
-	MOVE.L	d2,a4
+	move.l	(a0)+,d0		// Merge 4x1
+	lsl.l	#4,d0
+	or.l	(a0)+,d0
+	move.l	(a0)+,d1
+	lsl.l	#4,d1
+	or.l	(a0)+,d1
+
+	move.l	(a0)+,d2
+	lsl.l	#4,d2
+	or.l	(a0)+,d2
+	move.l	(a0)+,d3
+	lsl.l	#4,d3
+	or.l	(a0)+,d3
+
+	move.w	d2,d6			//; Swap 16x2
+	move.w	d3,d4
+	move.w	d0,d2
+	move.w	d1,d3
+	swap	d2
+	swap	d3
+	move.w	d2,d0
+	move.w	d3,d1
+	move.w	d6,d2
+	move.w	d4,d3
+
+	move.l	d2,d6			//; Swap 2x2
+	move.l	d3,d7
+	lsr.l	#2,d6
+	lsr.l	#2,d7
+	eor.l	d0,d6
+	eor.l	d1,d7
+	and.l	d5,d6
+	and.l	d5,d7
+	eor.l	d6,d0
+	eor.l	d7,d1
+	lsl.l	#2,d6
+	lsl.l	#2,d7
+	eor.l	d6,d2
+	eor.l	d7,d3
+
+	move.l	a6,d4			//; Swap 8x1
+	move.l	d1,d6
+	move.l	d3,d7
+	lsr.l	#8,d6
+	lsr.l	#8,d7
+	eor.l	d0,d6
+	eor.l	d2,d7
+	and.l	d4,d6
+	and.l	d4,d7
+	eor.l	d6,d0
+	eor.l	d7,d2
+	lsl.l	#8,d6
+	lsl.l	#8,d7
+	eor.l	d6,d1
+	eor.l	d7,d3
+
+	bra.w	.start
+.x:
+	move.l	(a0)+,d0		//; Merge 4x1
+	lsl.l	#4,d0
+	or.l	(a0)+,d0
+	move.l	(a0)+,d1
+	lsl.l	#4,d1
+	or.l	(a0)+,d1
+
+	move.l	(a0)+,d2
+	lsl.l	#4,d2
+	or.l	(a0)+,d2
+	move.l	(a0)+,d3
+	lsl.l	#4,d3
+	or.l	(a0)+,d3
+
+	move.l	d6,BPLSIZE(a1)
+
+	move.w	d2,d6			//; Swap 16x2
+	move.w	d3,d4
+	move.w	d0,d2
+	move.w	d1,d3
+	swap	d2
+	swap	d3
+	move.w	d2,d0
+	move.w	d3,d1
+	move.w	d6,d2
+	move.w	d4,d3
+
+	move.l	d7,-BPLSIZE(a1)
+
+	move.l	d2,d6			//; Swap 2x2
+	move.l	d3,d7
+	lsr.l	#2,d6
+	lsr.l	#2,d7
+	eor.l	d0,d6
+	eor.l	d1,d7
+	and.l	d5,d6
+	and.l	d5,d7
+	eor.l	d6,d0
+	eor.l	d7,d1
+	lsl.l	#2,d6
+	lsl.l	#2,d7
+	eor.l	d6,d2
+	eor.l	d7,d3
+
+	move.l	a3,BPLSIZE*2(a1)
+
+	move.l	a6,d4			//; Swap 8x1
+	move.l	d1,d6
+	move.l	d3,d7
+	lsr.l	#8,d6
+	lsr.l	#8,d7
+	eor.l	d0,d6
+	eor.l	d2,d7
+	and.l	d4,d6
+	and.l	d4,d7
+	eor.l	d6,d0
+	eor.l	d7,d2
+	lsl.l	#8,d6
+	lsl.l	#8,d7
+	eor.l	d6,d1
+	eor.l	d7,d3
+
+	move.l	a4,(a1)+
+.start:
+	move.l	a5,d4			//; Swap 1x1
+	move.l	d1,d6
+	move.l	d3,d7
+	lsr.l	#1,d6
+	lsr.l	#1,d7
+	eor.l	d0,d6
+	eor.l	d2,d7
+	and.l	d4,d6
+	and.l	d4,d7
+	eor.l	d6,d0
+	eor.l	d7,d2
+	add.l	d6,d6
+	add.l	d7,d7
+	eor.l	d1,d6
+	eor.l	d3,d7
+
+	move.l	d0,a3
+	move.l	d2,a4
+
+	cmpa.l	a0,a2
+	bne	.x
+
+	move.l	d6,BPLSIZE(a1)
+	move.l	d7,-BPLSIZE(a1)
+	move.l	a3,BPLSIZE*2(a1)
+	move.l	a4,(a1)+
+.quit:
+	movem.l	(sp)+,d2-d7/a2-a6
+	rts
 
 
-	move.l  #0,d4
-	ADD.L	  a0,a4	  //Get character in font
 
-	move.w  (a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l	d4, (a3)
-	clr.l	d4
-	move.w  2(a4), d4
-	swap.w  d4
-	lsr.l	d5, d4
-	or.l	d4, 80(a3)
-	clr.l	d4
-	move.w  4(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l  	d4, 80*2(a3)
-	clr.l	d4
-	move.w  6(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l	d4, 80*3(a3)
-	clr.l	d4
-	move.w  8(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l  	d4, 80*4(a3)
-	clr.l	d4	
-	move.w  10(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l  	d4, 80*5(a3)
-	clr.l	d4
-	move.w  12(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l  	d4, 80*6(a3)
-	clr.l	d4
-	move.w  14(a4), d4
-	swap	d4
-	lsr.l	d5, d4
-	or.l  	d4, 80*7(a3)    
-	clr.l	d4
-
-	add.b   (a6), d5
-	cmp.w   #8,d5
-	bcs	noadditionalchar
-	addq.w  #1, a3
-	sub.w   #8,d5
-
-noadditionalchar:
-	ADDQ.w	#1,a3         //A3+2,avanziamo di 16 bit (PROSSIMO CARATTERE)
-	DBRA	d0 ,PRINTCHAR3	  //STAMPIAMO D0 (20) CARATTERI PER RIGA
-
-  ADD.W	#80*19,a3	      //ANDIAMO A CAPO
-	//ci spostiamo in basso di 19 righe.
-
-	DBRA	d3,PRINTRIGA2	  //FACCIAMO D3 RIGHE
-  movem.l saveregs,d0-d7/a0-a6
-
-	RTS
-  
+c2p1x1_4_c5_gen_scroffs: dc.l	1
+c2p1x1_4_c5_gen_pixels:	dc.l	1

@@ -27,12 +27,16 @@ $(OUT).exe: $(OUT).elf
 	$(info Elf2Hunk $(OUT).exe)
 	@elf2hunk $(OUT).elf $(OUT).exe
 
-$(OUT).elf: $(objects) obj/gcc8_a_support.o
+$(OUT).elf: $(objects) obj/gcc8_a_support.o obj/utilsasm.o
 	$(info Linking a.mingw.elf)
 	@$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) obj/gcc8_a_support.o -o $@
 	@m68k-amiga-elf-objdump --disassemble -S $@ >$(OUT).s 
 
 obj/gcc8_a_support.o: support/gcc8_a_support.s
+	$(info Assembling $<)
+	@$(CC) $(CCFLAGS) $(ASFLAGS) -xassembler-with-cpp -c -o $@ $(CURDIR)/$<
+
+obj/utilsasm.o: utilsasm.s
 	$(info Assembling $<)
 	@$(CC) $(CCFLAGS) $(ASFLAGS) -xassembler-with-cpp -c -o $@ $(CURDIR)/$<
 

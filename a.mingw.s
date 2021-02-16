@@ -90,10 +90,10 @@ __attribute__((used)) __attribute__((section(".text.unlikely"))) void _start() {
       b2:	4e75           	rts
 
 000000b4 <WaitBlt>:
-		if (vpos==(311<<8))
-			break;
-	}
-}*/
+ULONG volatile *DrawCopper;
+ULONG volatile *ViewCopper;
+
+volatile struct Custom *hw;
 
 inline void WaitBlt() {
       b4:	598f           	subq.l #4,sp
@@ -234,10 +234,6 @@ void SwapCl() {
      230:	4e75           	rts
 
 00000232 <Utils_CopyMem>:
-	DisownBlitter();
-  Permit();
-	//Enable();
-}*/
 
 void Utils_CopyMem( ULONG *source, ULONG *destination, ULONG size) {
      232:	598f           	subq.l #4,sp
