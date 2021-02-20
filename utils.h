@@ -31,8 +31,8 @@ extern ULONG ClScreen[12];
 
 extern ULONG *Copperlist1;
 extern ULONG *Copperlist2;
-extern ULONG volatile *DrawBuffer;
-extern ULONG volatile *ViewBuffer;
+extern UWORD volatile *DrawBuffer; //2be60 //2be30
+extern UWORD volatile *ViewBuffer; //41e22 //41df2
 extern ULONG volatile *DrawCopper;
 extern ULONG volatile *ViewCopper;
 

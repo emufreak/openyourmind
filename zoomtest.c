@@ -17,6 +17,8 @@ void ZoomTest() {
   TestZoom4Picture();
   TestZoom4PictureOn5Planes();
   Test_Zoom2();
+  c2p1x1_4_c5_gen_init( 320, 256, 0, 0, 0, 0);
+  c2p1x1_4_c5_gen( 0x100, 0x200);
 }
 
 int Counter4Frames;
@@ -67,7 +69,7 @@ void ZoomTestDisplay() {
   DrawBuffer = (ULONG *) 0x40000;
   ViewBuffer = (ULONG *) 0x50000;
   Zoom_SetBplPointers( DrawBuffer, DrawCopper);
-  Zoom_SwapBuffers();
+  Zoom_SwapBuffers( 0);
   if( DrawBuffer != (ULONG *) 0x50000 || (ULONG *) ViewBuffer !=(ULONG *) 0x40000)
     Write( Output(), 
             "ZoomCopperlist: Draw and ViewBuffer not proberly switched.\n", 59);

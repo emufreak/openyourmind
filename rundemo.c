@@ -20,12 +20,12 @@ void RunDemo() {
 
   /*hw->dmacon =   
   0x87e0;*/
-	//SetInterruptHandler((APTR)interruptHandler);
+	SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
 	hw->intreq=1<<INTB_VERTB;//reset vbl req
+  c2p();
   //PrepareDisplay();
-
-  CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
+  //CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
   
 	while(Zoom_Counter < 1000) {
 		WaitVbl();
@@ -43,7 +43,7 @@ void SetInterrupt() {
 }
 
 void RunFrame() {
-  Zoom_Blit4ZoomFinished = 0;
+  /*Zoom_Blit4ZoomFinished = 0;
   UWORD tmp = Zoom_LevelOfZoom;  
   if(Zoom_LevelOfZoom == 0)
     CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
@@ -51,5 +51,5 @@ void RunFrame() {
     Zoom_ZoomIntoPicture( (UWORD *)ViewBuffer, (UWORD *)DrawBuffer, Zoom_LevelOfZoom, 5 );
 
   Zoom_Blit4ZoomFinished = 1;
-  while( tmp == Zoom_LevelOfZoom) { }
+  while( tmp == Zoom_LevelOfZoom) { }*/
 }

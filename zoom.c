@@ -4,6 +4,7 @@
 UWORD *Zoom_Zl4Words;
 
 ULONG *Zoom_ZoomBlitMask;
+
 UWORD *Zoom_Source;
 UWORD ZoomBlit_Increment4SrcA;
 struct Interrupt *Zoom_vbint;
@@ -24,7 +25,40 @@ WORD ZoomHorizontal;
 #include "utils.h"
 #include "zoomtest.h"
 
-INCBIN(startimage, "raw/zoom.raw")
+//INCBIN(startimage, "raw/zoom.raw")
+INCBIN_CHIP(framebuffer, "raw/zoom_0.raw "); //Zoom 0 twice to allocate some memory 
+                                                                      //for c2p
+INCBIN_CHIP(rawzoom, "raw/zoom_14.raw ");
+INCBIN_CHIP(rawzoom1, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom2, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom3, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom4, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom5, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom6, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom7, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom8, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom9, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom10, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom11, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom12, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom13, "raw/zoom_0.raw ");
+INCBIN_CHIP(rawzoom14, "raw/zoom_14.raw ");
+
+void c2p() {
+  c2p1x1_4_c5_gen_init( 336, 268, 0, 0, 0, 0);
+  UWORD *src = rawzoom;
+  UWORD *dst = framebuffer;
+  for(int i=0;i<=14;i++) {
+    c2p1x1_4_c5_gen( src, dst);
+    src += 21*268*8;
+    dst += 28140;
+  }
+  //Utils_FillLong( framebuffer, 0xaaaaaaaa, 1, 2856, 0); 
+  /*Utils_FillLong( framebuffer+2856, 0x0, 1,2856, 0);
+  Utils_FillLong( framebuffer+2856*2, 0x0, 1, 2856, 0);
+  Utils_FillLong( framebuffer+2856*3, 0x0, 1, 2856, 0);
+  Utils_FillLong( framebuffer+2856*4, 0x0, 1, 2856, 0);*/
+}
 
 void Zoom_VblankHandler() {
   
@@ -46,7 +80,7 @@ void Zoom_VblankHandler() {
         else
           Zoom_LevelOfZoom++;
         Zoom_LevelOf102Zoom = MaxZoom102[Zoom_LevelOfZoom] - 2;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
-        Zoom_SwapBuffers();
+        Zoom_SwapBuffers(  0);
       } else 
         Zoom_LevelOf102Zoom--;
     }
@@ -56,7 +90,7 @@ void Zoom_VblankHandler() {
 }
 
 void Zoom_LoadImage( ULONG *destination) {  
-  CopyMem( startimage, destination, ZMBPLSIZE);
+  CopyMem( rawzoom, destination, ZMBPLSIZE);
 }
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
@@ -139,11 +173,11 @@ void Zoom_InitRun() {
   Zoom_LevelOf102Zoom = 15;
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
-  Zoom_StartImage = startimage;
+  /*Zoom_StartImage = rawzoom;
   Zoom_LoadImage( Bitplane1);
   Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
   CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
-  CopyMem( Bitplane2, startimage, ZMBPLSIZE);
+  CopyMem( Bitplane2, rawzoom, ZMBPLSIZE);*/
   
   Zoom_Shrink102( 15, Copperlist1);
   Zoom_Shrink102( 15, Copperlist2);
@@ -171,9 +205,10 @@ void Zoom_Dealloc() {
 }
   
 int Zoom_PrepareDisplay() {
+  Zoom_SwapBuffers( 0);
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
-  Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
+  /*Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
   if(Bitplane1 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
     Exit(1);
@@ -185,7 +220,8 @@ int Zoom_PrepareDisplay() {
     Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
     Exit(1);
   }
-  ViewBuffer = Bitplane2;
+  ViewBuffer = Bitplane2;*/
+  DrawCopper = Copperlist1;
   ViewCopper = Copperlist2;
   return 0;
 }
@@ -409,9 +445,10 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
   }
 }
 
-void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper) {
-  ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
-                                                         *ZMLINESIZE*ZMBPLDEPTH/4;
+void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper) {
+  ULONG plane2set = buffer+1;
+  /*ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
+                                                         *ZMLINESIZE*ZMBPLDEPTH/4;*/
   UWORD *posofcopper = (UWORD *)copper + ZMCOPBPL1HIGH;
   
   for(int i=0;i<ZMBPLDEPTH;i++) {
@@ -421,16 +458,24 @@ void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper) {
     posofcopper += 2;
     *posofcopper = lowword;
     posofcopper += 2;
-    plane2set += ZMLINESIZE; //Next plane (interleaved)
+    plane2set += 42*268; //Next plane (interleaved)
   }
   
 }
 
-void Zoom_SwapBuffers() {
+void Zoom_SwapBuffers( UWORD zoomlevel) {
+  ViewBuffer = framebuffer;// + 21*268*5*zoomlevel;
+  /*ULONG tmp = (ULONG) DrawBuffer;
+  DrawBuffer = ViewBuffer;
+  ViewBuffer = (ULONG *) tmp;*/
+}
+
+//Without Precalc
+/*void Zoom_SwapBuffers() {
   ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
   ViewBuffer = (ULONG *) tmp;
-}
+}*/
 
 /*void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
   UWORD levelofzoom, UWORD nrofplanes) {

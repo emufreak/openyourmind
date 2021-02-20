@@ -5,20 +5,10 @@
             "type": "amiga",
             "request": "launch",
             "preLaunchTask": "compile",
-            "name": "Amiga 500",
-            "config": "A500",
-            "program": "${workspaceFolder}/a.mingw",
-            "kickstart": "c:/KickRoms/kick13a500.rom",
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "type": "amiga",
-            "request": "launch",
-            "preLaunchTask": "compile",
             "name": "Amiga 1200",
             "config": "A1200",
             "program": "${workspaceFolder}/a.mingw",
-            "kickstart": "c:/amiga-dev/winuae/Kickstarts/KICK31.rom",
+            "kickstart": "c:/KickRoms/kick31a1200.rom",
             "internalConsoleOptions": "openOnSessionStart"
         }
     ]

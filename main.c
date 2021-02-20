@@ -134,8 +134,8 @@ inline short MouseRight(){return !((*(volatile UWORD*)0xdff016)&(1<<10));}*/
 
 // DEMO - INCBIN
 volatile short frameCounter = 0;
-INCBIN(colors, "image.pal")
-INCBIN_CHIP(image, "image.bpl") // load image into chipmem so we can use it without copying
+//INCBIN(colors, "image.pal")
+//INCBIN_CHIP(image, "image.bpl") // load image into chipmem so we can use it without copying
 
 // put copperlist into chip mem so we can use it without copying
 const UWORD copper2[] __attribute__((section (".MEMF_CHIP"))) = {
@@ -261,17 +261,17 @@ int main() {
 	/*TakeSystem();*/
 	WaitVbl();
   
-  	//Zoom_InitRun();
-  	RunTests();	//warpmode(1);
+  	Zoom_InitRun();
+  	//RunTests();	//warpmode(1);
 	// TODO: precalc stuff here
 	//warpmode(0);
 
-	//TakeSystem();
-	//WaitVbl();
+	TakeSystem();
+	WaitVbl();
 
 	// DEMO
 
-	//RunDemo();
+	RunDemo();
 
 	// DEMO
 	SetInterruptHandler((APTR)interruptHandler);

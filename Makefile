@@ -29,7 +29,7 @@ $(OUT).exe: $(OUT).elf
 
 $(OUT).elf: $(objects) obj/gcc8_a_support.o obj/utilsasm.o
 	$(info Linking a.mingw.elf)
-	@$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) obj/gcc8_a_support.o -o $@
+	@$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) obj/gcc8_a_support.o obj/utilsasm.o -o $@
 	@m68k-amiga-elf-objdump --disassemble -S $@ >$(OUT).s 
 
 obj/gcc8_a_support.o: support/gcc8_a_support.s

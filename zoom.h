@@ -35,6 +35,8 @@ extern WORD Zoom_Direction;
 extern WORD ZoomHorizontal;
 int PrepareDisplayZoom();
 extern ULONG ClScreenZoom[12];
+
+void c2p();
 ULONG *ClbuildZoom();
 void Zoom_CopyColumn(UWORD *source, UWORD *destination, UWORD srccolnr,
                                                                UWORD destcolnr);
@@ -67,7 +69,8 @@ extern struct Interrupt *Zoom_vbint;
 
 extern UWORD Zoom_Counter;
 extern UWORD *font2;
-void Zoom_SetBplPointers( ULONG *buffer, ULONG *copper);
-void Zoom_SwapBuffers();
+void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper);
+//void Zoom_SwapBuffers();
+void Zoom_SwapBuffers( UWORD Zoomlevel);
 
 #endif

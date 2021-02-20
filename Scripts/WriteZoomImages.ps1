@@ -30,13 +30,14 @@ $dstfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Scripts"
 
 while($imgwidth -gt 320) {
     Run-Gimpactions `
-             "define image (car (gimp-file-load RUN-NONINTERACTIVE `
-                 \`"$dstfolder\\Zoompic.xcf\`" \`"$dstfolder\\Zoompic.xcf\`"))" `
+             "define image (car (file-png-load RUN-NONINTERACTIVE `
+                 \`"$dstfolder\\Zoompic.png\`" \`"$dstfolder\\Zoompic.png\`"))" `
              "define drawable (car (gimp-image-get-active-layer image))" `
              "gimp-image-crop image $imgwidth $imgheight $xoffset $yoffset" `
              "gimp-context-set-interpolation 2" `
              "gimp-image-scale image 336 268" `
              "file-png-save RUN-NONINTERACTIVE image drawable \`"$dstfolder\\zoom_$i.png\`" \`"$dstfolder\\zoom_$i.png\`" FALSE 9 FALSE FALSE FALSE FALSE FALSE" `
+             "file-raw-save RUN-NONINTERACTIVE image drawable \`"$dstfolder\\..\\raw\\zoom_$i.raw\`" \`"$dstfolder\\..\\raw\\zoom_$i.raw\`"" `
              "gimp-quit 0"
              
     $i++
