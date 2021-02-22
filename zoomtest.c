@@ -17,8 +17,8 @@ void ZoomTest() {
   TestZoom4Picture();
   TestZoom4PictureOn5Planes();
   Test_Zoom2();
-  c2p1x1_4_c5_gen_init( 320, 256, 0, 0, 0, 0);
-  c2p1x1_4_c5_gen( 0x100, 0x200);
+  c2p1x1_8_c5_gen_init( 320, 256, 0, 0, 0, 0);
+  c2p1x1_8_c5_gen( 0x100, 0x200);
 }
 
 int Counter4Frames;

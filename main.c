@@ -258,15 +258,16 @@ int main() {
 	// TODO: precalc stuff here
 	warpmode(0);
 
-	/*TakeSystem();*/
+	//TakeSystem();
 	WaitVbl();
   
+	c2p();
   	Zoom_InitRun();
+	TakeSystem();
   	//RunTests();	//warpmode(1);
 	// TODO: precalc stuff here
 	//warpmode(0);
 
-	TakeSystem();
 	WaitVbl();
 
 	// DEMO

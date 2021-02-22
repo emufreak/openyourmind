@@ -20,10 +20,9 @@ void RunDemo() {
 
   /*hw->dmacon =   
   0x87e0;*/
-	SetInterruptHandler((APTR)interruptHandler);
+	/*SetInterruptHandler((APTR)interruptHandler);
 	hw->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
-	hw->intreq=1<<INTB_VERTB;//reset vbl req
-  c2p();
+	hw->intreq=1<<INTB_VERTB;//reset vbl req*/
   //PrepareDisplay();
   //CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
   
