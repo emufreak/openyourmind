@@ -52,6 +52,7 @@ void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
 
 void Zoom_Init();
 void Zoom_InitRun();
+void Zoom_InitRunReverse();
 void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
                                                                   UWORD planes);
 void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 

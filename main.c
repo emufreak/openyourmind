@@ -262,7 +262,7 @@ int main() {
 	WaitVbl();
   
 	c2p();
-  	Zoom_InitRun();
+  	Zoom_InitRunReverse();
 	TakeSystem();
   	//RunTests();	//warpmode(1);
 	// TODO: precalc stuff here

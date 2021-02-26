@@ -26,7 +26,7 @@ void RunDemo() {
   //PrepareDisplay();
   //CopyMemQuick( Zoom_StartImage, DrawBuffer, ZMBPLSIZE);
   
-	while(Zoom_Counter < 1000) {
+	while(1) {
 		WaitVbl();
     RunFrame();
 	}

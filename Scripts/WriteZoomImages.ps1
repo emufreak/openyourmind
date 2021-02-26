@@ -16,24 +16,29 @@
     $binary = ".\gimp-2.10.exe"
     #$binary = ".\EchoArgs.exe"
     cd $srcfolder    
-    & $binary $arglist
+    #& $binary $arglist
+    echo $arglist
 
 } #Run-Gimpactions
 
-$imgwidth = 1280
-$imgheight = 1024
+$width = 1009
+$height = 806
 $xoffset = 0
 $yoffset = 0
 $i = 0
 
 $dstfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Scripts" 
 
-while($imgwidth -gt 320) {
+while($i -lt 18) {
+    $iwidth = [math]::Round($width)
+    $iheight = [math]::Round($height)
+
+
     Run-Gimpactions `
              "define image (car (file-png-load RUN-NONINTERACTIVE `
                  \`"$dstfolder\\Zoompic.png\`" \`"$dstfolder\\Zoompic.png\`"))" `
              "define drawable (car (gimp-image-get-active-layer image))" `
-             "gimp-image-crop image $imgwidth $imgheight $xoffset $yoffset" `
+             "gimp-image-crop image $iwidth $iheight $xoffset $yoffset" `
              "gimp-context-set-interpolation 2" `
              "gimp-image-scale image 336 268" `
              "file-png-save RUN-NONINTERACTIVE image drawable \`"$dstfolder\\zoom_$i.png\`" \`"$dstfolder\\zoom_$i.png\`" FALSE 9 FALSE FALSE FALSE FALSE FALSE" `
@@ -41,10 +46,14 @@ while($imgwidth -gt 320) {
              "gimp-quit 0"
              
     $i++
-    $yoffset += 25
-    $xoffset += 8*4
-    $imgwidth -= 64
-    $imgheight -= 51
+    $width = $width / 67 * 64
+    $height = $height / 67 * 64
+    $xoffset = [math]::Round( (1009 - $width) / 2)
+    $yoffset = [math]::Round( (806 - $height) / 2)
+    #$yoffset += 6*4
+    #$xoffset += 8*4
+    #$imgwidth -= 16*4
+    #$imgheight -= 12*4
 }
 
                          

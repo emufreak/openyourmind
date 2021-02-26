@@ -26,29 +26,34 @@ WORD ZoomHorizontal;
 #include "zoomtest.h"
 
 //INCBIN(startimage, "raw/zoom.raw")
-INCBIN_CHIP(framebuffer, "raw/zoom_0.raw "); //Zoom 0 twice to allocate some memory 
+INCBIN_CHIP(framebuffer, "raw/zoom_0.raw"); //Zoom 0 twice to allocate some memory 
                                                                       //for c2p
-INCBIN_CHIP(rawzoom, "raw/zoom_0.raw ");
-INCBIN_CHIP(rawzoom1, "raw/zoom_1.raw ");
-INCBIN_CHIP(rawzoom2, "raw/zoom_2.raw ");
-INCBIN_CHIP(rawzoom3, "raw/zoom_3.raw ");
-INCBIN_CHIP(rawzoom4, "raw/zoom_4.raw ");
-INCBIN_CHIP(rawzoom5, "raw/zoom_5.raw ");
-INCBIN_CHIP(rawzoom6, "raw/zoom_6.raw ");
-INCBIN_CHIP(rawzoom7, "raw/zoom_7.raw ");
-INCBIN_CHIP(rawzoom8, "raw/zoom_8.raw ");
-INCBIN_CHIP(rawzoom9, "raw/zoom_9.raw ");
-INCBIN_CHIP(rawzoom10, "raw/zoom_10.raw ");
-INCBIN_CHIP(rawzoom11, "raw/zoom_11.raw ");
-INCBIN_CHIP(rawzoom12, "raw/zoom_12.raw ");
-INCBIN_CHIP(rawzoom13, "raw/zoom_13.raw ");
-INCBIN_CHIP(rawzoom14, "raw/zoom_14.raw ");
+INCBIN_CHIP(rawzoom, "raw/zoom_0.raw");
+INCBIN_CHIP(rawzoom1, "raw/zoom_1.raw");
+INCBIN_CHIP(rawzoom2, "raw/zoom_2.raw");
+INCBIN_CHIP(rawzoom3, "raw/zoom_3.raw");
+INCBIN_CHIP(rawzoom4, "raw/zoom_4.raw");
+INCBIN_CHIP(rawzoom5, "raw/zoom_5.raw");
+INCBIN_CHIP(rawzoom6, "raw/zoom_6.raw");
+INCBIN_CHIP(rawzoom7, "raw/zoom_7.raw");
+INCBIN_CHIP(rawzoom8, "raw/zoom_8.raw");
+INCBIN_CHIP(rawzoom9, "raw/zoom_9.raw");
+INCBIN_CHIP(rawzoom10, "raw/zoom_10.raw");
+INCBIN_CHIP(rawzoom11, "raw/zoom_11.raw");
+INCBIN_CHIP(rawzoom12, "raw/zoom_12.raw");
+INCBIN_CHIP(rawzoom13, "raw/zoom_13.raw");
+INCBIN_CHIP(rawzoom14, "raw/zoom_14.raw");
+INCBIN_CHIP(rawzoom15, "raw/zoom_15.raw");
+INCBIN_CHIP(rawzoom16, "raw/zoom_16.raw");
+INCBIN_CHIP(rawzoom17, "raw/zoom_17.raw");
+
+
 
 void c2p() {
   c2p1x1_8_c5_gen_init( 336, 268, 0, 0, 0, 0);
   UWORD *src = rawzoom;
   UWORD *dst = framebuffer;
-  for(int i=0;i<=14;i++) {
+  for(int i=0;i<=17;i++) {
     c2p1x1_8_c5_gen( src, dst);
     src += 45025;
     dst += 28140;
@@ -71,11 +76,15 @@ void Zoom_VblankHandler() {
     Zoom_MouseReleased = 1;
     Zoom_Mousepressed = 0;
   }
-    if( Zoom_MouseReleased == 1) {
+    /*if( MouseLeft()) {
+      while (MouseLeft())
+      {
+      }*/
+      
       Zoom_MouseReleased = 0;
-      if( Zoom_LevelOf102Zoom == 0) {
+      if( Zoom_LevelOf102Zoom <= 2) {
  
-        if( Zoom_LevelOfZoom == 14)
+        if( Zoom_LevelOfZoom == 17)
           Zoom_LevelOfZoom = 0;
         else
           Zoom_LevelOfZoom++;
@@ -83,7 +92,41 @@ void Zoom_VblankHandler() {
         Zoom_SwapBuffers(  Zoom_LevelOfZoom);
       } else 
         Zoom_LevelOf102Zoom--;
-    }
+    //}
+  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
+  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
+ 
+}
+
+
+void Zoom_ReverseVblankHandler() {
+  
+  Zoom_Counter++;
+  SwapCl();
+  Zoom_MouseReleased = 1;
+  if( MouseLeft())
+    Zoom_Mousepressed = 1;
+  if( Zoom_Mousepressed == 1 && !MouseLeft()) {
+    Zoom_MouseReleased = 1;
+    Zoom_Mousepressed = 0;
+  }
+    /*if( MouseLeft()) {
+      while (MouseLeft())
+      {
+      }*/
+      
+      Zoom_MouseReleased = 0;
+      if( Zoom_LevelOf102Zoom == 15) {
+ 
+        if( Zoom_LevelOfZoom == 0)
+          Zoom_LevelOfZoom = 17;
+        else
+          Zoom_LevelOfZoom--;
+        Zoom_LevelOf102Zoom = 0;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
+        Zoom_SwapBuffers(  Zoom_LevelOfZoom);
+      } else 
+        Zoom_LevelOf102Zoom++;
+    //}
   Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
   Zoom_SetBplPointers(ViewBuffer, DrawCopper);
  
@@ -190,6 +233,39 @@ void Zoom_InitRun() {
     Zoom_vbint->is_Node.ln_Name = "VertB-Example";
     Zoom_vbint->is_Data = NULL;
     Zoom_vbint->is_Code = Zoom_VblankHandler;
+  }
+
+  AddIntServer( INTB_VERTB, Zoom_vbint);
+  Zoom_SetBplPointers( ViewBuffer, ViewCopper);
+  Zoom_SetBplPointers( ViewBuffer, DrawCopper);
+  SwapCl();
+  
+}
+
+void Zoom_InitRunReverse() {
+    
+  Zoom_Counter = 0;
+  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
+  Zoom_LevelOf102Zoom = 0;
+  ZoomHorizontal = 16;
+  Zoom_PrepareDisplay();
+  /*Zoom_StartImage = rawzoom;
+  Zoom_LoadImage( Bitplane1);
+  Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
+  CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
+  CopyMem( Bitplane2, rawzoom, ZMBPLSIZE);*/
+  
+  Zoom_Shrink102( 0, Copperlist1);
+  Zoom_Shrink102( 0, Copperlist2);
+  Zoom_LevelOfZoom = 17;
+                                                  
+  if ((Zoom_vbint = AllocMem(sizeof(struct Interrupt),    
+                         MEMF_PUBLIC|MEMF_CLEAR))) {
+    Zoom_vbint->is_Node.ln_Type = NT_INTERRUPT;       
+    Zoom_vbint->is_Node.ln_Pri = -60;
+    Zoom_vbint->is_Node.ln_Name = "VertB-Example";
+    Zoom_vbint->is_Data = NULL;
+    Zoom_vbint->is_Code = Zoom_ReverseVblankHandler;
   }
 
   AddIntServer( INTB_VERTB, Zoom_vbint);
@@ -446,7 +522,12 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
 }
 
 void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper) {
-  ULONG plane2set = buffer;//+1;
+  //                   0  1  1   1   1   0   1   1    1    1    0    1    1    0    1    1
+  //int zoomoffset[] = { 0, 0, 42, 42, 84, 84, 84, 126, 126, 168, 168, 168, 210, 210, 210, 332};
+  //int zoomoffset[] = { 252, 210, 210, 210, 168, 168, 168, 126, 126, 84, 84, 84, 42, 42, 0, 0 };
+  int zoomoffset[] = { 126, 105, 105, 105, 84, 84, 84, 63, 63, 42, 42, 42, 21, 21, 0, 0 };
+
+  ULONG plane2set = buffer + zoomoffset[Zoom_LevelOf102Zoom];//+1;
   /*ULONG plane2set = buffer+1+( 8 - (Zoom_LevelOf102Zoom/2))
                                                          *ZMLINESIZE*ZMBPLDEPTH/4;*/
   UWORD *posofcopper = (UWORD *)copper + ZMCOPBPL1HIGH;
