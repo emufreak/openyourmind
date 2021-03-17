@@ -59,7 +59,6 @@ MainLoop:
     CMP.L D2,D0                            ; selected vpos reached
     BNE.S  .mlwaity
 
-
     lea    continue,a0
     cmp.w  #1,(a0)
     bne.s  .br1
@@ -81,8 +80,8 @@ continue:
 jmplistpos:
         dc.l  jmplist
 jmplist:
-        ;bra.w Effect0_1
-		;bra.w Effect0_2
+        bra.w Effect0_1
+	    ;bra.w Effect0_2
 		;bra.w Effect0_3
         ;bra.w Effect1_0
         ;bra.w Effect1_1
@@ -417,6 +416,8 @@ EF1_dummy2:
  include "invaders_dat.i"
 
 StarField:
+;a0 = drawposition
+;a5 = drawbufferstart
 ;a4 = *posx
 ;a1 = *posy
 ;a2 = *offs_x
@@ -426,22 +427,26 @@ StarField:
 ;d4 = backup posx1
 ;d5 = backup bosy1
 ;d6 = starcount
-    clr.w $100
 	movem d0-d7/a0-a6,.save
 	move.w #100-1,d6
 	lea .posx,a4
 	lea .posy,a1
 	lea Sf_xoffs,a2
 	lea Sf_yoffs,a3
-	lea view_cprbitmap,a0
-	move.w #$f00,$dff180		
-.lp1
-	;Calculate new x,y pos		
+	move.l #BPLIMAGE,a5
+	move.w #$f00,$dff180
+.lp1   
+	;Calculate new x,y pos	
+	move.l a5,a0
     move.w (a4),d0
 	add.w  (a2)+,d0
 	move.w (a1),d1	
 	add.w  (a3)+,d1	
 	;Reset x,y pos
+	cmp.w  #0,d0
+	ble.s  .br1
+	cmp.w  #0,d1
+	ble.s  .br1
 	cmp.w  #320,d0
 	bpl.s  .br1
 	cmp.w  #256,d1
@@ -455,11 +460,11 @@ StarField:
 	move.w d1,d5
 	bsr.w  drawPlanarPixel		
 	;Save Pixel
-	move.w d0,(a4)+
-	move.w d1,(a1)+	
+	move.w d4,(a4)+
+	move.w d5,(a1)+	
 	dbf    d6,.lp1
 	
-	move.w #$000,$dff180
+	;move.w #$000,$dff180
 	movem .save,d0-d7/a0-a6
 	rts	
 	
@@ -509,14 +514,17 @@ Effect1_Main:
 ;a4 = reserved SetColData
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
-
-        subq    #1,.counter		    ;if(counter-- == 0)
-        bne.w   .br1				    ;{
-		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
-        bsr.w   SetCopperList
+		clr.w  $100
+		;move.l #BPLIMAGE,draw_buffer
+		;move.l #BPLIMAGE,view_buffer
+		;move.l #IMGBPLPOINTERS,draw_cprbitmap
+		;move.l #IMGBPLPOINTERS,view_cprbitmap
+		;bsr.w  SetBitplanePointersDefault
+		move.l  #COPPERLISTIMAGE,$dff080
+		;bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
+        ;bsr.w   SetCopperList
 		bsr.w   StarField
 		rts
-        move.w  #1,.counter            ;  counter = 1; //50 fps
 		lea     .frame,a3              ;
 		lea     EF1_PATTERNDATA0,a1	   ;  frmdat = EFF1_PATTERNDATA7
 		;sub.l nam  #FRMSIZE*7,a1         ; DEBUG
