@@ -59,6 +59,7 @@ MainLoop:
     CMP.L D2,D0                            ; selected vpos reached
     BNE.S  .mlwaity
 
+
     lea    continue,a0
     cmp.w  #1,(a0)
     bne.s  .br1
@@ -80,8 +81,8 @@ continue:
 jmplistpos:
         dc.l  jmplist
 jmplist:
-        bra.w Effect0_1
-	    ;bra.w Effect0_2
+        ;bra.w Effect0_1
+		;bra.w Effect0_2
 		;bra.w Effect0_3
         ;bra.w Effect1_0
         ;bra.w Effect1_1
@@ -433,9 +434,9 @@ StarField:
 	lea .posy,a1
 	lea Sf_xoffs,a2
 	lea Sf_yoffs,a3
-	move.l #BPLIMAGE,a5
+	move.l draw_buffer,a5
 	move.w #$f00,$dff180
-.lp1   
+.lp1
 	;Calculate new x,y pos	
 	move.l a5,a0
     move.w (a4),d0
@@ -464,7 +465,7 @@ StarField:
 	move.w d5,(a1)+	
 	dbf    d6,.lp1
 	
-	;move.w #$000,$dff180
+	move.w #$000,$dff180
 	movem .save,d0-d7/a0-a6
 	rts	
 	
@@ -514,17 +515,13 @@ Effect1_Main:
 ;a4 = reserved SetColData
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
-		clr.w  $100
-		;move.l #BPLIMAGE,draw_buffer
-		;move.l #BPLIMAGE,view_buffer
-		;move.l #IMGBPLPOINTERS,draw_cprbitmap
-		;move.l #IMGBPLPOINTERS,view_cprbitmap
-		;bsr.w  SetBitplanePointersDefault
-		move.l  #COPPERLISTIMAGE,$dff080
-		;bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
-        ;bsr.w   SetCopperList
-		bsr.w   StarField
-		rts
+
+        subq    #1,.counter		    ;if(counter-- == 0)
+        bne.w   .br1				    ;{
+		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
+        bsr.w   SetCopperList
+		;bsr.w   StarField
+        move.w  #1,.counter            ;  counter = 1; //50 fps
 		lea     .frame,a3              ;
 		lea     EF1_PATTERNDATA0,a1	   ;  frmdat = EFF1_PATTERNDATA7
 		;sub.l nam  #FRMSIZE*7,a1         ; DEBUG
