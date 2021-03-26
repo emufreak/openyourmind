@@ -22,7 +22,7 @@ SetBitplanePointers:
         move.l  a0,view_buffer
 	;move.l 	#bitplane+4, d1
 	move.l  draw_buffer,d1
-	moveq	#BPLCOUNT-1,d2
+	moveq	#1,d2
 	move.l  draw_copper,a2
 	add.l   #OFFSBPLPOINTERS,a2
 .lp1
@@ -32,7 +32,7 @@ SetBitplanePointers:
 	swap	d1
 	add.l	#BPLWIDTH*40,d1
 	addq	#8,a2
-	dbf	d2,.lp1
+	dbf	    d2,.lp1
 	rts
 
 SetCopperList:

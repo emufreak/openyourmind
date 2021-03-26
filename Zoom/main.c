@@ -18,6 +18,7 @@ struct DosLibrary *DOSBase;
 struct GfxBase *GfxBase;
 
 //backup
+static UWORD copbak;
 static UWORD SystemInts;
 static UWORD SystemDMA;
 static UWORD SystemADKCON;
@@ -68,11 +69,11 @@ void WaitVbl() {
 }*/
 
 void TakeSystem() {
-	ActiView=GfxBase->ActiView; //store current view
-	OwnBlitter();
-	WaitBlit();	
+	/*ActiView=GfxBase->ActiView; //store current view
+	//OwnBlitter();
+	//WaitBlit();	
 	//Disable();
-	Forbid();
+	//Forbid();
 	
 	//Save current interrupts and DMA settings so we can restore them upon exit. 
 	SystemADKCON=custom->adkconr;
@@ -80,10 +81,11 @@ void TakeSystem() {
 	SystemDMA=custom->dmaconr;
 	custom->intena=0x7fff;//disable all interrupts
 	custom->intreq=0x7fff;//Clear any interrupts that were pending
-	
+		
 	WaitVbl();
 	WaitVbl();
 	custom->dmacon=0x7fff;//Clear all DMA channels
+
 
 	//set all colors black
 	for(int a=0;a<32;a++)
@@ -94,21 +96,22 @@ void TakeSystem() {
 	WaitTOF();
 
 	WaitVbl();
-	WaitVbl();
+	WaitVbl();*/
+
 
 	VBR=GetVBR();
 	SystemIrq=GetInterruptHandler(); //store interrupt register
 }
 
 void FreeSystem() { 
-	WaitVbl();
+	/*WaitVbl();
 	WaitBlt();
 	custom->intena=0x7fff;//disable all interrupts
 	custom->intreq=0x7fff;//Clear any interrupts that were pending
-	custom->dmacon=0x7fff;//Clear all DMA channels
+	custom->dmacon=0x7fff;//Clear all DMA channels*/
 
 	//restore interrupts
-	SetInterruptHandler(SystemIrq);
+	//SetInterruptHandler(SystemIrq);
 
 	/*Restore system copper list(s). */
 	custom->cop1lc=(ULONG)GfxBase->copinit;
@@ -120,13 +123,13 @@ void FreeSystem() {
 	custom->dmacon=SystemDMA|0x8000;
 	custom->adkcon=SystemADKCON|0x8000;
 
-	LoadView(ActiView);
+	/*LoadView(ActiView);
 	WaitTOF();
 	WaitTOF();
-	WaitBlit();	
-	DisownBlitter();
+	WaitBlit();	*()
+	//DisownBlitter();
 	//Enable();
-	Permit();
+	//Permit();*/
 }
 
 /*inline short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
@@ -254,16 +257,30 @@ int main() {
 	Write(Output(), (APTR)"Hello console!\n", 15);
 	Delay(50);
 
-	warpmode(1);
+	//warpmode(1);
 	// TODO: precalc stuff here
-	warpmode(0);
+	//warpmode(0);
 
 	//TakeSystem();
+
+
 	WaitVbl();
-  
-	c2p();
+	
+    hw->dmacon = 0b1000011111111111;
+	//c2p();
   	Zoom_InitRun();
-	TakeSystem();
+
+	for(int i=0;i<500;i++) {
+		WaitVbl();
+	}
+	ULONG *bp = 0x100;
+  	*bp = 0;
+	Zoom_Dealloc();
+	*bp = 0;
+
+	//FreeSystem();
+	
+	/*TakeSystem();
   	//RunTests();	//warpmode(1);
 	// TODO: precalc stuff here
 	//warpmode(0);
@@ -282,6 +299,6 @@ int main() {
 	// END
 	FreeSystem();
 
-	CloseLibrary((struct Library*)DOSBase);
-	CloseLibrary((struct Library*)GfxBase);
+	/*CloseLibrary((struct Library*)DOSBase);
+	CloseLibrary((struct Library*)GfxBase);*/
 }

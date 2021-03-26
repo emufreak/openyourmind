@@ -59,8 +59,8 @@ ULONG ClColor[] = { 0x1800000,0x1820024,0x1840134,0x1860135,0x1880146,0x18a0147,
 void FreeDisplay( int clsize, int bplsize) {
   if( Copperlist1 != 0) FreeMem( Copperlist1, clsize);
   if( Copperlist2 != 0) FreeMem( Copperlist2, clsize);
-  if( Bitplane1 != 0) FreeMem( Bitplane1, bplsize);
-  if( Bitplane2 != 0) FreeMem( Bitplane2, bplsize);
+  /*if( Bitplane1 != 0) FreeMem( Bitplane1, bplsize);
+  if( Bitplane2 != 0) FreeMem( Bitplane2, bplsize);*/
 }
 
 void SetBplPointers() {

@@ -1,14 +1,14 @@
 obj/swscrollertest.o: \
- C\:/Users/uersu/Documents/GitData/voidanniversary/swscrollertest.c \
- C\:/Users/uersu/Documents/GitData/voidanniversary/swscrollertest.h \
- C\:/Users/uersu/Documents/GitData/voidanniversary/support/gcc8_c_support.h \
- C\:/Users/uersu/Documents/GitData/voidanniversary/swscroller.h \
- C\:/Users/uersu/Documents/GitData/voidanniversary/coppertests.h \
- C\:/Users/uersu/Documents/GitData/voidanniversary/utils.h \
- C\:/Users/uersu/Documents/GitData/voidanniversary/utilsasm.h
-C\:/Users/uersu/Documents/GitData/voidanniversary/swscrollertest.h:
-C\:/Users/uersu/Documents/GitData/voidanniversary/support/gcc8_c_support.h:
-C\:/Users/uersu/Documents/GitData/voidanniversary/swscroller.h:
-C\:/Users/uersu/Documents/GitData/voidanniversary/coppertests.h:
-C\:/Users/uersu/Documents/GitData/voidanniversary/utils.h:
-C\:/Users/uersu/Documents/GitData/voidanniversary/utilsasm.h:
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/swscrollertest.c \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/swscrollertest.h \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/support/gcc8_c_support.h \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/swscroller.h \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/coppertests.h \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/utils.h \
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/utilsasm.h
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/swscrollertest.h:
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/support/gcc8_c_support.h:
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/swscroller.h:
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/coppertests.h:
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/utils.h:
+C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/utilsasm.h:

@@ -1,10 +1,10 @@
 DUMMY equ 0
 
 view_buffer:
-        dc.l    bitplane
+        dc.l    0
 
 draw_buffer:
-        dc.l    bitplane+BPLWIDTH*40*BPLCOUNT
+        dc.l    0
 
 view_copper:
         dc.l    copperlist
@@ -1275,7 +1275,12 @@ copperlist:
 	dc.w	$8E,$2c81	                 ; DiwStrt
 	dc.w	$90,$2cc1	                 ; DiwStop
 	dc.w	$92,$38		                 ; DdfStart
-	dc.w	$94,$d0		                 ; DdfStop
+	dc.w	$94,$a0		                 ; DdfStop
+	
+	;dc.w	$8E,$2c81	                 ; DiwStrt
+	;dc.w	$90,$2cc1	                 ; DiwStop
+	;dc.w	$92,$38		                 ; DdfStart
+	;dc.w	$94,$d0		                 ; DdfStop
 	dc.w	$102,0		                 ; BplCon1
 	dc.w	$104,$20	                 ; BplCon2
 	dc.w	$108,BPLWIDTH-40                 ; Bpl1Mod
@@ -1290,9 +1295,9 @@ copperlist:
 
         dc.w    $106,$c00    
 	dc.w	$182,$000    ;Dummy operation as placeholder
-        dc.w    $182,$fd3    ;01
-        dc.w    $184,$f82    ;10
-        dc.w    $186,$fe6    ;11
+        dc.w    $182,$000    ;01
+        dc.w    $184,$f00    ;10
+        dc.w    $186,$f00    ;11
         dc.w    $188,$190    ;100
         dc.w    $18a,$190    ;101
         dc.w    $18c,$190    ;110
@@ -1561,7 +1566,7 @@ copperlist:
         dc.w    $1be,$f20    ;11111111
 
 	dc.w	$106,$e00	
-	dc.w	$180,$fd3    ;Dummy operation as placeholder	
+	dc.w	$182,$fd3    ;Dummy operation as placeholder	
 	dc.w    $182,$fd3    ;00001
         dc.w    $184,$f82    ;00010
         dc.w    $186,$fe6    ;00011
@@ -1849,12 +1854,12 @@ copperlist:
 
 ;clblockdraw:
         REPT 255
-	dc.w $00d9,$fffe
+	dc.w $00df,$fffe
 	IFGE BPLCOUNT-1
 	dc.w $e2,0
 	ENDC
 	IFGE BPLCOUNT-2
-	dc.w $e6,0
+	dc.w $ea,0
 	ENDC 
 	IFGE BPLCOUNT-3
 	dc.w $ea,0
@@ -1879,13 +1884,9 @@ copperlist:
         dc.l $fffffffe
         ENDR
 		
-	    CNOP 0,$10000
-
- CNOP 0,8
-
 bitplane:
 BPLLOGO:
-   dcb.b  160000,0
+   dcb.b  $20000,0
 
 TITLECHK:
   INCBIN "raw/madhatter.chk"

@@ -31,7 +31,7 @@ void RunDemo() {
     RunFrame();
 	}
   Zoom_Dealloc();
-
+  
 	//SetInterruptHandler((APTR)interruptHandler);
 }
 

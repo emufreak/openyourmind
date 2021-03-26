@@ -26,30 +26,9 @@ WORD ZoomHorizontal;
 #include "zoomtest.h"
 
 //INCBIN(startimage, "raw/zoom.raw")
-INCBIN_CHIP(framebuffer, "raw/zoom_0.raw"); //Zoom 0 twice to allocate some memory 
-                                                                      //for c2p
-INCBIN_CHIP(rawzoom, "raw/zoom_0.raw");
-INCBIN_CHIP(rawzoom1, "raw/zoom_1.raw");
-INCBIN_CHIP(rawzoom2, "raw/zoom_2.raw");
-INCBIN_CHIP(rawzoom3, "raw/zoom_3.raw");
-INCBIN_CHIP(rawzoom4, "raw/zoom_4.raw");
-INCBIN_CHIP(rawzoom5, "raw/zoom_5.raw");
-INCBIN_CHIP(rawzoom6, "raw/zoom_6.raw");
-INCBIN_CHIP(rawzoom7, "raw/zoom_7.raw");
-INCBIN_CHIP(rawzoom8, "raw/zoom_8.raw");
-INCBIN_CHIP(rawzoom9, "raw/zoom_9.raw");
-INCBIN_CHIP(rawzoom10, "raw/zoom_10.raw");
-INCBIN_CHIP(rawzoom11, "raw/zoom_11.raw");
-INCBIN_CHIP(rawzoom12, "raw/zoom_12.raw");
-INCBIN_CHIP(rawzoom13, "raw/zoom_13.raw");
-INCBIN_CHIP(rawzoom14, "raw/zoom_14.raw");
-INCBIN_CHIP(rawzoom15, "raw/zoom_15.raw");
-INCBIN_CHIP(rawzoom16, "raw/zoom_16.raw");
-INCBIN_CHIP(rawzoom17, "raw/zoom_17.raw");
+INCBIN_CHIP(rawzoom, "raw/zoom.raw");
 
-
-
-void c2p() {
+/*void c2p() {
   c2p1x1_8_c5_gen_init( 336, 268, 0, 0, 0, 0);
   UWORD *src = rawzoom;
   UWORD *dst = framebuffer;
@@ -58,15 +37,10 @@ void c2p() {
     src += 45025;
     dst += 28140;
   }
-  //Utils_FillLong( framebuffer, 0xaaaaaaaa, 1, 2856, 0); 
-  /*Utils_FillLong( framebuffer+2856, 0x0, 1,2856, 0);
-  Utils_FillLong( framebuffer+2856*2, 0x0, 1, 2856, 0);
-  Utils_FillLong( framebuffer+2856*3, 0x0, 1, 2856, 0);
-  Utils_FillLong( framebuffer+2856*4, 0x0, 1, 2856, 0);*/
-}
+}*/
 
 void Zoom_VblankHandler() {
-  
+
   Zoom_Counter++;
   SwapCl();
   Zoom_MouseReleased = 1;
@@ -76,10 +50,6 @@ void Zoom_VblankHandler() {
     Zoom_MouseReleased = 1;
     Zoom_Mousepressed = 0;
   }
-    /*if( MouseLeft()) {
-      while (MouseLeft())
-      {
-      }*/
       
       Zoom_MouseReleased = 0;
       if( Zoom_LevelOf102Zoom <= 2) {
@@ -545,7 +515,8 @@ void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper) {
 }
 
 void Zoom_SwapBuffers( UWORD zoomlevel) {
-  ViewBuffer = framebuffer + (42*268*5*zoomlevel);
+
+  ViewBuffer = rawzoom + (42*268*5*zoomlevel);
   /*ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
   ViewBuffer = (ULONG *) tmp;*/

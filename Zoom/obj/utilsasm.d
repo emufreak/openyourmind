@@ -1,2 +1,2 @@
 obj/utilsasm.o: \
- C\:/Users/uersu/Documents/GitData/voidanniversary/utilsasm.s
+ C\:/Users/uersu/Documents/GitData/voidanniversary/Zoom/utilsasm.s

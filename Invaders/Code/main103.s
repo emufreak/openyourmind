@@ -3,7 +3,7 @@ SOUND    = 1
 BLITTER  = 0
 BPLWIDTH  = 40
 BPLHEIGHT = 256
-BPLCOUNT  = 8
+BPLCOUNT  = 2
 MAXDEPTH = 8
 CHKBLLINE = 0 ;Extra bit in map for empty line for fast processing
 USEMAPHEIGHT = 1
@@ -84,7 +84,7 @@ jmplist:
         ;bra.w Effect0_1
 		;bra.w Effect0_2
 		;bra.w Effect0_3
-        ;bra.w Effect1_0
+        bra.w Effect1_0
         ;bra.w Effect1_1
 		bra.w Effect1_2
 		;bra.w Effect1_3
@@ -171,7 +171,8 @@ Effect0_1:
   ;bsr.w  SetColDataFade
   ;move.w #$f00,$dff180
   move.w #255,ColMultiplier
-  move.l #BPLIMAGE,draw_buffer
+  ;move.l #BPLIMAGE,
+  
   move.l #BPLIMAGE,view_buffer
   move.l #IMGBPLPOINTERS,draw_cprbitmap
   move.l #IMGBPLPOINTERS,view_cprbitmap
@@ -244,15 +245,8 @@ Effect1_0:
   addq.l #1,d0
   lsl.l  d1,d0
   move.l d0,draw_buffer
-  add.l  #40*40*8,d0
+  add.l  #$8000,d0
   move.l d0,view_buffer
-  ifeq SOUND-1
-        lea Module1,a0
-        sub.l 	a1,a1
-        sub.l 	a2,a2
-        moveq 	#0,d0
-  jsr	P61_Init
-  endc
   move.w #1,continue
   bra.w mlgoon
 
@@ -427,15 +421,30 @@ StarField:
 ;d1 = posy
 ;d4 = backup posx1
 ;d5 = backup bosy1
-;d6 = starcount
+;d6 = starcount    	
 	movem d0-d7/a0-a6,.save
-	move.w #100-1,d6
+	clr.w  $100
+	move.w #$000,$dff180
+	move.l draw_buffer,a0
+	add.l  #40*BPLWIDTH+40*256,a0
+	move.l  #196,d0
+	movem.l .buff(pc),d1-d7/a1-a6
+.lp2
+    movem.l  d1-d7/a1-a6,-(a0)
+	dbf      d0,.lp2
+    ;move.w #$000,$dff180
+	clr.w  $100
+	
+    move.l draw_buffer,a5
+	add.l  #40*BPLWIDTH,a5
+
 	lea .posx,a4
 	lea .posy,a1
 	lea Sf_xoffs,a2
 	lea Sf_yoffs,a3
-	move.l draw_buffer,a5
-	move.w #$f00,$dff180
+	
+    
+	move.w #196-1,d6
 .lp1
 	;Calculate new x,y pos	
 	move.l a5,a0
@@ -465,14 +474,13 @@ StarField:
 	move.w d5,(a1)+	
 	dbf    d6,.lp1
 	
-	move.w #$000,$dff180
 	movem .save,d0-d7/a0-a6
 	rts	
 	
 .save dcb.l 15,0
-.posx: dcb.w 100,160
-.posy: dcb.w 100,128
-
+.posx: dcb.w 196,160
+.posy: dcb.w 196,128
+.buff dcb.l 15,0
 		
 drawPlanarPixel:
 	; drawing plane => a0 ...could be a buffer, too
@@ -516,12 +524,14 @@ Effect1_Main:
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
 
+		clr.w   $100
         subq    #1,.counter		    ;if(counter-- == 0)
         bne.w   .br1				    ;{
 		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
         bsr.w   SetCopperList
-		;bsr.w   StarField
         move.w  #1,.counter            ;  counter = 1; //50 fps
+
+		
 		lea     .frame,a3              ;
 		lea     EF1_PATTERNDATA0,a1	   ;  frmdat = EFF1_PATTERNDATA7
 		;sub.l nam  #FRMSIZE*7,a1         ; DEBUG
@@ -569,7 +579,7 @@ Effect1_Main:
 .br4
 		and.l   #$ffff,d5
 		move.w  #7,d2
-		bsr.w   SetColDataFade		    ;  SetColDataFade(intensity);
+		;bsr.w   SetColDataFade		    ;  SetColDataFade(intensity);
     	movem.l .save,d0-d7/a0-a6
 		cmp.w   #0,Eff1ZoomIn           ;  if(Eff1ZoomIn( )
 		beq.s   .br3                    ;  {
@@ -594,7 +604,10 @@ Effect1_Main:
 
 .br3                                    ;    }
                                         ;  }
-		bsr.w  DrawLines                ;  DrawLines(blarraydim);
+		bsr.w  DrawLines                ;  DrawLines(blarraydim);	
+		clr.w   $100
+		bsr.w  StarField
+		
         ;move.w #$c00,$dff106            ;  Reg_Col0 = 00;
 	    ;move.w #$0,$dff180
 
@@ -1997,7 +2010,6 @@ Prepare_Transition:                    ;Write Palettes
   ;a0 - Destination
   ;a1 - Startcolors
   ;a2 - End Colors
-  clr.w  $200
   move.l a1,a3                      ;backup startcolor
   move.l a2,a5
   move.w d6,d2
@@ -2164,7 +2176,7 @@ blmap8:
 blarraydim:
 .blwidth: dc.w 6 ;width in bytes
 .blheight: dc.w 14
-.bldepth: dc.w MAXDEPTH
+.bldepth: dc.w 1
 .frames: dc.w 130
 .blstruct: dc.l blarraycont,blarraycont2,blarraycont3,blarraycont4
 	   dc.l blarraycont5,blarraycont6,blarraycont7,blarraycont8
