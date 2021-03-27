@@ -413,68 +413,72 @@ EF1_dummy2:
 StarField:
 ;a0 = drawposition
 ;a5 = drawbufferstart
-;a4 = *posx
-;a1 = *posy
-;a2 = *offs_x
-;a3 = *offs_y
+;a1 = *posx
+;a2= *posy
+;a3 = a3offs
+;a5 = backup plane
 ;d0 = posx
 ;d1 = posy
 ;d4 = backup posx1
 ;d5 = backup bosy1
 ;d6 = starcount    	
 	movem d0-d7/a0-a6,.save
-	clr.w  $100
-	move.w #$000,$dff180
+	;move.w #$000,$dff180
 	move.l draw_buffer,a0
 	add.l  #40*BPLWIDTH+40*256,a0
 	move.l  #196,d0
 	movem.l .buff(pc),d1-d7/a1-a6
+	move.w #$000,$dff180
 .lp2
     movem.l  d1-d7/a1-a6,-(a0)
-	dbf      d0,.lp2
-    ;move.w #$000,$dff180
-	clr.w  $100
+	dbf      d0,.lp2    
 	
     move.l draw_buffer,a5
 	add.l  #40*BPLWIDTH,a5
 
-	lea .posx,a4
-	lea .posy,a1
-	lea Sf_xoffs,a2
-	lea Sf_yoffs,a3
-	
+	lea sfposx,a1
+	lea sfposy,a2
+	lea sfposz,a3
+	lea sfmult,a4
     
-	move.w #196-1,d6
-.lp1
-	;Calculate new x,y pos	
-	move.l a5,a0
-    move.w (a4),d0
-	add.w  (a2)+,d0
-	move.w (a1),d1	
-	add.w  (a3)+,d1	
-	;Reset x,y pos
+	move.w #8,d4
+	move.w #100-1,d6
+.lp1	
+    move.l  a5,a0
+	;load values
+	move.w  (a1)+,d0
+	move.w  (a2)+,d1
+	move.w  (a3),d2
+	cmp.w   #98,d2	
+	bne.s   .br3
+	clr.w   (a3)+
+	bra.s   .br4
+.br3
+	add.w   #2,(a3)+
+.br4	
+	move.w  (a4,d2),d2
+	;3d to 2d calc
+	muls.w  d2,d0
+	asr.l   d4,d0
+	add.l   #160,d0
+	muls.w  d2,d1
+	asr.l   d4,d1
+	add.l   #128,d1
+    ;Reset x,y pos
 	cmp.w  #0,d0
-	ble.s  .br1
+	ble.s  .br2
 	cmp.w  #0,d1
-	ble.s  .br1
+	ble.s  .br2
 	cmp.w  #320,d0
-	bpl.s  .br1
+	bpl.s  .br2
 	cmp.w  #256,d1
-	bmi.s  .br2
+	bpl.s  .br2
 .br1
-    move.w #160,d0
-	move.w #128,d1
-.br2
     ;Show Pixel	
-	move.w d0,d4
-	move.w d1,d5
-	bsr.w  drawPlanarPixel		
-	;Save Pixel
-	move.w d4,(a4)+
-	move.w d5,(a1)+	
-	dbf    d6,.lp1
-	
-	movem .save,d0-d7/a0-a6
+	bsr.w  drawPlanarPixel
+.br2
+	dbf     d6,.lp1
+	movem   .save,d0-d7/a0-a6
 	rts	
 	
 .save dcb.l 15,0
@@ -523,14 +527,14 @@ Effect1_Main:
 ;a4 = reserved SetColData
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
-
 		clr.w   $100
         subq    #1,.counter		    ;if(counter-- == 0)
         bne.w   .br1				    ;{
 		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
         bsr.w   SetCopperList
-        move.w  #1,.counter            ;  counter = 1; //50 fps
-
+		bsr.w  StarField
+		clr.w   $100
+        move.w  #1,.counter            ;  counter = 1; //50 fps		
 		
 		lea     .frame,a3              ;
 		lea     EF1_PATTERNDATA0,a1	   ;  frmdat = EFF1_PATTERNDATA7
@@ -604,10 +608,8 @@ Effect1_Main:
 
 .br3                                    ;    }
                                         ;  }
-		bsr.w  DrawLines                ;  DrawLines(blarraydim);	
-		clr.w   $100
-		bsr.w  StarField
-		
+		bsr.w  DrawLines                ;  DrawLines(blarraydim);			
+		clr.w  $100
         ;move.w #$c00,$dff106            ;  Reg_Col0 = 00;
 	    ;move.w #$0,$dff180
 
