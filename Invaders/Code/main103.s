@@ -81,48 +81,10 @@ continue:
 jmplistpos:
         dc.l  jmplist
 jmplist:
-        ;bra.w Effect0_1
-		;bra.w Effect0_2
-		;bra.w Effect0_3
         bra.w Effect1_0
         ;bra.w Effect1_1
 		bra.w Effect1_2
-		;bra.w Effect1_3
-		bra.w Effect2_0
-		bra.w Effect2_1
-		bra.w Effect2_2
-		bra.w Effect3_0
-		bra.w Effect3_1
-		bra.w Effect3_21
-		bra.w Effect3_22
-		bra.w Effect3_23
-		bra.w Effect3_24
-		bra.w Effect3_25
-		bra.w Effect3_26
-		bra.w Effect3_27
-		bra.w Effect4_11
-        bra.w Effect4_12
-		bra.w Effect4_13
-		bra.w Effect4_14
-		bra.w Effect4_15
-		bra.w Effect4_16
-       ; bra.w Effect4_2
-        bra.w Effect4_3
-        bra.w Effect4_4
-        bra.w Effect6_0
-		bra.w Effect6_11
-		bra.w Effect6_12
-		bra.w Effect6_13
-		bra.w Effect6_14
-        bra.w Effect6_2
-		bra.w Effect6_4
-		bra.w Effect6_5
-		bra.w Effect7_1
-        ;bra.w Effect7_2
-        bra.w Effect7_3
-        bra.w Effect7_4
-		bra.w Effect8_1
-        bra.w End
+		bra.w End
 
 
 BLINCREMENT = 1
@@ -256,21 +218,6 @@ Effect1_0:
  include "effect7.s"
  include "effect8.s"
 
-Effect1_1:
-  ;move.w #$f00,$dff180
-  move.w #0,Eff1ZoomIn
-  bsr.w  Effect1_Main
-  ;move.w #$c00,$dff106
-  ;move.w #$000,$dff180
-  cmp.w  #2,P61_Pos
-  beq.s  .br1
-  add.w  #1,.framecount
-  bra.w  mlgoon
-.br1
-  move.w #1,continue
-  bra.w  mlgoon
-
-.framecount dc.w 0
 
 Effect1_2:
   ;move.w #$00,$dff180
@@ -289,124 +236,8 @@ Effect1_2:
 
 .counter dc.w 6700
 
-Effect1_3:
-  cmp.w  #67,.framecount
-  bne.s  .br1
-  sub.w  #1,.ptrnleft
-  bne.s  .br2
-  move.l .ptrntohide,a0
-  move.l #PTR_EMPTY_DATA,(a0)
-  move.w #1,continue
-  bra.w  mlgoon
-.br2
-  move.w #0,.framecount
-  lea    EF1_MoveX,a0
-  bsr.w  RotateMove
-  lea    EF1_MoveY,a0
-  bsr.w  RotateMove
-  move.l .ptrntohide,a0
-  move.l #PTR_EMPTY_DATA,(a0)
-  add.l  #FRMSIZE,.ptrntohide
-.br1
-  move.w #1,Eff1ZoomIn
-  bsr.w  Effect1_Main
-  add.w  #1,.framecount
-  ;move.w #$c00,$dff106
-  ;move.w #$000,$dff180
-  bra.w  mlgoon
-
-.framecount: dc.w 670
-.ptrntohide: dc.l EF1_PATTERNDATA0
-.ptrnleft: dc.w 8
-
-Effect2_0:
-  
-  ;c2p conversion
-  move.w  #320,d0                ;chunkyx
-  move.w  #256,d1                ;chunky y
-  move.w  #0,d3                  ;offset
-  bsr.w   c2p1x1_4_c5_gen_init
-  lea.l   TITLECHK,a0
-  lea.l   BPLIMAGE,a1
-  bsr.w   c2p1x1_4_c5_gen
-  ;move.w #$0,$dff180
-  move.w #1,continue
-  IFEQ DEBUG-0
-  move.l #COPPERLISTIMAGE,$dff080
-  ENDC
-  move.w #1,ColMultiplier
-  move.l #BPLIMAGE,draw_buffer
-  move.l #BPLIMAGE,view_buffer
-
-  bra.w  mlgoon
-
-Effect2_1:
-  ;move.w #$000,$dff180
-  bsr.w  SetBitplanePointersDefault
-  lea    PalTitle,a5
-
-  sub.l   d5,d5
-  move.w  #0,d5
-  moveq.l #0,d2
-  lea    colp0,a4
-  addq.l #2,a4
-  lea    colp0b,a6
-  addq.l #2,a6
-  bsr.w  SetColDataFade
-  ;move.w #$c00,$dff106
-  ;move.w #$000,$dff180
-  cmp.w  #4,P61_Pos
-  bne.s  .br1
-  move.w #1,continue
-.br1
-  bra.w  mlgoon
-
-Effect2_2:
-  ;move.w #$000,$dff180
-  bsr.w  SetBitplanePointersDefault
-  lea    PalTitle,a5
-
-  sub.l   d5,d5
-  move.w  ColMultiplier,d5
-  moveq.l #0,d2
-  lea    colp0,a4
-  addq.l #2,a4
-  lea    colp0b,a6
-  addq.l #2,a6
-  bsr.w  SetColDataFade
-  ;move.w #$c00,$dff106
-  ;move.w #$000,$dff180
-  cmp.w  #256,ColMultiplier
-  beq.s  .br2
-  add.w  #1,ColMultiplier
-.br2
-  cmp.w  #5,P61_Pos
-  bne.s  .br1
-  move.w #1,continue
-.br1
-  bra.w  mlgoon
 
 Eff2ZoomIn: dc.w 0
-
-PalTitle:
-  INCBIN "raw/madhatterpal.raw"
-
-
-
-RotateMove:
-  ;a0 Directions
-  move.w (a0),d0
-  REPT 7
-  move.w 2(a0),(a0)+
-  ENDR
-  move.w d0,(a0)
-  rts
-
-EF1_dummy:
-  dc.w 1,-1,0,0,1,-1,0,0
-
-EF1_dummy2:
-  dc.w 0,0,1,-1,0,0,1,-1
 
  include "invaders_dat.i"
 
@@ -442,7 +273,7 @@ StarField:
 	lea sfmult,a4
     
 	move.w #8,d4
-	move.w #100-1,d6
+	move.w #600-1,d6
 .lp1	
     move.l  a5,a0
 	;load values
@@ -479,6 +310,7 @@ StarField:
 .br2
 	dbf     d6,.lp1
 	movem   .save,d0-d7/a0-a6
+	move.w #$f00,$dff180
 	rts	
 	
 .save dcb.l 15,0
@@ -519,6 +351,54 @@ drawPlanarPixel:
 	;movem.l	(a7)+,d0-d3/a0
 	rts
 
+OFFSCOLORS=112
+OFFSBANK2=1056+OFFSCOLORS
+SetColors:
+	movem  d0-d7/a0-a6,.save
+	
+	;Get invader color relative to size
+	lea.l   blarraycont,a0
+	sub.l   d5,d5
+	move.w  CNTBLSIZE(a0),d0
+	move.w  #191,d1
+	mulu.w  d1,d0
+	lsr.w   #8,d0
+	add.w   #$11,d0 ;Color 1
+	move.w  d0,d1
+	lsr.w   #4,d0
+	
+	move.w  d0,d3
+	lsr.w   #1,d3 ;Color 3 high
+	add.w   #$765,d3
+	move.w  d0,d4
+	lsr.w   #1,d4 ;Color 3 low
+	add.w   #$765,d4	
+.br1		
+	and.w   #$f,d1	
+	
+	move.l draw_copper,a0
+	add.l  #OFFSCOLORS+2,a0
+	move.w #$0,(a0) ;Color 0
+	addq.l #4,a0
+	move.w d0,(a0) ;Color 1
+	addq.l #4,a0
+	move.w #$fda,(a0); Color 2
+	addq.l #4,a0
+	move.w d3,(a0); Color 3
+	move.l draw_copper,a0
+	add.l  #OFFSBANK2+2,a0
+	move.w #$0,(a0) ;Color 0l
+	addq.l #4,a0
+	move.w d1,(a0) ;Color 1l
+	addq.l #4,a0
+	move.w #$fda,(a0); Color 2l
+	addq.l #4,a0
+	move.w d4,(a0); Color 3l
+	movem  .save,d0-d7/a0-a6
+    rts
+
+.save dcb.l 15,0
+
 Effect1_Main:
 ;a0 = blarraydim
 ;a1 = frmdat[]
@@ -527,13 +407,11 @@ Effect1_Main:
 ;a4 = reserved SetColData
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
-		clr.w   $100
         subq    #1,.counter		    ;if(counter-- == 0)
         bne.w   .br1				    ;{
 		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
         bsr.w   SetCopperList
 		bsr.w  StarField
-		clr.w   $100
         move.w  #1,.counter            ;  counter = 1; //50 fps		
 		
 		lea     .frame,a3              ;
@@ -583,6 +461,7 @@ Effect1_Main:
 .br4
 		and.l   #$ffff,d5
 		move.w  #7,d2
+		bsr.w   SetColors
 		;bsr.w   SetColDataFade		    ;  SetColDataFade(intensity);
     	movem.l .save,d0-d7/a0-a6
 		cmp.w   #0,Eff1ZoomIn           ;  if(Eff1ZoomIn( )
@@ -609,10 +488,6 @@ Effect1_Main:
 .br3                                    ;    }
                                         ;  }
 		bsr.w  DrawLines                ;  DrawLines(blarraydim);			
-		clr.w  $100
-        ;move.w #$c00,$dff106            ;  Reg_Col0 = 00;
-	    ;move.w #$0,$dff180
-
 .br1        							;}
         rts
 

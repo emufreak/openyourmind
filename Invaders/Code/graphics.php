@@ -1294,7 +1294,7 @@ copperlist:
 	;dc.w $100,$1200
 
         dc.w    $106,$c00    
-	dc.w	$182,$000    ;Dummy operation as placeholder
+	dc.w	$180,$000    ;Dummy operation as placeholder
         dc.w    $182,$000    ;01
         dc.w    $184,$f00    ;10
         dc.w    $186,$f00    ;11
