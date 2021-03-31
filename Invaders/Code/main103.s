@@ -360,19 +360,21 @@ SetColors:
 	lea.l   blarraycont,a0
 	sub.l   d5,d5
 	move.w  CNTBLSIZE(a0),d0
-	move.w  #191,d1
+	lsl.w   #1,d0
+	lea     inv_colint,a1
+	move.w  (a1,d0),d0
+	move.w  #204,d1	
 	mulu.w  d1,d0
-	lsr.w   #8,d0
-	add.w   #$11,d0 ;Color 1
+	lsr.w   #8,d0 ;Color 1
 	move.w  d0,d1
 	lsr.w   #4,d0
 	
 	move.w  d0,d3
 	lsr.w   #1,d3 ;Color 3 high
-	add.w   #$765,d3
+	add.w   #$766,d3
 	move.w  d0,d4
 	lsr.w   #1,d4 ;Color 3 low
-	add.w   #$765,d4	
+	add.w   #$766,d4	
 .br1		
 	and.w   #$f,d1	
 	
@@ -382,7 +384,7 @@ SetColors:
 	addq.l #4,a0
 	move.w d0,(a0) ;Color 1
 	addq.l #4,a0
-	move.w #$fda,(a0); Color 2
+	move.w #$fdc,(a0); Color 2
 	addq.l #4,a0
 	move.w d3,(a0); Color 3
 	move.l draw_copper,a0
@@ -391,7 +393,7 @@ SetColors:
 	addq.l #4,a0
 	move.w d1,(a0) ;Color 1l
 	addq.l #4,a0
-	move.w #$fda,(a0); Color 2l
+	move.w #$fdc,(a0); Color 2l
 	addq.l #4,a0
 	move.w d4,(a0); Color 3l
 	movem  .save,d0-d7/a0-a6
