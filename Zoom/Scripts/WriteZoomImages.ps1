@@ -41,22 +41,22 @@ function Convert-BPL($nr) {
 } #Run-Gimpactions
 
 
-$width = 1009
-$height = 806
+$width = 42000
+$height = 34000
 $xoffset = 0
 $yoffset = 0
 $i = 0
 
 $dstfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Zoom\\Scripts" 
 
-while($i -lt 18) {
+while($i -lt 88) {
     $iwidth = [math]::Round($width)
     $iheight = [math]::Round($height)
 
     $ifmt = "{0:D2}" -f $i
     Run-Gimpactions `
-             "define image (car (file-png-load RUN-NONINTERACTIVE `
-                 \`"$dstfolder\\Zoompic.png\`" \`"$dstfolder\\Zoompic.png\`"))" `
+             "define image (car (file-tiff-load RUN-NONINTERACTIVE `
+                 \`"$dstfolder\\Zoompic.tif\`" \`"$dstfolder\\Zoompic.tif\`"))" `
              "define drawable (car (gimp-image-get-active-layer image))" `
              "gimp-image-crop image $iwidth $iheight $xoffset $yoffset" `
              "gimp-context-set-interpolation 2" `
@@ -64,13 +64,17 @@ while($i -lt 18) {
              "file-png-save RUN-NONINTERACTIVE image drawable \`"$dstfolder\\zoom_$ifmt.png\`" \`"$dstfolder\\zoom_$ifmt.png\`" FALSE 9 FALSE FALSE FALSE FALSE FALSE" `
              "file-raw-save RUN-NONINTERACTIVE image drawable \`"$dstfolder\\..\\raw\\zoom_$ifmt.raw\`" \`"$dstfolder\\..\\raw\\zoom_$ifmt.raw\`"" `
              "gimp-quit 0"
-      
+    
+    if($i -eq 5 -or $i -eq 10  -or $i -eq 15 -or $i -eq 20 -or $i -eq 25 -or $i -eq 30 -or $i -eq 35 -or $i -eq 40 -or $i -eq 45 -or $i -eq 50 -or $i -eq 55 -or $i -eq 60 -or $i -eq 65 -or $i -eq 70 -or $i -eq 75 -or $i -eq 80 -or $i -eq 85) {
+        $Shell = New-Object -ComObject "WScript.Shell"
+        $Button = $Shell.Popup("Wait till Gimp is finished then press ok", 0, "Script Paused", 0)
+    }
              
     $i++
     $width = $width / 67 * 64
     $height = $height / 67 * 64
-    $xoffset = [math]::Round( (1009 - $width) / 2)
-    $yoffset = [math]::Round( (806 - $height) / 2)
+    $xoffset = [math]::Round( (42000 - $width) / 2)
+    $yoffset = [math]::Round( (34000 - $height) / 2)
     
 }
 
@@ -78,7 +82,7 @@ $Shell = New-Object -ComObject "WScript.Shell"
 $Button = $Shell.Popup("Wait till Gimp is finished then press ok", 0, "Script Paused", 0)
 
 $content = 0;
-for($i=0;$i -lt 18;$i++) { 
+for($i=0;$i -lt 88;$i++) { 
     $ifmt = "{0:D2}" -f $i 
     Convert-BPL $ifmt
     #if($i -eq 0) {

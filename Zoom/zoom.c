@@ -54,7 +54,7 @@ void Zoom_VblankHandler() {
       Zoom_MouseReleased = 0;
       if( Zoom_LevelOf102Zoom <= 2) {
  
-        if( Zoom_LevelOfZoom == 17)
+        if( Zoom_LevelOfZoom == 87)
           Zoom_LevelOfZoom = 0;
         else
           Zoom_LevelOfZoom++;

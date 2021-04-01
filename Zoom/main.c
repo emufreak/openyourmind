@@ -261,7 +261,7 @@ int main() {
 	// TODO: precalc stuff here
 	//warpmode(0);
 
-	//TakeSystem();
+	TakeSystem();
 
 
 	WaitVbl();
@@ -270,7 +270,7 @@ int main() {
 	//c2p();
   	Zoom_InitRun();
 
-	for(int i=0;i<500;i++) {
+	for(int i=0;i<20000;i++) {
 		WaitVbl();
 	}
 	ULONG *bp = 0x100;
