@@ -40,14 +40,22 @@ INCBIN_CHIP(rawzoom, "raw/zoom.raw");
 }*/
 
 int Zoom_Pic = 1;
+volatile int Zoom_DrawPicture = 1;
 void Zoom_Run() {
-  Utils_CopyMem(rawzoom+56280*Zoom_Pic, DrawBuffer, 14070);
-  Zoom_SetBplPointers(DrawBuffer, DrawCopper);
-  Zoom_Pic++;
-  if(Zoom_Pic == 87 ) {
+  if( Zoom_DrawPicture == 1) {    
+    Utils_CopyMem(rawzoom+56280*Zoom_Pic, DrawBuffer, 14070);  
+    ULONG *bp = 0x100;
+  	*bp = 0;
+    Zoom_DrawPicture = 0;
+    Zoom_Pic++;
+  }
+  //Zoom_SetBplPointers(DrawBuffer, DrawCopper);    
+  if(Zoom_Pic == 88 ) {
     Zoom_Pic = 11;
   }  
 }
+
+
 
 void Zoom_VblankHandler() {
 
@@ -68,13 +76,18 @@ void Zoom_VblankHandler() {
           Zoom_LevelOfZoom = 0;
         else
           Zoom_LevelOfZoom++;
-        Zoom_LevelOf102Zoom = 15;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
-        //Zoom_SwapBuffers(  Zoom_LevelOfZoom);
+        Zoom_LevelOf102Zoom = 15;// MaxZoom102[ Zoom_LevelOfZoom] - 1;          
+        Zoom_SwapBuffers(  Zoom_LevelOfZoom);
+        /*Zoom_SetBplPointers( ViewBuffer, ViewCopper);
+        Zoom_SetBplPointers( ViewBuffer, DrawCopper);*/
+        ULONG *bp = 0x102;
+  	    *bp = 0;
+        Zoom_DrawPicture = 1;     
       } else 
         Zoom_LevelOf102Zoom-=2;
     //}
   Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
-  //Zoom_SetBplPointers(ViewBuffer, DrawCopper);
+  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
  
 }
 
@@ -530,11 +543,10 @@ void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper) {
 }
 
 void Zoom_SwapBuffers( UWORD zoomlevel) {
-
-  ViewBuffer = rawzoom + (42*268*5*zoomlevel);
-  /*ULONG tmp = (ULONG) DrawBuffer;
+  //ViewBuffer = rawzoom + (42*268*5*zoomlevel);
+  ULONG tmp = (ULONG) DrawBuffer;
   DrawBuffer = ViewBuffer;
-  ViewBuffer = (ULONG *) tmp;*/
+  ViewBuffer = (ULONG *) tmp;
 }
 
 //Without Precalc
