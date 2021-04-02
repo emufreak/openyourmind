@@ -251,6 +251,10 @@ void Zoom_Dealloc() {
 }
   
 int Zoom_PrepareDisplay() {
+  ViewBuffer = AllocVec(268*42*5, MEMF_CHIP);  
+  DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);
+  Utils_CopyMem( rawzoom, ViewBuffer, 14070);
+  Utils_CopyMem( rawzoom, DrawBuffer, 14070);
   Zoom_SwapBuffers( 0);
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
