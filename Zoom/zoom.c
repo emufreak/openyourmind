@@ -42,10 +42,11 @@ INCBIN_CHIP(rawzoom, "raw/zoom.raw");
 int Zoom_Pic = 1;
 void Zoom_Run() {
   Utils_CopyMem(rawzoom+56280*Zoom_Pic, DrawBuffer, 14070);
+  Zoom_SetBplPointers(DrawBuffer, DrawCopper);
   Zoom_Pic++;
   if(Zoom_Pic == 87 ) {
     Zoom_Pic = 11;
-  }
+  }  
 }
 
 void Zoom_VblankHandler() {
