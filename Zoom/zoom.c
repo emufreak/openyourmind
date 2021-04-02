@@ -255,9 +255,10 @@ int Zoom_PrepareDisplay() {
   DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);
   Utils_CopyMem( rawzoom, ViewBuffer, 14070);
   Utils_CopyMem( rawzoom, DrawBuffer, 14070);
-  Zoom_SwapBuffers( 0);
+  //Zoom_SwapBuffers( 0);
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
+  
   /*Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
   if(Bitplane1 == 0) {
     Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
