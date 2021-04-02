@@ -63,6 +63,7 @@ void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright);
 void Init_Blit();
 void Zoom_VblankHandler();
 void Zoom_Dealloc();
+void Zoom_Run();
 extern UWORD *Zoom_Zl4Words;
 
 extern ULONG *Zoom_ZoomBlitMask;

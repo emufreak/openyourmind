@@ -272,6 +272,7 @@ int main() {
 
 	for(int i=0;i<20000;i++) {
 		WaitVbl();
+		Zoom_Run();
 	}
 	ULONG *bp = 0x100;
   	*bp = 0;

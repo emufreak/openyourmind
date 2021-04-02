@@ -39,6 +39,15 @@ INCBIN_CHIP(rawzoom, "raw/zoom.raw");
   }
 }*/
 
+int Zoom_Pic = 1;
+void Zoom_Run() {
+  Utils_CopyMem(rawzoom+56280*Zoom_Pic, DrawBuffer, 14070);
+  Zoom_Pic++;
+  if(Zoom_Pic == 87 ) {
+    Zoom_Pic = 11;
+  }
+}
+
 void Zoom_VblankHandler() {
 
   Zoom_Counter++;
@@ -59,12 +68,12 @@ void Zoom_VblankHandler() {
         else
           Zoom_LevelOfZoom++;
         Zoom_LevelOf102Zoom = 15;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
-        Zoom_SwapBuffers(  Zoom_LevelOfZoom);
+        //Zoom_SwapBuffers(  Zoom_LevelOfZoom);
       } else 
         Zoom_LevelOf102Zoom-=2;
     //}
   Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
-  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
+  //Zoom_SetBplPointers(ViewBuffer, DrawCopper);
  
 }
 
