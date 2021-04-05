@@ -107,7 +107,12 @@ Effect1_0:
 Effect1_2:
   ;move.w #$00,$dff180
   move.w #1,Eff1ZoomIn
-  bsr.w  Effect1_Main
+  ;bsr.w  Effect1_Main
+  bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
+  bsr.w   SetCopperList
+  bsr.w  StarField
+  bsr.w   SetColors
+
   ;move.w #$c00,$dff106
   ;move.w #$000,$dff180
   sub.w  #1,.counter
@@ -272,14 +277,14 @@ SetColors:
 	addq.l #4,a0
 	move.w d3,(a0); Color 3
 	move.l draw_copper,a0
-	add.l  #OFFSBANK2+2,a0
-	move.w #$0,(a0) ;Color 0l
-	addq.l #4,a0
-	move.w d1,(a0) ;Color 1l
-	addq.l #4,a0
-	move.w #$fdc,(a0); Color 2l
-	addq.l #4,a0
-	move.w d4,(a0); Color 3l
+	;add.l  #OFFSBANK2+2,a0
+	;move.w #$0,(a0) ;Color 0l
+	;addq.l #4,a0
+	;move.w d1,(a0) ;Color 1l
+	;addq.l #4,a0
+	;move.w #$fdc,(a0); Color 2l
+	;addq.l #4,a0
+	;move.w d4,(a0); Color 3l
 	movem  .save,d0-d7/a0-a6
     rts
 

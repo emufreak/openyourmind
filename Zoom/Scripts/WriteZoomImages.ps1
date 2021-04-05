@@ -41,8 +41,8 @@ function Convert-BPL($nr) {
 } #Run-Gimpactions
 
 
-$width = 42000
-$height = 34000
+$width = 8400
+$height = 6800
 $xoffset = 0
 $yoffset = 0
 $i = 0
@@ -55,8 +55,8 @@ while($i -lt 88) {
 
     $ifmt = "{0:D2}" -f $i
     Run-Gimpactions `
-             "define image (car (file-tiff-load RUN-NONINTERACTIVE `
-                 \`"$dstfolder\\Zoompic.tif\`" \`"$dstfolder\\Zoompic.tif\`"))" `
+             "define image (car (file-png-load RUN-NONINTERACTIVE `
+                 \`"$dstfolder\\Zoompic.png\`" \`"$dstfolder\\Zoompic.png\`"))" `
              "define drawable (car (gimp-image-get-active-layer image))" `
              "gimp-image-crop image $iwidth $iheight $xoffset $yoffset" `
              "gimp-context-set-interpolation 2" `
@@ -73,8 +73,8 @@ while($i -lt 88) {
     $i++
     $width = $width / 67 * 64
     $height = $height / 67 * 64
-    $xoffset = [math]::Round( (42000 - $width) / 2)
-    $yoffset = [math]::Round( (34000 - $height) / 2)
+    $xoffset = [math]::Round( (8400 - $width) / 2)
+    $yoffset = [math]::Round( (6800 - $height) / 2)
     
 }
 
@@ -85,16 +85,16 @@ $content = 0;
 for($i=0;$i -lt 88;$i++) { 
     $ifmt = "{0:D2}" -f $i 
     Convert-BPL $ifmt
-    #if($i -eq 0) {
-    #    Get-Content "$dstfolder\\..\\raw\\zoom_$i.BPL" | Set-Content "$dstfolder\\..\\raw\\zoom.bpl"
-    #} else {
-     #   Get-Content "$dstfolder\\..\\raw\\zoom.bpl","$dstfolder\\..\\raw\\zoom_$i.BPL" | Set-Content "$dstfolder\\..\\raw\\zoom.bpl"
-    #}
 }
 
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL -rec| Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0|1|2|3|4|5].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_1.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[6][012].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_2.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_fast_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[6][3456789].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip_1.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[7|8].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip_2.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_chip_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip.raw" -Encoding Byte
 
-$paletteraw = [System.IO.File]::ReadAllBytes("$dstfolder\..\raw\zoom_0.raw.pal")
+$paletteraw = [System.IO.File]::ReadAllBytes("$dstfolder\..\raw\zoom_00.raw.pal")
 $prefix = ""
 $palettereg = 0x1800000
 $palette = ""

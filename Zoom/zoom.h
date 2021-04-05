@@ -64,16 +64,18 @@ void Init_Blit();
 void Zoom_VblankHandler();
 void Zoom_Dealloc();
 void Zoom_Run();
-extern UWORD *Zoom_Zl4Words;
 
+extern UWORD *Zoom_Zl4Words;
 extern ULONG *Zoom_ZoomBlitMask;
 extern UWORD *Zoom_Source;
 extern UWORD ZoomBlit_Increment4SrcA;
+extern ULONG Zoom_Rawchip;
+extern ULONG Zoom_Rawfast;
 extern struct Interrupt *Zoom_vbint;
 
 extern UWORD Zoom_Counter;
 extern UWORD *font2;
-void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper);
+void Zoom_SetBplPointers( UWORD volatile *buffer, ULONG volatile *copper);
 //void Zoom_SwapBuffers();
 void Zoom_SwapBuffers( UWORD Zoomlevel);
 

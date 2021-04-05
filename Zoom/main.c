@@ -231,7 +231,18 @@ inline USHORT* screenScanDefault(USHORT* copListEnd) {
 	return copListEnd;
 }
 
+//#define a3 REG (a3)
+
 int main() {
+
+	ULONG *bp = 0x100;
+	*bp = 0;
+	//Get AMOS Params
+	register ULONG *asmparams;
+	asm("\t move.l %%a3,%0" : "=r"(asmparams));
+	//Zoom_Rawchip = *asmparams++;
+	Zoom_Rawfast = *asmparams;
+
 	ULONG tmp = 4;
     SysBase = *((struct ExecBase**)tmp);
 	hw = (struct Custom*)0xdff000;
@@ -269,15 +280,8 @@ int main() {
     hw->dmacon = 0b1000011111111111;
 	//c2p();
   	Zoom_InitRun();
-
-	for(int i=0;i<20000;i++) {
-		WaitVbl();
-		Zoom_Run();
-	}
-	ULONG *bp = 0x100;
-  	*bp = 0;
+	Zoom_Run();
 	Zoom_Dealloc();
-	*bp = 0;
 
 	//FreeSystem();
 	

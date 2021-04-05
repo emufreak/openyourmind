@@ -38,7 +38,7 @@ void Zoom_InsertShift( UWORD *copperlist, UWORD *values4shift) {
   }
 }
 
-void Zoom_Shrink102( UWORD levelofshrink, UWORD *copperlist )  {
+void Zoom_Shrink102( UWORD levelofshrink, UWORD volatile *copperlist )  {
 
   
   UWORD *values4shift = Values4Shift+levelofshrink*108;

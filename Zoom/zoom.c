@@ -20,45 +20,55 @@ UWORD volatile Zoom_LevelOfZoom;
 UWORD volatile Zoom_LevelOf102Zoom;
 WORD Zoom_Direction;
 WORD ZoomHorizontal;
+ULONG Zoom_Rawchip;
+ULONG Zoom_Rawfast;
+
 
 #include "zoom102.h"
 #include "utils.h"
 #include "zoomtest.h"
 
 //INCBIN(startimage, "raw/zoom.raw")
-INCBIN_CHIP(rawzoom, "raw/zoom.raw");
+//INCBIN_CHIP(rawzoom, "raw/zoom.raw");
+//INCBIN(startimage, "raw/zoom.raw")
 
-/*void c2p() {
-  c2p1x1_8_c5_gen_init( 336, 268, 0, 0, 0, 0);
-  UWORD *src = rawzoom;
-  UWORD *dst = framebuffer;
-  for(int i=0;i<=17;i++) {
-    c2p1x1_8_c5_gen( src, dst);
-    src += 45025;
-    dst += 28140;
-  }
-}*/
+/*INCBIN(rawzoom_fast,"raw/zoom_fast.raw");
+INCBIN_CHIP(rawzoom_chip,"raw/zoom_chip.raw");*/
 
+ULONG imgptrs[] = {  0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0,0,0,0,
+                     0,0,0,0,0,0,0 };
 int Zoom_Pic = 1;
-volatile int Zoom_DrawPicture = 1;
+int volatile Zoom_DrawPicture = 1;
+
 void Zoom_Run() {
-  if( Zoom_DrawPicture == 1) {    
-    Utils_CopyMem(rawzoom+56280*Zoom_Pic, DrawBuffer, 14070);  
-    ULONG *bp = 0x100;
-  	*bp = 0;
-    Zoom_DrawPicture = 0;
-    Zoom_Pic++;
-  }
+  for(int i=0;i <2; i++)
+  {
+    while(1) {
+      WaitVbl();
+      if( Zoom_DrawPicture == 1) {    
+        Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
+        Zoom_DrawPicture = 0;
+        Zoom_Pic++;
+      }
   //Zoom_SetBplPointers(DrawBuffer, DrawCopper);    
-  if(Zoom_Pic == 88 ) {
-    Zoom_Pic = 11;
-  }  
+      if(Zoom_Pic == 88 ) {
+        Zoom_Pic = 11;
+        break;
+      }
+    }  
+  }
 }
-
-
 
 void Zoom_VblankHandler() {
 
+  hw->dmacon = 0b1000011111111111;
   Zoom_Counter++;
   SwapCl();
   Zoom_MouseReleased = 1;
@@ -125,9 +135,9 @@ void Zoom_ReverseVblankHandler() {
  
 }
 
-void Zoom_LoadImage( ULONG *destination) {  
+/*void Zoom_LoadImage( ULONG *destination) {  
   CopyMem( rawzoom, destination, ZMBPLSIZE);
-}
+}*/
 
 ULONG ClScreenZoom[] = { 0x01fc0000, 0x01060c00, 0x00968020, 0x008e2c81, 
          0x00902cc1, 0x00920038, 0x009400a0, 0x01020000, 0x01040000, 0x01080008, 
@@ -203,7 +213,19 @@ void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
 
 
 void Zoom_InitRun() {
-    
+
+  /*Zoom_Rawchip = rawzoom_chip;
+  Zoom_Rawfast = rawzoom_fast;*/
+
+  int i = 0;
+  for(;i<88;i++) {
+    imgptrs[i] = Zoom_Rawfast + 56280*i;
+  }
+
+  /*for(;i<88;i++) {
+    imgptrs[i] = Zoom_Rawchip + 56280*(i-63);
+  }*/
+
   Zoom_Counter = 0;
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   Zoom_LevelOf102Zoom = 15;
@@ -276,8 +298,8 @@ void Zoom_Dealloc() {
 int Zoom_PrepareDisplay() {
   ViewBuffer = AllocVec(268*42*5, MEMF_CHIP);  
   DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);
-  Utils_CopyMem( rawzoom, ViewBuffer, 14070);
-  Utils_CopyMem( rawzoom, DrawBuffer, 14070);
+  Utils_CopyMem( imgptrs[0], ViewBuffer, 14070);
+  Utils_CopyMem( imgptrs[0], DrawBuffer, 14070);
   //Zoom_SwapBuffers( 0);
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
@@ -519,7 +541,7 @@ void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr,
   }
 }
 
-void Zoom_SetBplPointers( UWORD *buffer, ULONG *copper) {
+void Zoom_SetBplPointers( UWORD volatile *buffer, ULONG volatile *copper) {
   //                   0  1  1   1   1   0   1   1    1    1    0    1    1    0    1    1
   //int zoomoffset[] = { 0, 0, 42, 42, 84, 84, 84, 126, 126, 168, 168, 168, 210, 210, 210, 332};
   //int zoomoffset[] = { 252, 210, 210, 210, 168, 168, 168, 126, 126, 84, 84, 84, 42, 42, 0, 0 };
