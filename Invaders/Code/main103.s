@@ -105,16 +105,9 @@ Effect1_0:
 
 
 Effect1_2:
-  ;move.w #$00,$dff180
   move.w #1,Eff1ZoomIn
-  ;bsr.w  Effect1_Main
-  bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
-  bsr.w   SetCopperList
-  bsr.w  StarField
-  bsr.w   SetColors
+  bsr.w  Effect1_Main
 
-  ;move.w #$c00,$dff106
-  ;move.w #$000,$dff180
   sub.w  #1,.counter
   beq.s  .br1
   bra.w  mlgoon
@@ -144,7 +137,6 @@ StarField:
 ;d5 = backup bosy1
 ;d6 = starcount    	
 	movem d0-d7/a0-a6,.save
-	;move.w #$000,$dff180
 	move.l draw_buffer,a0
 	add.l  #40*BPLWIDTH+40*256,a0
 	move.l  #196,d0
@@ -298,7 +290,6 @@ Effect1_Main:
 ;a4 = reserved SetColData
 ;a5 = colptr
 ;a6 = *blarraycont.data (temp)
-        move.w  #0,$dff180
         subq    #1,.counter		    ;if(counter-- == 0)
         bne.w   .br1				    ;{
 		bsr.w   SetBitplanePointers     ;  SetBitplanePointers();
@@ -429,8 +420,6 @@ SetColDataFade:                  ;SetColDataFade(intensity, layers, colorptr)
   ;a5 - colors
   ;a4 - copperpos highwordcol
   ;a6 - copperpos lowword pos
-  ;move.w  #$c00,$dff106
-  ;move.w  #$f00,$dff180
   lea     .intstore,a0
   sub.l   d0,d0                   ;curvalue = 0
   moveq.l #64-1,d6                ;for i = 1 to 64
@@ -508,8 +497,6 @@ SetColDataFade:                  ;SetColDataFade(intensity, layers, colorptr)
   addq.l  #4,a4
   addq.l  #4,a6
   dbf     d2,.lp1
-  ;move.w  #$000,$dff106
-  ;move.w  #$0c0,$dff180
   rts
 
  cnop 0,4
@@ -618,8 +605,9 @@ DrawLines:
         bhs.s    .br7
         move.w   CNTPOSX(a1),d1
         move.w   (a2),d5
-        bsr.w    PreProcessDL
-        lea      dldata,a4
+        ;bsr.w    PreProcessDL
+        ;lea      dldata,a4
+		lea      DrawLine,a4
 .br7
         movem.l  .saveregs(pc),a0-a2/d1/d3-d7
 

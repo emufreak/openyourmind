@@ -10,7 +10,7 @@ view_copper:
         dc.l    copperlist
 
 draw_copper:
-        dc.l    copperlist
+        dc.l    copperlist+OFFSNEXTCOPPER
 
 view_cprbitmap:
 		dc.l    copperlist+OFFSBPLPOINTERS

@@ -26,7 +26,6 @@ SetBitplanePointers:
 	move.l  draw_copper,a2
 	add.l   #OFFSBPLPOINTERS,a2
 .lp1
-	clr.w   $100
 	move.w 	d1,6(a2)
 	swap 	d1
 	move.w	d1,2(a2)
