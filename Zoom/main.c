@@ -240,7 +240,7 @@ int main() {
 	//Get AMOS Params
 	register ULONG *asmparams;
 	asm("\t move.l %%a3,%0" : "=r"(asmparams));
-	//Zoom_Rawchip = *asmparams++;
+	Zoom_Rawchip = *asmparams++;
 	Zoom_Rawfast = *asmparams;
 
 	ULONG tmp = 4;
@@ -278,32 +278,7 @@ int main() {
 	WaitVbl();
 	
     hw->dmacon = 0b1000011111111111;
-	//c2p();
   	Zoom_InitRun();
 	Zoom_Run();
 	Zoom_Dealloc();
-
-	//FreeSystem();
-	
-	/*TakeSystem();
-  	//RunTests();	//warpmode(1);
-	// TODO: precalc stuff here
-	//warpmode(0);
-
-	WaitVbl();
-
-	// DEMO
-
-	RunDemo();
-
-	// DEMO
-	SetInterruptHandler((APTR)interruptHandler);
-	custom->intena=(1<<INTB_SETCLR)|(1<<INTB_INTEN)|(1<<INTB_VERTB);
-	custom->intreq=1<<INTB_VERTB;//reset vbl req
-
-	// END
-	FreeSystem();
-
-	/*CloseLibrary((struct Library*)DOSBase);
-	CloseLibrary((struct Library*)GfxBase);*/
 }

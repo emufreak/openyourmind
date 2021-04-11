@@ -479,7 +479,3 @@ ULONG Cl102ZoomRepeat[] = { 0x003d80fe, //Wait for hpos 3d on line < 0x80
                             0x2c01ff01, //If line < 2c
                             0x008a0000, // jump to br2           
                             }; 
-
- /* WAIT HPOS=3d Msb vpos=0
-    WAIT HPOS=3d Msb vpos=1
-    MOVEINSTRUCTIONS */

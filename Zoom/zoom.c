@@ -26,14 +26,13 @@ ULONG Zoom_Rawfast;
 
 #include "zoom102.h"
 #include "utils.h"
-#include "zoomtest.h"
 
 //INCBIN(startimage, "raw/zoom.raw")
 //INCBIN_CHIP(rawzoom, "raw/zoom.raw");
 //INCBIN(startimage, "raw/zoom.raw")
 
-/*INCBIN(rawzoom_fast,"raw/zoom_fast.raw");
-INCBIN_CHIP(rawzoom_chip,"raw/zoom_chip.raw");*/
+//INCBIN(rawzoom_fast,"raw/zoom_fast.raw");
+//INCBIN_CHIP(rawzoom_chip,"raw/zoom_chip.raw");
 
 ULONG imgptrs[] = {  0,0,0,0,0,0,0,0,0,0,
                      0,0,0,0,0,0,0,0,0,0,
@@ -56,9 +55,8 @@ void Zoom_Run() {
         Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
         Zoom_DrawPicture = 0;
         Zoom_Pic++;
-      }
-  //Zoom_SetBplPointers(DrawBuffer, DrawCopper);    
-      if(Zoom_Pic == 88 ) {
+      }  
+      if(Zoom_Pic == 87 ) {
         Zoom_Pic = 11;
         break;
       }
@@ -102,39 +100,6 @@ void Zoom_VblankHandler() {
 }
 
 
-void Zoom_ReverseVblankHandler() {
-  
-  Zoom_Counter++;
-  SwapCl();
-  Zoom_MouseReleased = 1;
-  if( MouseLeft())
-    Zoom_Mousepressed = 1;
-  if( Zoom_Mousepressed == 1 && !MouseLeft()) {
-    Zoom_MouseReleased = 1;
-    Zoom_Mousepressed = 0;
-  }
-    /*if( MouseLeft()) {
-      while (MouseLeft())
-      {
-      }*/
-      
-      Zoom_MouseReleased = 0;
-      if( Zoom_LevelOf102Zoom == 15) {
- 
-        if( Zoom_LevelOfZoom == 0)
-          Zoom_LevelOfZoom = 17;
-        else
-          Zoom_LevelOfZoom--;
-        Zoom_LevelOf102Zoom = 0;// MaxZoom102[ Zoom_LevelOfZoom] - 1;  
-        Zoom_SwapBuffers(  Zoom_LevelOfZoom);
-      } else 
-        Zoom_LevelOf102Zoom++;
-    //}
-  Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
-  Zoom_SetBplPointers(ViewBuffer, DrawCopper);
- 
-}
-
 /*void Zoom_LoadImage( ULONG *destination) {  
   CopyMem( rawzoom, destination, ZMBPLSIZE);
 }*/
@@ -153,64 +118,6 @@ void  Zoom_CopyWord( UWORD *source, UWORD *destination, UWORD height) {
 
 }
 
-void Zoom_ZoomBlit( UWORD *source, UWORD *destination, UWORD height) {
-
-                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
-              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
-
-  UWORD *blta = source + ZoomBlit_Increment4SrcA;
-  WaitBlt();
-  /*Mintterm
-  ABCD
-  0000
-  0010
-  0101
-  0110
-  1000
-  1011
-  1101
-  1111*/
-  //0000 0000 1010 1010 1010 1010
-  //0000 0001 0101 0101 0101 0101
-  //                     4    a
-  
-  hw->bltapt = blta;
-  hw->bltbpt = source;
-  hw->bltdpt = destination;
-  hw->bltsize = (height<<6)+2;
-
-}
-
-void Zoom_ZoomBlit2( UWORD *src4a, UWORD *src4b, UWORD *dst, UWORD height,
-                                                 UWORD bltamod, UWORD bltbmod
-                                                        , UWORD numofwords) {
-
-                              //FFFFFFF|TTTTFFF F = Binary 0 T=Binary 1
-              //Channel D =   //BBBBBBB¦AAAABBB A= ChannelA , B = Channel B
-  hw->bltamod = bltamod;
-  hw->bltbmod = bltbmod;  
-  hw->bltapt = src4a;
-  hw->bltbpt = src4b;
-  hw->bltdpt = dst;
-  hw->bltsize = (height<<6)+numofwords;
-  
-  WaitBlt();
-  /*Mintterm
-  ABCD
-  0000 
-  0010
-  0101
-  0110
-  1000
-  1011
-  1101
-  1111*/
-  //0000 0000 1010 1010 1010 1010
-  //0000 0001 0101 0101 0101 0101
-  //                     4    a  
-
-}
-
 
 void Zoom_InitRun() {
 
@@ -218,24 +125,19 @@ void Zoom_InitRun() {
   Zoom_Rawfast = rawzoom_fast;*/
 
   int i = 0;
-  for(;i<88;i++) {
+  for(;i<63;i++) {
     imgptrs[i] = Zoom_Rawfast + 56280*i;
   }
 
-  /*for(;i<88;i++) {
+  for(;i<88;i++) {
     imgptrs[i] = Zoom_Rawchip + 56280*(i-63);
-  }*/
+  }
 
   Zoom_Counter = 0;
   Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
   Zoom_LevelOf102Zoom = 15;
   ZoomHorizontal = 16;
   Zoom_PrepareDisplay();
-  /*Zoom_StartImage = rawzoom;
-  Zoom_LoadImage( Bitplane1);
-  Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
-  CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
-  CopyMem( Bitplane2, rawzoom, ZMBPLSIZE);*/
   
   Zoom_Shrink102( 15, Copperlist1);
   Zoom_Shrink102( 15, Copperlist2);
@@ -257,39 +159,6 @@ void Zoom_InitRun() {
   
 }
 
-void Zoom_InitRunReverse() {
-    
-  Zoom_Counter = 0;
-  Zoom_ZoomBlitMask = AllocMem(4, MEMF_CHIP);
-  Zoom_LevelOf102Zoom = 0;
-  ZoomHorizontal = 16;
-  Zoom_PrepareDisplay();
-  /*Zoom_StartImage = rawzoom;
-  Zoom_LoadImage( Bitplane1);
-  Zoom_ZoomIntoPicture( (UWORD *) Bitplane1, (UWORD *) Bitplane2, 0, 5);
-  CopyMem( Bitplane2, Bitplane1, ZMBPLSIZE);
-  CopyMem( Bitplane2, rawzoom, ZMBPLSIZE);*/
-  
-  Zoom_Shrink102( 0, Copperlist1);
-  Zoom_Shrink102( 0, Copperlist2);
-  Zoom_LevelOfZoom = 17;
-                                                  
-  if ((Zoom_vbint = AllocMem(sizeof(struct Interrupt),    
-                         MEMF_PUBLIC|MEMF_CLEAR))) {
-    Zoom_vbint->is_Node.ln_Type = NT_INTERRUPT;       
-    Zoom_vbint->is_Node.ln_Pri = -60;
-    Zoom_vbint->is_Node.ln_Name = "VertB-Example";
-    Zoom_vbint->is_Data = NULL;
-    Zoom_vbint->is_Code = Zoom_ReverseVblankHandler;
-  }
-
-  AddIntServer( INTB_VERTB, Zoom_vbint);
-  Zoom_SetBplPointers( ViewBuffer, ViewCopper);
-  Zoom_SetBplPointers( ViewBuffer, DrawCopper);
-  SwapCl();
-  
-}
-
 void Zoom_Dealloc() {
   RemIntServer(INTB_VERTB, Zoom_vbint);
   FreeDisplay( ZMCPSIZE, ZMBPLSIZE);
@@ -300,23 +169,9 @@ int Zoom_PrepareDisplay() {
   DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);
   Utils_CopyMem( imgptrs[0], ViewBuffer, 14070);
   Utils_CopyMem( imgptrs[0], DrawBuffer, 14070);
-  //Zoom_SwapBuffers( 0);
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
   
-  /*Bitplane1 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
-  if(Bitplane1 == 0) {
-    Write(Output(), "Cannot allocate Memory for Bitplane1.\n",38);
-    Exit(1);
-  }
-  DrawBuffer = Bitplane1;
-  DrawCopper = Copperlist1;
-  Bitplane2 = AllocMem(ZMLINESIZE*272*5, MEMF_CHIP);
-  if(Bitplane2 == 0) {
-    Write(Output(), "Cannot allocate Memory for Bitplane2.\n", 38);
-    Exit(1);
-  }
-  ViewBuffer = Bitplane2;*/
   DrawCopper = Copperlist1;
   ViewCopper = Copperlist2;
   return 0;
@@ -408,139 +263,6 @@ ULONG * ClbuildZoom() {
   return 0;
 }
 
-void Init_Blit() {
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltamod = ZMLINESIZE - 4;
-  hw->bltbmod = ZMLINESIZE - 4;
-  hw->bltdmod = ZMLINESIZE - 4;
-}
-
-
-void Init_Blit2() {
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltamod = 36;
-  hw->bltbmod = 76;
-  hw->bltdmod = ZMLINESIZE2 - 4;
-}
-
-void Init_ZoomBlit( UWORD startofword, WORD nextzoom, WORD shiftright) {
-  ZoomBlit_Increment4SrcA = 0;
-
-  UWORD colnr = nextzoom - startofword - 1;                                                                          
-  UWORD shiftb = shiftright << 12;    //SEEEEE0|12.X..f E=Empty
-  UWORD shifta;
-  if( shiftright == 0) {
-    ZoomBlit_Increment4SrcA = 1;
-    shifta = 15 << 12;
-  } else {
-    shifta = (shiftright - 1) << 12;
-  }
-  WaitBlt(); 
-  hw->bltcon1 = shiftb; 
-  hw->bltcon0 = 0xde4 + shifta;
-  hw->bltcdat = (0xffff << (16-colnr)) & 0xffff;
-}
-
-void Init_Copy( WORD shift) {
-  UWORD shiftright = shift << 12;
-  WaitBlt();
-  hw->bltcon0 = 0x9f0 + shiftright;
-  hw->bltcon1 = 0;
-}
-
-void Zoom_ZoomIntoPicture( UWORD *source, UWORD *destination, UWORD zoomnr, 
-                                                                 UWORD planes) {
-  
-  WaitBlt();  
-  Init_Blit();
-  WORD shiftright = 9;
-  UWORD shifthoriz = 7;
-  UWORD startofword = 21*16;
-  WORD nextzoom = 22*16 - 20 + zoomnr * 10;
-  while( nextzoom > 22 * 16) {
-    nextzoom -= (19 + zoomnr);
-    shiftright--;
-  } 
-  //UWORD nextzoom = 352-28 + (zoomnr << 3);
-  UWORD shifttoleft = 0;
-  //WORD linesforzoom = 16;
-
-  WORD ZoomHorizontalStart = 18 - zoomnr * 5;
-  while( ZoomHorizontalStart < 0) {
-      ZoomHorizontalStart += 1 + 18 + zoomnr;
-      shifthoriz--;
-  } 
-
-  for(int i=0;i<22;i++) {
-
-    ZoomHorizontal = ZoomHorizontalStart;
-
-    WORD linesleft = 272;
-    UWORD *pos4source = source+ZMLINESIZE/2+ZMLINESIZE/2*shifthoriz*planes-2-i;
-    UWORD *pos4dest = destination+ZMLINESIZE/2-2-i;
-    
-    UWORD onestep = ZMLINESIZE/2*planes;
-    if( startofword >= nextzoom) { // No vertical scalimg. Use normal copy
-      Init_Copy( shiftright);
-              
-      while(linesleft > 0) {
-        if( linesleft >= ZoomHorizontal+1) {
-          linesleft -= ZoomHorizontal;
-        } else {
-          ZoomHorizontal = linesleft;
-          linesleft = 0;
-        } 
-        UWORD size4blit = ZoomHorizontal*onestep; 
-        //Add aditional line
-        if( linesleft>0) {
-          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
-          UWORD *tmpdest = pos4dest +  size4blit;
-          
-          Zoom_CopyWord( tmpsource, tmpdest, planes);
-          linesleft--;
-        }
-        Zoom_CopyWord( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
-        pos4source += size4blit;
-        pos4dest += size4blit + onestep; 
-        
-        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
-      }
-    } else {  
-      Init_ZoomBlit( startofword, nextzoom, shiftright);   
-      nextzoom -= (19 + zoomnr);
-      while( linesleft > 0) {
-        if( linesleft >= ZoomHorizontal+1) {
-          linesleft -= ZoomHorizontal;
-        } else {
-          ZoomHorizontal = linesleft;
-          linesleft = 0;
-        }
-        UWORD size4blit = ZoomHorizontal*onestep;
-        //Add aditional line
-        if( linesleft>0) {
-          UWORD *tmpsource = pos4source + size4blit + shifttoleft;
-          UWORD *tmpdest = pos4dest + size4blit;
-          
-          Zoom_ZoomBlit( tmpsource, tmpdest, planes);
-          linesleft--;
-        }
-        Zoom_ZoomBlit( pos4source+shifttoleft, pos4dest, ZoomHorizontal*planes);
-        pos4source += size4blit;
-        pos4dest += size4blit + onestep;   
-        ZoomHorizontal = 18 - zoomnr + (zoomnr << 1);
-      }
-      shiftright--;  
-      if(shiftright < 0) {
-        shiftright += 16;
-        shifttoleft = 1;
-      }
-    }
-    startofword -= 16;
-  }
-}
-
 void Zoom_SetBplPointers( UWORD volatile *buffer, ULONG volatile *copper) {
   //                   0  1  1   1   1   0   1   1    1    1    0    1    1    0    1    1
   //int zoomoffset[] = { 0, 0, 42, 42, 84, 84, 84, 126, 126, 168, 168, 168, 210, 210, 210, 332};
@@ -570,67 +292,3 @@ void Zoom_SwapBuffers( UWORD zoomlevel) {
   DrawBuffer = ViewBuffer;
   ViewBuffer = (ULONG *) tmp;
 }
-
-//Without Precalc
-/*void Zoom_SwapBuffers() {
-  ULONG tmp = (ULONG) DrawBuffer;
-  DrawBuffer = ViewBuffer;
-  ViewBuffer = (ULONG *) tmp;
-}*/
-
-/*void Zoom_ZoomIntoPicture2( UWORD *source1, UWORD *source2, UWORD *target, 
-  UWORD levelofzoom, UWORD nrofplanes) {
-
-  
-  UWORD posx4a = 320-7*(levelofzoom-1);
-  UWORD posx4b = 640-14*( levelofzoom-1);
-  UWORD ystart = 8*levelofzoom;
-  target = target + 21;
-  ULONG pos4astart = ( ULONG)source1 + ystart * 40;
-  ULONG pos4bstart = ( ULONG)source2 + ystart * 80;
-  UWORD *zl4word = Zoom_Zl4Words + 21 * (levelofzoom) - 1;
-  WaitBlt();
-  hw->bltafwm = 0xffff;
-  hw->bltalwm = 0xffff;
-  hw->bltdmod = ZMLINESIZE2 - 2;
-  for(int i=1;i<=21;i++) {
-    UWORD *targetpos = target - i;
-    UWORD nrofpixels = 16 - *zl4word;
-    posx4a -= nrofpixels;
-    posx4b -= nrofpixels*2;
-    ULONG pos4a = pos4astart + ( ( posx4a - 1) >> 4) * 2;
-    ULONG pos4b = pos4bstart + ( ( posx4b - 1) >> 4) * 2;
-    //shift channel a = R of (17 + zl - pos)/16
-    UWORD shifta = ( ( 16 + *zl4word - ( posx4a & 0xf)) & 0xf) << 12;
-    //shift channel b = R of (17 - pos)/16 
-    UWORD shiftb = ( (16  - ( posx4b & 0xf)) & 0xf) << 12;
-    UWORD bltcon0 = 0xde4 + shifta;
-    UWORD linesleft = 271;
-    UWORD lines2write;
-    WaitBlt();
-    hw->bltcon1 = shiftb; 
-    hw->bltcon0 = bltcon0;
-    hw->bltcdat = 0xffff >> (*zl4word--*2);
-    while (linesleft > 0) {
-      lines2write = 2*levelofzoom;
-      lines2write = linesleft > lines2write ? lines2write : linesleft;
-      Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 36, 76);
-      pos4a += 40 * lines2write;
-      pos4b += 80 * lines2write;
-      targetpos += lines2write * ZMLINESIZE2/2;
-      linesleft -= lines2write;
-      if( linesleft == 0) break;
-      lines2write = 16 - levelofzoom * 2;
-      lines2write = linesleft > lines2write ? lines2write : linesleft;
-      if( lines2write > 0) {
-        Zoom_ZoomBlit2( pos4a, pos4b, targetpos, lines2write, 76, 156);
-        targetpos += lines2write * ZMLINESIZE2/2;
-        linesleft -= lines2write;
-      }
-    }
-  }
-}*/
-
-
-//123456789ABCDEFG
-//1123456789ABCDEF GG123456789ABCDEF
