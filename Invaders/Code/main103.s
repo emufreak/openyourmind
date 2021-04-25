@@ -25,7 +25,7 @@ STARTPROG:
 
     ;move.w	d0,$88(a6)		; restart copperlist
     IFEQ AGA-1
-    move.w	#$3,$1fc(a6)
+    move.w	#$0,$1fc(a6)
     move.w	#$c00,$106(a6)
     move.w	#$11,$10c(a6)
     ELSE

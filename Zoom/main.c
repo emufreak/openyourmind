@@ -104,11 +104,6 @@ void TakeSystem() {
 }
 
 void FreeSystem() { 
-	/*WaitVbl();
-	WaitBlt();
-	custom->intena=0x7fff;//disable all interrupts
-	custom->intreq=0x7fff;//Clear any interrupts that were pending
-	custom->dmacon=0x7fff;//Clear all DMA channels*/
 
 	//restore interrupts
 	//SetInterruptHandler(SystemIrq);
@@ -123,13 +118,6 @@ void FreeSystem() {
 	custom->dmacon=SystemDMA|0x8000;
 	custom->adkcon=SystemADKCON|0x8000;
 
-	/*LoadView(ActiView);
-	WaitTOF();
-	WaitTOF();
-	WaitBlit();	*()
-	//DisownBlitter();
-	//Enable();
-	//Permit();*/
 }
 
 /*inline short MouseLeft(){return !((*(volatile UBYTE*)0xbfe001)&64);}	
@@ -235,13 +223,15 @@ inline USHORT* screenScanDefault(USHORT* copListEnd) {
 
 int main() {
 
-	ULONG *bp = 0x100;
+	UWORD *bp = 0x100;
 	*bp = 0;
+
 	//Get AMOS Params
 	register ULONG *asmparams;
 	asm("\t move.l %%a3,%0" : "=r"(asmparams));
-	Zoom_Rawchip = *asmparams++;
-	Zoom_Rawfast = *asmparams;
+	Zoom_Rawany = *asmparams++;
+	Zoom_Rawfast = *asmparams++;
+	Zoom_Rawchip = *asmparams;
 
 	ULONG tmp = 4;
     SysBase = *((struct ExecBase**)tmp);

@@ -71,6 +71,7 @@ extern UWORD *Zoom_Source;
 extern UWORD ZoomBlit_Increment4SrcA;
 extern ULONG Zoom_Rawchip;
 extern ULONG Zoom_Rawfast;
+extern ULONG Zoom_Rawany;
 extern struct Interrupt *Zoom_vbint;
 
 extern UWORD Zoom_Counter;

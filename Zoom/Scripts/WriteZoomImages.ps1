@@ -87,12 +87,15 @@ for($i=0;$i -lt 88;$i++) {
     Convert-BPL $ifmt
 }
 
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0|1|2|3|4|5].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_1.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[6][012].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_2.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0][0|1].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0][2|3|4|5|6|7|8|9].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_1.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[1].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_2.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[2][0|1|2|3|4|5|6].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_3.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[2][7|8|9].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_1.raw" -Encoding Byte
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[3|4|5|6|7|8].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_2.raw" -Encoding Byte
+
+Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_any_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any.raw" -Encoding Byte
 Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_fast_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[6][3456789].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip_1.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[7|8].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip_2.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_chip_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip.raw" -Encoding Byte
 
 $paletteraw = [System.IO.File]::ReadAllBytes("$dstfolder\..\raw\zoom_00.raw.pal")
 $prefix = ""

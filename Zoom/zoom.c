@@ -22,6 +22,7 @@ WORD Zoom_Direction;
 WORD ZoomHorizontal;
 ULONG Zoom_Rawchip;
 ULONG Zoom_Rawfast;
+ULONG Zoom_Rawany;
 
 
 #include "zoom102.h"
@@ -52,12 +53,14 @@ void Zoom_Run() {
     while(1) {
       WaitVbl();
       if( Zoom_DrawPicture == 1) {    
-        Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
+        if( Zoom_Pic > 1) {
+          Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
+        }
         Zoom_DrawPicture = 0;
         Zoom_Pic++;
       }  
       if(Zoom_Pic == 87 ) {
-        Zoom_Pic = 11;
+        Zoom_Pic = 10;
         break;
       }
     }  
@@ -81,7 +84,7 @@ void Zoom_VblankHandler() {
       if( Zoom_LevelOf102Zoom <= 2) {
  
         if( Zoom_LevelOfZoom == 87)
-          Zoom_LevelOfZoom = 0;
+          Zoom_LevelOfZoom = 10;
         else
           Zoom_LevelOfZoom++;
         Zoom_LevelOf102Zoom = 15;// MaxZoom102[ Zoom_LevelOfZoom] - 1;          
@@ -125,12 +128,17 @@ void Zoom_InitRun() {
   Zoom_Rawfast = rawzoom_fast;*/
 
   int i = 0;
-  for(;i<63;i++) {
-    imgptrs[i] = Zoom_Rawfast + 56280*i;
+
+  for(;i<2;i++) {
+    imgptrs[i] = Zoom_Rawchip + 56280*i;
+  }
+
+  for(;i<27;i++) {
+    imgptrs[i] = Zoom_Rawany + 56280*(i-2);
   }
 
   for(;i<88;i++) {
-    imgptrs[i] = Zoom_Rawchip + 56280*(i-63);
+    imgptrs[i] = Zoom_Rawfast + 56280*(i-27);
   }
 
   Zoom_Counter = 0;
@@ -165,10 +173,12 @@ void Zoom_Dealloc() {
 }
   
 int Zoom_PrepareDisplay() {
-  ViewBuffer = AllocVec(268*42*5, MEMF_CHIP);  
-  DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);
-  Utils_CopyMem( imgptrs[0], ViewBuffer, 14070);
-  Utils_CopyMem( imgptrs[0], DrawBuffer, 14070);
+  ViewBuffer = imgptrs[0];
+  DrawBuffer = imgptrs[1];
+  /*ViewBuffer = AllocVec(268*42*5, MEMF_CHIP);  
+  DrawBuffer = AllocVec(268*42*5, MEMF_CHIP);*/
+  /*Utils_CopyMem( imgptrs[0], ViewBuffer, 14070);
+  Utils_CopyMem( imgptrs[0], DrawBuffer, 14070);*/
   Copperlist1 = ClbuildZoom( );
   Copperlist2 = ClbuildZoom( );
   

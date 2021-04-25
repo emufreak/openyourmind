@@ -132,7 +132,7 @@ copperlist:
 	dc.w	$8E,$2c81	                 ; DiwStrt
 	dc.w	$90,$2cc1	                 ; DiwStop
 	dc.w	$92,$38		                 ; DdfStart
-	dc.w	$94,$a0		                 ; DdfStop
+	dc.w	$94,$d0		                 ; DdfStop
 	
 	;dc.w	$8E,$2c81	                 ; DiwStrt
 	;dc.w	$90,$2cc1	                 ; DiwStop
