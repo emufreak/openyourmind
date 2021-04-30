@@ -17,7 +17,7 @@ OUT = a.mingw
 CC = m68k-amiga-elf-gcc
 
 #-Ofast
-CCFLAGS = -g -Ofast -MP -MMD -m68000 -nostdlib -Wall -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
+CCFLAGS = -g -MP -MMD -Ofast -m68000 -nostdlib -Wall -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
 ASFLAGS = -Wa,-g
 LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(OUT).map
 
@@ -51,3 +51,8 @@ $(c_objects) : obj/%.o : %.c
 	@if not exist "$(call forward-to-backward,$(dir $@))" mkdir $(call forward-to-backward,$(dir $@))
 	$(info Compiling $<)
 	@$(CC) $(CCFLAGS) -c -o $@ $(CURDIR)/$<
+
+obj/utilsasm.o: utilsasm.s
+	$(info Assembling $<)
+	@$(CC) $(CCFLAGS) $(ASFLAGS) -xassembler-with-cpp -c -o $@ $(CURDIR)/$<
+

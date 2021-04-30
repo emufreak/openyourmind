@@ -35,6 +35,15 @@ ULONG Zoom_Rawany;
 //INCBIN(rawzoom_fast,"raw/zoom_fast.raw");
 //INCBIN_CHIP(rawzoom_chip,"raw/zoom_chip.raw");
 
+ULONG Zoom_Lz4size[] = { 42511,42463,42421,42270,41751,40738,39996,39060,37874,36892,36241,35321,34728,34474,
+                         33997,33503,33142,32668,32214,31291,29034,29228,28869,28638,28164,27978,27914,27868,
+                         27796,27882,27670,27536,27596,27654,27940,28067,28193,28130,28262,28434,29583,29469,
+                         29172,28684,28569,28591,28603,28773,29030,29621,30053,30511,31099,31719,31338,31530,
+                         31063,30853,30290,30091,29776,29559,29388,29023,28781,28111,27382,27147,27092,27381,
+                         28005,28825,29293,30005,30963,31638,32827,33742,34658,35468,36421,37422,39767,39770,
+                         39992,39800,39661,39092
+                      };
+
 ULONG imgptrs[] = {  0,0,0,0,0,0,0,0,0,0,
                      0,0,0,0,0,0,0,0,0,0,
                      0,0,0,0,0,0,0,0,0,0,
@@ -54,7 +63,8 @@ void Zoom_Run() {
       WaitVbl();
       if( Zoom_DrawPicture == 1) {    
         if( Zoom_Pic > 1) {
-          Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
+          __DecompressLZ4( imgptrs[Zoom_Pic], DrawBuffer, Zoom_Lz4size[Zoom_Pic]-19);
+          //Utils_CopyMem(imgptrs[Zoom_Pic], DrawBuffer, 14070);  
         }
         Zoom_DrawPicture = 0;
         Zoom_Pic++;
@@ -89,14 +99,10 @@ void Zoom_VblankHandler() {
           Zoom_LevelOfZoom++;
         Zoom_LevelOf102Zoom = 15;// MaxZoom102[ Zoom_LevelOfZoom] - 1;          
         Zoom_SwapBuffers(  Zoom_LevelOfZoom);
-        /*Zoom_SetBplPointers( ViewBuffer, ViewCopper);
-        Zoom_SetBplPointers( ViewBuffer, DrawCopper);*/
-        ULONG *bp = 0x102;
-  	    *bp = 0;
-        Zoom_DrawPicture = 1;     
+        Zoom_DrawPicture = 1;
       } else 
         Zoom_LevelOf102Zoom-=2;
-    //}
+
   Zoom_Shrink102(   Zoom_LevelOf102Zoom, (UWORD *) DrawCopper);
   Zoom_SetBplPointers(ViewBuffer, DrawCopper);
  
@@ -133,12 +139,16 @@ void Zoom_InitRun() {
     imgptrs[i] = Zoom_Rawchip + 56280*i;
   }
 
+  ULONG tmp = 11;
   for(;i<27;i++) {
-    imgptrs[i] = Zoom_Rawany + 56280*(i-2);
+    imgptrs[i] = Zoom_Rawany + tmp;
+    tmp += Zoom_Lz4size[i];
   }
 
+  tmp = 11;
   for(;i<88;i++) {
-    imgptrs[i] = Zoom_Rawfast + 56280*(i-27);
+    imgptrs[i] = Zoom_Rawfast + tmp;
+    tmp += Zoom_Lz4size[i];
   }
 
   Zoom_Counter = 0;

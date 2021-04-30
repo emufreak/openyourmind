@@ -35,19 +35,35 @@ function Convert-BPL($nr) {
     $binary = ".\kingcon.exe"
     cd $srcfolder    
     #Start-Process -FilePath $binary -ArgumentList $arglist -NoNewWindow -Wait
-    & $binary $arglist | Out-Null
-    #echo $arglist
-
+    .\kingcon.exe $arglist | Out-Null
+    
 } #Run-Gimpactions
 
+function Convert-LZ4($nr) {
 
-$width = 8400
+    #Build Insturctions
+    $arglist = New-Object -TypeName "System.Collections.ArrayList"
+    $arglist.Add("zoom_$nr.BPL")
+    $arglist.Add("zoom_$nr.lz4")
+     
+    $arglist.Add($batch)       
+
+    $srcfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Zoom\\Scripts"
+    $binary = "lz4.exe"
+    cd $srcfolder    
+    #Start-Process -FilePath $binary -ArgumentList $arglist -NoNewWindow -Wait
+    $string = "cd C:\Users\uersu\Documents\GitData\voidanniversary\Zoom\raw & lz4 zoom_$nr.BPL zoom_$nr.lz4"   
+    cd C:\Users\uersu\Documents\GitData\voidanniversary\Zoom\raw
+    lz4 --best --favor-decSpeed -f $arglist
+        
+} #Run-Gimpactions
+
+function Create-Images() {
+    $width = 8400
 $height = 6800
 $xoffset = 0
 $yoffset = 0
 $i = 0
-
-$dstfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Zoom\\Scripts" 
 
 while($i -lt 88) {
     $iwidth = [math]::Round($width)
@@ -80,43 +96,73 @@ while($i -lt 88) {
 
 $Shell = New-Object -ComObject "WScript.Shell"
 $Button = $Shell.Popup("Wait till Gimp is finished then press ok", 0, "Script Paused", 0)
+        
+} #Run-Gimpactions
 
-$content = 0;
-for($i=0;$i -lt 88;$i++) { 
+function Convert-BPL-All() {
+    $content = 0;
+    for($i=0;$i -lt 88;$i++) { 
     $ifmt = "{0:D2}" -f $i 
     Convert-BPL $ifmt
+    }
 }
 
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0][0|1].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[0][2|3|4|5|6|7|8|9].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_1.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[1].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_2.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[2][0|1|2|3|4|5|6].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_3.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[2][7|8|9].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_1.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.BPL | Where-Object { $_.Name -Match 'zoom_[3|4|5|6|7|8].*.BPL' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_2.raw" -Encoding Byte
-
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_any_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any.raw" -Encoding Byte
-Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_fast_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast.raw" -Encoding Byte
-
-$paletteraw = [System.IO.File]::ReadAllBytes("$dstfolder\..\raw\zoom_00.raw.pal")
-$prefix = ""
-$palettereg = 0x1800000
-$palette = ""
-for($i=0;$i -lt 0x60;$i+=3) { 
-   echo $i
-   $red =  [Convert]::ToByte($paletteraw[$i])
-   $green =  [Convert]::tobyte($paletteraw[$i+1])
-   $blue =  [Convert]::tobyte($paletteraw[$i+2])
-
-   $red = [math]::Round($red/17)
-   $green = [math]::Round($green/17)
-   $blue = [math]::Round($blue/17)
-   [Int]$color = $palettereg + $red * 16 * 16 + $green * 16 + $blue
-   $colorstr = "{0:x}" -f $color
-   $palette = "$($palette)$($prefix)0x$($colorstr)"
-   $prefix = ","
-   $palettereg += 0x0020000
+function Convert-Lz4-All() {
+    $content = 0;
+    for($i=0;$i -lt 88;$i++) { 
+        $ifmt = "{0:D2}" -f $i 
+        Convert-LZ4 $ifmt
+    }
+    
+    $content = 0;
+    $result = "";
+    $delimiter = ""
+    cd $dstfolder\..\raw
+    for($i=0;$i -lt 88;$i++) { 
+        $ifmt = "{0:D2}" -f $i 
+        $tmp = (Get-Item zoom_$ifmt.lz4).Length
+        $result = "$result$delimiter$tmp"
+        $delimiter = ","
+    }
+    echo $result
 }
-echo $palette
+
+function CreateMemBanks() {
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[0][0|1].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_chip.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[0][2|3|4|5|6|7|8|9].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_1.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[1].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_2.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[2][0|1|2|3|4|5|6].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any_3.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[2][7|8|9].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_1.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.lz4 | Where-Object { $_.Name -Match 'zoom_[3|4|5|6|7|8].*.lz4' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast_2.raw" -Encoding Byte
+
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_any_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_any.raw" -Encoding Byte
+    Get-ChildItem "$dstfolder\\..\\raw\\*" -include *.raw | Where-Object { $_.Name -Match 'zoom_fast_.*.raw' } | Get-Content -Encoding Byte | Set-Content "$dstfolder\\..\\raw\\zoom_fast.raw" -Encoding Byte
+
+    $paletteraw = [System.IO.File]::ReadAllBytes("$dstfolder\..\raw\zoom_00.raw.pal")
+    $prefix = ""
+    $palettereg = 0x1800000
+    $palette = ""
+
+    for($i=0;$i -lt 0x60;$i+=3) { 
+        echo $i
+        $red =  [Convert]::ToByte($paletteraw[$i])
+        $green =  [Convert]::tobyte($paletteraw[$i+1])
+        $blue =  [Convert]::tobyte($paletteraw[$i+2])
+
+        $red = [math]::Round($red/17)
+        $green = [math]::Round($green/17)
+        $blue = [math]::Round($blue/17)
+        [Int]$color = $palettereg + $red * 16 * 16 + $green * 16 + $blue
+        $colorstr = "{0:x}" -f $color
+        $palette = "$($palette)$($prefix)0x$($colorstr)"
+        $prefix = ","
+        $palettereg += 0x0020000
+    }
+    echo $palette
+}
+$dstfolder = "C:\\Users\\uersu\\Documents\\GitData\\voidanniversary\\Zoom\\Scripts" 
+
+
 
                          
 #$test2 =  [Convert]::tobyte($test[15])

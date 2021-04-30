@@ -26,6 +26,7 @@
 #include <exec/execbase.h>
 #include <hardware/custom.h>
 #include <hardware/intbits.h>
+#include "utilsasm.h"
 
 extern UWORD *Zoom_StartImage;
 extern UWORD Zoom_MouseReleased;
